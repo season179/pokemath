@@ -102,6 +102,10 @@ export function makeButton(parent: Node, opts: ButtonOpts): Node {
     color: Color.WHITE,
   });
   label.horizontalAlign = Label.HorizontalAlign.CENTER;
+  // SHRINK needs a real content box; without one the label keeps the
+  // default 100×40 UITransform and long text wraps inside it.
+  label.node.getComponent(UITransform)!.setContentSize(opts.w - 28, opts.h - 8);
+  label.enableWrapText = false;
   label.overflow = Label.Overflow.SHRINK;
 
   if (opts.onTap) {

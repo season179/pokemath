@@ -46,12 +46,14 @@ export class QuestionView {
       lineWidth: 5,
     });
 
+    // Keep the text boxes inside the card: half-height is 165, so a box's
+    // center + half its height must stay under ~145 (20px padding).
     const contextH = turn.step ? 84 : 125;
-    makeWrappedLabel(card, q.question_zh, 0, 112, 760, contextH, {
+    makeWrappedLabel(card, q.question_zh, 0, turn.step ? 112 : 80, 760, contextH, {
       fontSize: turn.step ? 17 : 22,
       lineHeight: turn.step ? 22 : 28,
     });
-    makeWrappedLabel(card, q.question_en, 0, turn.step ? 48 : 15, 760, contextH, {
+    makeWrappedLabel(card, q.question_en, 0, turn.step ? 48 : -17, 760, contextH, {
       fontSize: turn.step ? 13 : 17,
       color: PALETTE.sub,
       lineHeight: turn.step ? 17 : 22,
