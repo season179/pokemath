@@ -67,8 +67,22 @@ workspace gymnastics for ~500 lines.
   parameter properties (`constructor(private x)`) — type-stripping is
   erase-only. (Phase 1's Cocos sync may need to strip extensions.)
 
-## Phase 1 — Cocos port (gameplay parity)
-- New Cocos Creator 3.8.x project in `game/`, TypeScript components.
+## Phase 1 — Cocos port (gameplay parity) — IN PROGRESS
+- **Kickoff (manual, one-time):** install Cocos Creator 3.8.x via Cocos
+  Dashboard (account login required), create an empty 2D project at
+  `game/`, commit the generated skeleton. This is the *only* required
+  editor interaction: hand-authoring the project skeleton is a trap —
+  `.scene` files reference scripts by *compressed UUID* (not class name),
+  `.meta` files carry importer `ver` stamps, and the editor silently
+  rewrites or rejects hand-authored files. Everything after this is code.
+- `npm run sync` (`tools/sync-shared.mjs`) copies `shared/` into
+  `game/assets/shared/`, stripping `.ts` import extensions (Cocos's
+  bundler rejects them). Tests/examples are excluded.
+- Architecture: **one `cc.Scene` + one `Main.ts` bootstrap component**;
+  world/battle/shop are plain TS classes driven by our own scene manager
+  (`Director.loadScene` is too heavy for fluid screen swaps). Everything
+  visual is built at runtime via `Node`/`Graphics`/`Label`/`Sprite`.
+- Input: keyboard via `input.on(EventKeyboard)` + touch on UI nodes.
 - Scenes rebuilt code-first: World (tile map, keyboard **and touch** —
   iPad matters for the kids), Battle with question bubble, Shop with the
   change question, question UI with near-miss choices.

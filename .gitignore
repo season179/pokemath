@@ -6,3 +6,10 @@ build/
 
 # Downloaded art samples — reference only, never committed (no licenses)
 art-samples/
+
+# Cocos Creator generated folders (game/)
+game/library/
+game/temp/
+game/local/
+game/profiles/
+game/build/
