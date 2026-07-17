@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Question Engine Tester</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2b2b3d;
+    font-family: sans-serif;
+  }
+  #game {
+    border: 6px solid #1a1a28;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  canvas.width = 768;
+  canvas.height = 576;
+</script>
+<script src="questions-data.js"></script>
+<script src="questions.js"></script>
+<script>
+  // Endless quiz loop with a running score, for testing the engine on its own.
+  // Multi-step questions play out as consecutive turns, one step each.
+  let score = 0, total = 0, pending = [];
+  function next() {
+    if (pending.length === 0) pending = questionTurns(pickQuestion());
+    askQuestion(pending.shift(), (correct) => {
+      total++;
+      if (correct) score++;
+      next();
+    });
+  }
+  next();
+
+  (function loop() {
+    drawQuestion();
+    ctx.fillStyle = "#3b4a6b";
+    ctx.font = "bold 18px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`Score: ${score}/${total}`, canvas.width - 28, canvas.height - 16);
+    ctx.textAlign = "left";
+    requestAnimationFrame(loop);
+  })();
+</script>
+</body>
+</html>
