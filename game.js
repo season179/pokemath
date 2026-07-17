@@ -178,7 +178,7 @@ function loop() {
     update();
     draw();
   } else if (scene === "battle") {
-    drawBattle();
+    drawBattle(); // includes the question bubble when the monster is asking
   }
   requestAnimationFrame(loop);
 }

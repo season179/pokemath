@@ -48,16 +48,30 @@ function rollDamage(attacker) {
   return attacker.attack + Math.floor(Math.random() * 3);
 }
 
+// Attacking means answering the monster's question: it asks a word problem
+// in a speech bubble and the answer options are your attack moves. The right
+// answer hits (× and ÷ hit harder); a wrong answer does no damage.
 function playerAttack() {
-  const dmg = rollDamage(active);
-  battle.wild.hp = Math.max(0, battle.wild.hp - dmg);
-  say([`${active.name} attacks! ${dmg} damage!`], () => {
-    if (battle.wild.hp === 0) {
-      say([`${battle.wild.name} fainted.`, "You won! Hooray!"], giveXp);
-    } else {
-      wildAttack();
+  const turn = questionTurns(pickQuestion((q) => !q.steps))[0];
+  const expr = turn.q.expression;
+  const ans = turn.q.answer;
+  battle.phase = "question";
+  askQuestion(turn, (correct) => {
+    if (!correct) {
+      say([`Not quite... ${expr} = ${fmtNum(ans)}`, "The attack did no damage!"], wildAttack);
+      return;
     }
-  });
+    const hard = /multiplication|division/.test(turn.q.operation);
+    const dmg = rollDamage(active) + (hard ? 3 : 0);
+    battle.wild.hp = Math.max(0, battle.wild.hp - dmg);
+    say([`Correct! ${expr} = ${fmtNum(ans)}`, `${active.name} attacks! ${dmg} damage!`], () => {
+      if (battle.wild.hp === 0) {
+        say([`${battle.wild.name} fainted.`, "You won! Hooray!"], giveXp);
+      } else {
+        wildAttack();
+      }
+    });
+  }, { feedback: false });
 }
 
 function wildAttack() {
@@ -149,7 +163,7 @@ function canvasPoint(e) {
 }
 
 window.addEventListener("click", (e) => {
-  if (scene !== "battle" || !battle) return;
+  if (scene !== "battle" || !battle || questionActive()) return;
   if (battle.phase === "msg") { advanceMsg(); return; }
   const p = canvasPoint(e);
   for (const b of battle.buttons) {
@@ -161,7 +175,7 @@ window.addEventListener("click", (e) => {
 });
 
 window.addEventListener("keydown", (e) => {
-  if (scene !== "battle" || !battle) return;
+  if (scene !== "battle" || !battle || questionActive()) return;
   if (e.code === "Space" || e.code === "Enter") {
     if (battle.phase === "msg") advanceMsg();
     else if (battle.phase === "menu") playerAttack();
@@ -359,5 +373,7 @@ function drawBattle() {
       );
     }
     battle.buttons.forEach(drawButton);
+  } else if (battle.phase === "question" && questionActive()) {
+    drawQuestionBubble(boxY); // the wild creature asks; options are the moves
   }
 }

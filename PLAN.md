@@ -50,14 +50,16 @@ turns each step into its own answer turn so kids solve one piece at a time.
 
 ### Slice 7: Question engine
 - Load a question bank JSON; render a word problem (both languages)
-- Number-pad answer input (answers are big, e.g. 46390 — no multiple choice)
+- Multiple choice: the right answer + three near-miss distractors scaled to
+  the answer's size, so options can only be told apart by doing the math
 - Right/wrong feedback that shows the expression and correct answer
 - Standalone module, testable outside battle
 
 ### Slice 8: Attack = solve
-- Attack presents a single-operation question; correct = hit, wrong = miss
+- The wild creature asks the question in a speech bubble (monster dialogue)
+- The answer options are the attack moves: right = hit, wrong = no damage
 - Damage scales with operation difficulty (× ÷ hit harder than + −)
-- Wrong answers always show the working, then the wild creature strikes back
+- The working is always shown afterwards, then the wild creature strikes back
 
 ### Slice 9: Boss battles
 - Multi-step `mixed` questions (with tables) power rare, strong wild creatures
