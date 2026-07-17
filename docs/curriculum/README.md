@@ -14,7 +14,7 @@ prompt can be constrained to age-correct items.
 | Standard 3 (三年级) | [standard-3-sjkc-math.md](./standard-3-sjkc-math.md) | ≤ 10 000 | `+ − × ÷` (multi-digit; combined) | 9 topics; +percentages, unit conversion, symmetry, coordinates, pie chart; first multi-step |
 | Standard 4 (四年级) | [standard-4-sjkc-math.md](./standard-4-sjkc-math.md) | ≤ 100 000 | `+ − × ÷` (mixed `×÷`) | 8 topics; +even/odd, unknowns (pre-algebra), area/perimeter/volume, ratio & proportion, (x,y) coords; **Tahap 2 / UASA** |
 | Standard 5 (五年级) | [standard-5-sjkc-math.md](./standard-5-sjkc-math.md) | ≤ 1 000 000 | `+ − × ÷` (bracketed `+×`, `−×`, `+÷`, `−÷`) | 8 topics; +primes, ×/÷ unknowns, fraction multiplication, >100%, finance concepts, composite geometry, coordinate distance, mean/median/mode/range; **Tahap 2 / UASA** |
-| Standard 6 | _not yet researched_ | — | — | — |
+| Standard 6 (六年级) | [standard-6-sjkc-math.md](./standard-6-sjkc-math.md) | ≤ 10 000 000 | `+ − × ÷` (two operation types; fractions/decimals) | 8 topics; +million-unit forms, fraction division, commerce/insurance, time zones, measurement relationships, angle/circle construction, scaled coordinates, pie completion & qualitative likelihood; **Tahap 2 / UASA** |
 
 ### Question-style layers (how questions are *asked*)
 
@@ -33,7 +33,7 @@ instead of only word problems.
 | Standard 3 (三年级) | [standard-3-question-style.md](./standard-3-question-style.md) | ✅ ~35 formats, all 9 topics + extras, verbatim from 29 text-based buxi unit tests + DPK/DSKP; adds multi-step, percentages, compound units, symmetry, coordinates, pie charts; **no exam** (PBD only) |
 | Standard 4 (四年级) | [standard-4-question-style.md](./standard-4-question-style.md) | ✅ ~20 formats, all 8 topics, verbatim examples from real papers |
 | Standard 5 (五年级) | [standard-5-question-style.md](./standard-5-question-style.md) | ✅ 27 formats, all 8 topics, DSKP-filtered examples from Chinese objective/constructed-response papers; explicitly rejects pre-2019 scope leakage |
-| Standard 6 | — | _not yet layered_ |
+| Standard 6 (六年级) | [standard-6-question-style.md](./standard-6-question-style.md) | ✅ 32 formats, all 8 topics, 2021-DSKP-filtered Chinese unit-sheet examples; adds construction, scaled-grid, document, time-zone, and qualitative-likelihood formats |
 
 **Key insight:** formats are largely **topic-independent** — the same reusable core
 recur across fractions, money, and geometry. The cross-cutting taxonomy (§A of the
