@@ -34,6 +34,7 @@ export class GameApp {
   }
 
   start() {
+    this.enableCanvasKeyboardFocus();
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     this.buildDpad();
@@ -41,6 +42,23 @@ export class GameApp {
 
   update(dt: number) {
     if (this.screen === "world") this.world.update(dt);
+  }
+
+  // Cocos 3.8's web keyboard source listens on #GameCanvas (not window).
+  // Canvas is not keyboard-focusable by default, so physical keys vanish
+  // unless we opt it in and focus it. Re-focus after every pointer press;
+  // release held directions on blur so a missed keyup cannot cause drift.
+  private enableCanvasKeyboardFocus() {
+    if (typeof document === "undefined") return;
+    const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    canvas.tabIndex = 0;
+    canvas.style.outline = "none";
+    const focus = () => canvas.focus({ preventScroll: true });
+    canvas.addEventListener("pointerdown", focus);
+    canvas.addEventListener("blur", () => this.world.releaseAll());
+    focus();
   }
 
   // --- keyboard ---
