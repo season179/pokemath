@@ -1,4 +1,4 @@
-// Slice 3: turn-based 1v1 battle with HP bars, win/lose, and respawn on faint.
+// Slice 5: team battles — choose who fights, switch mid-battle, forced switch on faint.
 const CREATURES = [
   { name: "Addlepuff",    color: "#f48fb1", maxHp: 15, attack: 3 },
   { name: "Subtractopus", color: "#9575cd", maxHp: 17, attack: 4 },
@@ -6,22 +6,21 @@ const CREATURES = [
   { name: "Digitell",     color: "#ffb74d", maxHp: 14, attack: 4 },
 ];
 
-// The player's buddy. Team switching arrives in Slice 5.
 const STARTER = { name: "Multiplybara", color: "#81c784", maxHp: 22, attack: 5 };
-const myCreature = { ...STARTER, hp: STARTER.maxHp };
-const team = [myCreature];
+const team = [{ ...STARTER, hp: STARTER.maxHp }];
+let active = team[0];
 
 const PLAYER_SPAWN = { x: 2, y: 3 };
 
 let ENCOUNTER_RATE = 0.2; // chance per step onto tall grass
 let scene = "world";      // world | battle
-let battle = null;        // { wild, phase: msg | menu, msgs, onMsgsDone, buttons }
+let battle = null;        // { wild, phase: msg | menu | switch, msgs, onMsgsDone, buttons, switchForced }
 
 function maybeStartEncounter() {
   if (tileAt(player.x, player.y) !== "G") return;
   if (Math.random() >= ENCOUNTER_RATE) return;
   const c = CREATURES[Math.floor(Math.random() * CREATURES.length)];
-  battle = { wild: { ...c, hp: c.maxHp }, phase: "msg", msgs: [], buttons: [] };
+  battle = { wild: { ...c, hp: c.maxHp }, phase: "msg", msgs: [], buttons: [], switchForced: false };
   scene = "battle";
   say([`A wild ${c.name} appeared!`], () => { battle.phase = "menu"; });
 }
@@ -38,15 +37,19 @@ function advanceMsg() {
   if (battle.msgs.length === 0) battle.onMsgsDone();
 }
 
+function benchedFighters() {
+  return team.filter((c) => c !== active && c.hp > 0);
+}
+
 // --- Turn flow ---
 function rollDamage(attacker) {
   return attacker.attack + Math.floor(Math.random() * 3);
 }
 
 function playerAttack() {
-  const dmg = rollDamage(myCreature);
+  const dmg = rollDamage(active);
   battle.wild.hp = Math.max(0, battle.wild.hp - dmg);
-  say([`${myCreature.name} attacks! ${dmg} damage!`], () => {
+  say([`${active.name} attacks! ${dmg} damage!`], () => {
     if (battle.wild.hp === 0) {
       say([`${battle.wild.name} fainted.`, "You won! Hooray!"], endBattle);
     } else {
@@ -57,20 +60,30 @@ function playerAttack() {
 
 function wildAttack() {
   const dmg = rollDamage(battle.wild);
-  myCreature.hp = Math.max(0, myCreature.hp - dmg);
+  active.hp = Math.max(0, active.hp - dmg);
   say([`${battle.wild.name} attacks back! ${dmg} damage!`], () => {
-    if (myCreature.hp === 0) {
-      say([`${myCreature.name} fainted...`, "You hurry home to rest."], () => {
-        player.x = PLAYER_SPAWN.x;
-        player.y = PLAYER_SPAWN.y;
-        player.px = player.x * TILE;
-        player.py = player.y * TILE;
-        player.dir = "down";
-        endBattle();
-      });
-    } else {
+    if (active.hp > 0) {
       battle.phase = "menu";
+    } else if (benchedFighters().length > 0) {
+      say([`${active.name} fainted...`], () => beginSwitch(true));
+    } else {
+      say([`${active.name} fainted...`, "All your friends are tired!", "You hurry home to rest."], respawnHome);
     }
+  });
+}
+
+function beginSwitch(forced) {
+  battle.phase = "switch";
+  battle.switchForced = forced;
+}
+
+function switchTo(c) {
+  const forced = battle.switchForced;
+  battle.switchForced = false;
+  active = c;
+  say([`Go, ${c.name}!`], () => {
+    if (forced) battle.phase = "menu"; // wild already had its turn this round
+    else wildAttack();                 // a chosen switch costs your turn
   });
 }
 
@@ -92,8 +105,17 @@ function runAway() {
   say(["Got away safely!"], endBattle);
 }
 
+function respawnHome() {
+  player.x = PLAYER_SPAWN.x;
+  player.y = PLAYER_SPAWN.y;
+  player.px = player.x * TILE;
+  player.py = player.y * TILE;
+  player.dir = "down";
+  endBattle();
+}
+
 function endBattle() {
-  myCreature.hp = myCreature.maxHp; // no potions yet, so heal after every battle
+  team.forEach((c) => { c.hp = c.maxHp; }); // no potions yet, so heal after every battle
   battle = null;
   scene = "world";
   for (const k in keys) keys[k] = false; // drop any keys held during battle
@@ -111,7 +133,6 @@ function canvasPoint(e) {
 window.addEventListener("click", (e) => {
   if (scene !== "battle" || !battle) return;
   if (battle.phase === "msg") { advanceMsg(); return; }
-  if (battle.phase !== "menu") return;
   const p = canvasPoint(e);
   for (const b of battle.buttons) {
     if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) {
@@ -130,8 +151,9 @@ window.addEventListener("keydown", (e) => {
   } else if (e.code === "KeyC" && battle.phase === "menu") {
     throwBall();
     e.preventDefault();
-  } else if (e.code === "Escape" && battle.phase === "menu") {
-    runAway();
+  } else if (e.code === "Escape") {
+    if (battle.phase === "menu") runAway();
+    else if (battle.phase === "switch" && !battle.switchForced) battle.phase = "menu";
     e.preventDefault();
   }
 });
@@ -203,9 +225,9 @@ function drawButton(b) {
   ctx.roundRect(b.x, b.y, b.w, b.h, 12);
   ctx.fill();
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 24px sans-serif";
+  ctx.font = "bold 22px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(b.label, b.x + b.w / 2, b.y + 34);
+  ctx.fillText(b.label, b.x + b.w / 2, b.y + 33);
   ctx.textAlign = "left";
 }
 
@@ -247,8 +269,8 @@ function drawBattle() {
   ctx.beginPath();
   ctx.ellipse(W * 0.25, H * 0.72, 150, 38, 0, 0, Math.PI * 2);
   ctx.fill();
-  drawCreature(W * 0.25, H * 0.575, myCreature.color, 70);
-  drawHpPanel(W - 274, H * 0.60, myCreature);
+  drawCreature(W * 0.25, H * 0.575, active.color, 70);
+  drawHpPanel(W - 274, H * 0.60, active);
 
   // text box
   const boxY = H - 130;
@@ -270,12 +292,31 @@ function drawBattle() {
       ctx.fillText("▼", W - 60, boxY + 90);
     }
   } else if (battle.phase === "menu") {
-    ctx.fillText(`What will ${myCreature.name} do?`, 40, boxY + 45);
+    ctx.fillText(`What will ${active.name} do?`, 40, boxY + 45);
     battle.buttons = [
       { x: W - 476, y: boxY + 48, w: 140, h: 52, label: "Attack", color: "#42a5f5", action: playerAttack },
       { x: W - 324, y: boxY + 48, w: 140, h: 52, label: "Catch",  color: "#ab47bc", action: throwBall },
       { x: W - 172, y: boxY + 48, w: 140, h: 52, label: "Run",    color: "#ff8a65", action: runAway },
     ];
+    if (benchedFighters().length > 0) {
+      battle.buttons.unshift(
+        { x: W - 628, y: boxY + 48, w: 140, h: 52, label: "Switch", color: "#8d6e63", action: () => beginSwitch(false) }
+      );
+    }
+    battle.buttons.forEach(drawButton);
+  } else if (battle.phase === "switch") {
+    ctx.fillText("Who will fight?", 40, boxY + 45);
+    battle.buttons = benchedFighters().map((c, i) => ({
+      x: 40 + i * 175, y: boxY + 48, w: 165, h: 52,
+      label: c.name.length > 12 ? c.name.slice(0, 11) + "…" : c.name,
+      color: c.color,
+      action: () => switchTo(c),
+    }));
+    if (!battle.switchForced) {
+      battle.buttons.push(
+        { x: W - 150, y: boxY + 48, w: 118, h: 52, label: "Back", color: "#90a4ae", action: () => { battle.phase = "menu"; } }
+      );
+    }
     battle.buttons.forEach(drawButton);
   }
 }
