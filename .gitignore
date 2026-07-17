@@ -13,3 +13,6 @@ game/temp/
 game/local/
 game/profiles/
 game/build/
+
+# Cocos native build output
+game/native/
