@@ -101,8 +101,7 @@ pokemath/
 │   ├── src/api.ts          Player/save/claim endpoints (D1)
 │   ├── src/auth.ts         Tokens (hash-only at rest) and save codes
 │   └── migrations/         D1 schema
-├── tools/                  Shared-sync and Cocos UUID utilities
-└── *.js, *.html            Frozen vanilla prototype (reference only)
+└── tools/                  Shared-sync and Cocos UUID utilities
 ```
 
 ### Boundaries
@@ -137,7 +136,9 @@ the repository `.gitignore` excludes them.
 Downloaded or unlicensed visual references belong in the ignored
 `art-samples/` directory and must not be pushed.
 
-## Prototype
+## History
 
-The root JavaScript/HTML game remains frozen as a behavioral reference. New
-product code is TypeScript only; do not extend the prototype.
+The game began as a vanilla JavaScript/HTML prototype in the repository
+root; it was fully ported to the TypeScript domain library and Cocos client,
+then deleted. It remains available in git history if a behavioral question
+ever comes up. All product code is TypeScript.

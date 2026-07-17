@@ -6,8 +6,8 @@ in **R2**. Phased — each phase ends with something playable or usable.
 
 ## Guiding decisions
 
-1. **The vanilla JS prototype is frozen.** It's feature-complete and playable;
-   it stays as the design reference. No more work on it.
+1. **The vanilla JS prototype is gone.** It was the design reference through
+   Phase 2; fully ported, then deleted (2026-07-17). It lives in git history.
 2. **TypeScript everywhere, no new JavaScript.** The domain library, the
    Cocos components, and the Worker are all `.ts`. The only JS left is the
    frozen prototype, which stays unconverted — it's reference material, not
@@ -36,7 +36,6 @@ workflow — is mitigated by decision 3. Proceeding with Cocos.
 
 ```
 pokemath/
-├── *.js, *.html          # vanilla prototype — frozen reference
 ├── shared/               # Phase 0: pure TS domain library + tests
 ├── game/                 # Phase 1: Cocos Creator project
 └── worker/               # Phase 2: Cloudflare Worker API + D1 migrations
@@ -124,16 +123,22 @@ progress survives refresh and restores on a second browser via save code.
   --build "platform=web-mobile"` → `game/build/web-mobile/` (exit code 36
   is success). Deploy: `npm run deploy`.
 
-## Phase 3 — Content & media
-- Question bank → D1 with an import script (query by operation, difficulty,
-  multi-step); number-variant generation so the bank never runs dry.
-- Audio + creature sprites → R2, loaded as remote assets. Art option:
-  kid-drawn creatures scanned in — on-theme for this game.
-- Difficulty follows creature level; catch streaks.
-- Done when: adding questions or sprites needs no redeploy.
+## Phase 3+ — being replanned
 
-## Forks in the road (decide later, don't build for now)
-- **Real art pipeline** — how long primitive/kid-drawn art is enough.
+The original Phase 3 sketch (import the existing question bank into D1) is
+**superseded**: questions will be **AI-generated** rather than imported from
+the prototype's authored bank. Season is replanning the roadmap from here.
+Inputs to that replan:
 
-## Open questions
+- `docs/curriculum/standard-*-question-style.md` — curriculum question-style
+  references being authored now; likely the grounding for AI generation.
+- `shared/question-engine.ts` — the typed question schema (bilingual text,
+  tables, multi-step) is the contract any generator must satisfy.
+- Media direction (sprites/audio → R2) and difficulty-follows-level remain
+  candidates, but nothing below this line is committed yet.
+
+## Open questions (carried forward)
+- AI question generation: offline batch vs at-serve-time; validation gate
+  so generated questions are correct and age-appropriate.
 - Multi-player/sibling profiles on one shared device.
+- Real art pipeline — how long primitive/kid-drawn art is enough.
