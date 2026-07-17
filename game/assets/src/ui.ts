@@ -48,16 +48,26 @@ export function makeLabel(
   text: string,
   x: number,
   y: number,
-  opts: { fontSize?: number; color?: Color; name?: string } = {},
+  opts: { fontSize?: number; color?: Color; name?: string; align?: "left" | "center" | "right" } = {},
 ): Label {
   const node = new Node(opts.name ?? "label");
   node.parent = parent;
-  node.addComponent(UITransform);
+  const transform = node.addComponent(UITransform);
   node.setPosition(x, y);
   const label = node.addComponent(Label);
   label.string = text;
   label.fontSize = opts.fontSize ?? 20;
   label.color = opts.color ?? new Color(51, 51, 51, 255);
+  // With overflow NONE the content box hugs the text, so alignment comes
+  // from the node anchor: "left" hangs text rightward from (x, y), "right"
+  // hangs it leftward. Label.horizontalAlign alone does nothing here.
+  if (opts.align === "left") {
+    transform.setAnchorPoint(0, 0.5);
+    label.horizontalAlign = Label.HorizontalAlign.LEFT;
+  } else if (opts.align === "right") {
+    transform.setAnchorPoint(1, 0.5);
+    label.horizontalAlign = Label.HorizontalAlign.RIGHT;
+  }
   return label;
 }
 

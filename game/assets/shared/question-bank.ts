@@ -1,5 +1,5 @@
-// The sample question bank, typed. Same content as the prototype's
-// questions-data.js; Phase 3 replaces this with an import into D1.
+// The sample question bank, typed. Placeholder content until Phase 3+
+// replaces it with AI-generated questions (see ROADMAP.md).
 
 import type { QuestionBankData } from "./question-engine";
 

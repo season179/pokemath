@@ -10,7 +10,8 @@ and solve change questions when buying supplies.
 - ✅ Phase 1 — Cocos Creator gameplay-parity port
 - ✅ Phase 2 — Cloudflare Workers + D1 saves — **live at
   [game.pokemath.fun](https://game.pokemath.fun)**
-- ⏸️ Phase 3 — content & media (question bank in D1, sprites in R2)
+- ⏸️ Phase 3+ — being replanned: AI-generated questions (see
+  [`ROADMAP.md`](ROADMAP.md))
 
 See [`ROADMAP.md`](ROADMAP.md) for the long-term plan and completion evidence.
 

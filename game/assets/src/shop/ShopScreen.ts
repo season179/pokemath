@@ -97,12 +97,12 @@ export class ShopScreen {
       lineWidth: 5,
     });
 
-    makeLabel(card, "商店 · Shop", -360, 195, { fontSize: 32 });
-    const money = makeLabel(card, `RM ${fmtNum(this.state.money)}`, 360, 195, {
+    makeLabel(card, "商店 · Shop", -360, 195, { fontSize: 32, align: "left" });
+    makeLabel(card, `RM ${fmtNum(this.state.money)}`, 360, 195, {
       fontSize: 26,
       color: PALETTE.good,
+      align: "right",
     });
-    money.horizontalAlign = Label.HorizontalAlign.RIGHT;
 
     SHOP_ITEMS.forEach((item, i) => {
       const y = 85 - i * 120;

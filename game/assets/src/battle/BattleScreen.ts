@@ -291,9 +291,11 @@ export class BattleScreen {
       stroke: PALETTE.panelStroke,
       lineWidth: 4,
     });
-    makeLabel(panel, creature.name, -120, 23, { fontSize: 18 });
-    const level = makeLabel(panel, `Lv.${creature.level}`, 118, 23, { fontSize: 16 });
-    level.horizontalAlign = Label.HorizontalAlign.RIGHT;
+    // Anchor the name to the panel's left padding and the level to the
+    // right padding — center-anchored labels overflow the panel with long
+    // names (e.g. "Boss Countasaur").
+    makeLabel(panel, creature.name, -113, 23, { fontSize: 18, align: "left" });
+    makeLabel(panel, `Lv.${creature.level}`, 113, 23, { fontSize: 16, align: "right" });
 
     const fraction = Math.max(0, creature.hp / creature.maxHp);
     makeRect(panel, -25, -4, 176, 14, new Color(221, 221, 221, 255), 7);
