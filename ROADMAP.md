@@ -68,6 +68,14 @@ workspace gymnastics for ~500 lines.
   erase-only. (Phase 1's Cocos sync may need to strip extensions.)
 
 ## Phase 1 — Cocos port (gameplay parity) — IN PROGRESS
+**Bootstrap milestone ✅ (verified in editor preview 2026-07-17):** project
+skeleton committed; `main.scene` + `Main.ts` hand-authored from the
+editor's own templates render correctly; editor accepted the minted meta
+uuid. `tools/uuid.mjs` implements both Cocos uuid-compression variants
+(editor script refs keep 5 hex chars + 18 base64; runtime assets 2 + 20).
+Next: build the screens (world → battle → shop) as runtime-constructed
+TS classes under one `cc.Scene`.
+
 - **Kickoff (manual, one-time):** install Cocos Creator 3.8.x via Cocos
   Dashboard (account login required), create an empty 2D project at
   `game/`, commit the generated skeleton. This is the *only* required
