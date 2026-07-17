@@ -13,15 +13,17 @@ prompt can be constrained to age-correct items.
 | Standard 2 (二年级) | [standard-2-sjkc-math.md](./standard-2-sjkc-math.md) | ≤ 1000 | `+ − × ÷` (basic facts) | 8 topics; +fractions/decimals; standard units; bar chart |
 | Standard 3 (三年级) | [standard-3-sjkc-math.md](./standard-3-sjkc-math.md) | ≤ 10 000 | `+ − × ÷` (multi-digit; combined) | 9 topics; +percentages, unit conversion, symmetry, coordinates, pie chart; first multi-step |
 | Standard 4 (四年级) | [standard-4-sjkc-math.md](./standard-4-sjkc-math.md) | ≤ 100 000 | `+ − × ÷` (mixed `×÷`) | 8 topics; +even/odd, unknowns (pre-algebra), area/perimeter/volume, ratio & proportion, (x,y) coords; **Tahap 2 / UASA** |
-| Standard 5–6 | _not yet researched_ | — | — | — |
+| Standard 5 (五年级) | [standard-5-sjkc-math.md](./standard-5-sjkc-math.md) | ≤ 1 000 000 | `+ − × ÷` (bracketed `+×`, `−×`, `+÷`, `−÷`) | 8 topics; +primes, ×/÷ unknowns, fraction multiplication, >100%, finance concepts, composite geometry, coordinate distance, mean/median/mode/range; **Tahap 2 / UASA** |
+| Standard 6 | _not yet researched_ | — | — | — |
 
 ### Question-style layers (how questions are *asked*)
 
 The grade docs above define **what** a question may contain. A companion doc
 defines **how** it is asked — the many authentic exam *formats* (direct
 computation, fill-in-the-blank, solve/identify the unknown, figure reading,
-error-spotting, model-the-equation, construct-a-chart, …), with verbatim bilingual
-examples and MCQ distractor patterns, so the generator produces real variety
+error-spotting, model-the-equation, construct-a-chart, …), with authentic or
+source-shaped bilingual examples and MCQ distractor patterns, so the generator
+produces real variety
 instead of only word problems.
 
 | Grade | Format doc | Status |
@@ -30,9 +32,10 @@ instead of only word problems.
 | Standard 2 (二年级) | [standard-2-question-style.md](./standard-2-question-style.md) | ✅ ~30 formats, all 8 topics + extras, verbatim from text-based buxi unit tests + DPK *Contoh*; adds `×÷`/remainder, fractions/decimals, nets, bar charts; **no exam** (PBD only) |
 | Standard 3 (三年级) | [standard-3-question-style.md](./standard-3-question-style.md) | ✅ ~35 formats, all 9 topics + extras, verbatim from 29 text-based buxi unit tests + DPK/DSKP; adds multi-step, percentages, compound units, symmetry, coordinates, pie charts; **no exam** (PBD only) |
 | Standard 4 (四年级) | [standard-4-question-style.md](./standard-4-question-style.md) | ✅ ~20 formats, all 8 topics, verbatim examples from real papers |
-| Standards 5–6 | — | _not yet layered_ |
+| Standard 5 (五年级) | [standard-5-question-style.md](./standard-5-question-style.md) | ✅ 27 formats, all 8 topics, DSKP-filtered examples from Chinese objective/constructed-response papers; explicitly rejects pre-2019 scope leakage |
+| Standard 6 | — | _not yet layered_ |
 
-**Key insight:** formats are largely **topic-independent** — the same ~20 formats
+**Key insight:** formats are largely **topic-independent** — the same reusable core
 recur across fractions, money, and geometry. The cross-cutting taxonomy (§A of the
 format doc) is the reusable core for the generator prompt; per-topic catalogs just
 record weighting + authentic phrasing.
