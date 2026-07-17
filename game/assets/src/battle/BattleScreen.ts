@@ -323,12 +323,19 @@ export class BattleScreen {
 
   private renderMenu(box: Node): void {
     makeLabel(box, `What will ${this.state.active.name} do?`, 0, 34, { fontSize: 21 });
-    const actions: Array<{ label: string; color: Color; action: () => void }> = [];
+    const actions: Array<{ label: string; color: Color; action: () => void; disabled?: boolean }> = [];
     if (this.state.benchedFighters().length > 0) {
       actions.push({ label: "Switch", color: new Color(141, 110, 99, 255), action: () => this.beginSwitch(false) });
     }
     actions.push({ label: "Attack", color: PALETTE.actionBlue, action: () => this.playerAttack() });
-    actions.push({ label: "Catch", color: new Color(171, 71, 188, 255), action: () => this.throwBall() });
+    // Grayed out when out of balls, but still tappable: throwBall()'s own
+    // guard explains where to buy more — same message the C key gets.
+    actions.push({
+      label: "Catch",
+      color: new Color(171, 71, 188, 255),
+      action: () => this.throwBall(),
+      disabled: this.state.bag.ball <= 0,
+    });
     if (this.state.bag.potion > 0 && this.state.active.hp < this.state.active.maxHp) {
       actions.push({ label: "Potion", color: new Color(38, 166, 154, 255), action: () => this.usePotion() });
     }
@@ -347,6 +354,7 @@ export class BattleScreen {
         color: action.color,
         fontSize: 19,
         onTap: action.action,
+        disabled: action.disabled,
       });
     });
   }

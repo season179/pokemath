@@ -12,6 +12,9 @@ export interface ButtonOpts {
   color: Color;
   fontSize?: number;
   onTap?: () => void; // omitted by callers that install their own touch handlers
+  // Grayed out but still tappable — callers keep their onTap so they can
+  // explain why the action is unavailable instead of ignoring the tap.
+  disabled?: boolean;
 }
 
 function roundRectPath(g: Graphics, x: number, y: number, w: number, h: number, r: number) {
@@ -94,12 +97,12 @@ export function makeWrappedLabel(
 // checked against the button's own box (nodes are center-anchored).
 export function makeButton(parent: Node, opts: ButtonOpts): Node {
   const node = makePanel(parent, opts.x, opts.y, opts.w, opts.h, {
-    fill: opts.color,
+    fill: opts.disabled ? new Color(189, 189, 189, 255) : opts.color,
     radius: Math.min(12, opts.h / 4),
   });
   const label = makeLabel(node, opts.label, 0, 0, {
     fontSize: opts.fontSize ?? 22,
-    color: Color.WHITE,
+    color: opts.disabled ? new Color(245, 245, 245, 255) : Color.WHITE,
   });
   label.horizontalAlign = Label.HorizontalAlign.CENTER;
   // SHRINK needs a real content box; without one the label keeps the
