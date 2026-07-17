@@ -75,6 +75,27 @@ label.enableWrapText = false;
 Positions and content sizes are left alone — `EditBox._updateLabelPosition`
 overwrites them anyway. Setting them is misleading noise.
 
+## Follow-up: text padding and the transform-inset trick
+
+After the anchor fix, the text sat flush against the panel's left border.
+Cause: `_updateLabelPosition` indents labels by a hard-coded
+`LEFT_PADDING = 2` px from the EditBox transform's left edge — the engine
+expects the *editor's* background sprite, whose visual border sits inside
+the transform. When you draw your own panel exactly the size of the
+transform, 2px reads as "touching the box".
+
+Fix: make the EditBox **transform** smaller than the drawn panel, so the
+inset comes from geometry instead of the (unreachable) padding constant:
+
+```ts
+node.addComponent(UITransform).setContentSize(250, 46); // interactive box
+makePanel(node, 0, 0, 280, 56, {...});                  // drawn 280×56
+```
+
+Labels (and the web `<input>` overlay) lay out inside the 250×46 transform,
+centered in the 280×56 visual panel → ~17px effective side padding. The same
+trick applies to any component with hard-coded internal padding.
+
 ## Rules of thumb this generalizes to
 
 - Any label handed to `EditBox` must be anchored `(0, 1)` with LEFT/CENTER

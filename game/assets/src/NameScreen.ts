@@ -36,11 +36,11 @@ export class NameScreen {
     });
 
     this.edit = this.makeEditBox(current ?? "");
-    this.error = makeLabel(this.root, "", 0, -40, { fontSize: 16, color: PALETTE.bad });
+    this.error = makeLabel(this.root, "", 0, -34, { fontSize: 16, color: PALETTE.bad });
 
     makeButton(this.root, {
       x: 0,
-      y: -100,
+      y: -80,
       w: 180,
       h: 56,
       label: "OK",
@@ -53,7 +53,12 @@ export class NameScreen {
     const node = new Node("name-input");
     node.parent = this.root;
     node.setPosition(0, 20);
-    node.addComponent(UITransform).setContentSize(280, 56);
+    // The interactive box is narrower than the drawn panel on purpose:
+    // EditBox lays labels out from its transform's left edge with only a
+    // hard-coded 2px engine padding (it expects the editor's inset sprite),
+    // so the transform inset (280→250) is what gives the text its ~17px
+    // visual padding inside the 280-wide panel.
+    node.addComponent(UITransform).setContentSize(250, 46);
     makePanel(node, 0, 0, 280, 56, { fill: Color.WHITE, stroke: PALETTE.panelStroke, radius: 8 });
 
     // EditBox repositions assigned labels itself (top-left corner + small
