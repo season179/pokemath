@@ -6,9 +6,10 @@ const CREATURES = [
   { name: "Digitell",     color: "#ffb74d", maxHp: 14, attack: 4 },
 ];
 
-// The player's buddy. A real team arrives in Slice 5.
+// The player's buddy. Team switching arrives in Slice 5.
 const STARTER = { name: "Multiplybara", color: "#81c784", maxHp: 22, attack: 5 };
 const myCreature = { ...STARTER, hp: STARTER.maxHp };
+const team = [myCreature];
 
 const PLAYER_SPAWN = { x: 2, y: 3 };
 
@@ -73,6 +74,20 @@ function wildAttack() {
   });
 }
 
+function throwBall() {
+  const wild = battle.wild;
+  // The weaker the wild creature, the easier the catch: 30% at full HP, ~90% near zero.
+  const chance = 0.3 + 0.6 * (1 - wild.hp / wild.maxHp);
+  say([`You throw a ball at ${wild.name}...`], () => {
+    if (Math.random() < chance) {
+      team.push({ ...wild, hp: wild.maxHp });
+      say([`Gotcha! ${wild.name} joined your team!`], endBattle);
+    } else {
+      say([`Oh no! ${wild.name} broke free!`], wildAttack);
+    }
+  });
+}
+
 function runAway() {
   say(["Got away safely!"], endBattle);
 }
@@ -111,6 +126,9 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "Space" || e.code === "Enter") {
     if (battle.phase === "msg") advanceMsg();
     else if (battle.phase === "menu") playerAttack();
+    e.preventDefault();
+  } else if (e.code === "KeyC" && battle.phase === "menu") {
+    throwBall();
     e.preventDefault();
   } else if (e.code === "Escape" && battle.phase === "menu") {
     runAway();
@@ -191,6 +209,21 @@ function drawButton(b) {
   ctx.textAlign = "left";
 }
 
+// Small always-visible team panel in the world scene.
+function drawTeamHud() {
+  const w = 20 + team.length * 40;
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.strokeStyle = "#3b4a6b";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(8, 8, w, 52, 12);
+  ctx.fill();
+  ctx.stroke();
+  team.forEach((c, i) => {
+    drawCreature(30 + i * 40, 38, c.color, 13);
+  });
+}
+
 function drawBattle() {
   const W = canvas.width, H = canvas.height;
 
@@ -239,8 +272,9 @@ function drawBattle() {
   } else if (battle.phase === "menu") {
     ctx.fillText(`What will ${myCreature.name} do?`, 40, boxY + 45);
     battle.buttons = [
-      { x: W - 344, y: boxY + 48, w: 150, h: 52, label: "Attack",  color: "#42a5f5", action: playerAttack },
-      { x: W - 182, y: boxY + 48, w: 150, h: 52, label: "Run",     color: "#ff8a65", action: runAway },
+      { x: W - 476, y: boxY + 48, w: 140, h: 52, label: "Attack", color: "#42a5f5", action: playerAttack },
+      { x: W - 324, y: boxY + 48, w: 140, h: 52, label: "Catch",  color: "#ab47bc", action: throwBall },
+      { x: W - 172, y: boxY + 48, w: 140, h: 52, label: "Run",    color: "#ff8a65", action: runAway },
     ];
     battle.buttons.forEach(drawButton);
   }

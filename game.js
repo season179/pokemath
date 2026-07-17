@@ -170,6 +170,7 @@ function draw() {
     }
   }
   drawPlayer();
+  drawTeamHud();
 }
 
 function loop() {
