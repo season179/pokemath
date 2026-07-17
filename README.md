@@ -121,7 +121,7 @@ pokemath/
 
 ## Saves and identity
 
-Anonymous, no PII. Each device holds a server-issued bearer token in
+Each device holds a server-issued bearer token in
 localStorage (stored hash-only in D1). Every player has a six-character save
 code, shown in the world corner — enter it on another device via
 `https://game.pokemath.fun/?code=XXXXXX` to carry the save over. Save writes

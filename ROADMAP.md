@@ -22,9 +22,10 @@ in **R2**. Phased — each phase ends with something playable or usable.
    operation/difficulty). R2 → media only (audio, sprites) and content that
    should update without a redeploy. Don't put the question bank in R2 as
    JSON blobs — it belongs in a database.
-5. **Kid-simple identity.** Server-issued anonymous token in localStorage,
-   plus a short human save-code (for siblings / switching devices). No email,
-   no PII, no auth surface.
+5. **Kid-simple identity.** ~~Server-issued anonymous token in localStorage,
+   plus a short human save-code (for siblings / switching devices).~~
+   **Superseded (2026-07-17):** mandatory Google sign-in via better-auth;
+   saves keyed per Google account.
 
 ### One honest note on Cocos
 Phaser would be lighter and 100% code for a game this size. Cocos is still a

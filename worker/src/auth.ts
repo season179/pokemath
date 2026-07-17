@@ -1,5 +1,6 @@
 // Anonymous identity: opaque bearer tokens (hash-only at rest) and short
-// human save codes. No email, no PII — see ROADMAP decision 5.
+// human save codes. Being replaced by Google sign-in (better-auth) — see
+// ROADMAP decision 5.
 
 // Unambiguous alphabet: no 0/O, 1/I/L, or vowels that spell words.
 const CODE_ALPHABET = "23456789CDFGHJKMNPQRTVWXYZ";
