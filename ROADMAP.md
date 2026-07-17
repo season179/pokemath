@@ -67,14 +67,16 @@ workspace gymnastics for ~500 lines.
   parameter properties (`constructor(private x)`) — type-stripping is
   erase-only. (Phase 1's Cocos sync may need to strip extensions.)
 
-## Phase 1 — Cocos port (gameplay parity) — IN PROGRESS
-**Bootstrap milestone ✅ (verified in editor preview 2026-07-17):** project
-skeleton committed; `main.scene` + `Main.ts` hand-authored from the
-editor's own templates render correctly; editor accepted the minted meta
-uuid. `tools/uuid.mjs` implements both Cocos uuid-compression variants
-(editor script refs keep 5 hex chars + 18 base64; runtime assets 2 + 20).
-Next: build the screens (world → battle → shop) as runtime-constructed
-TS classes under one `cc.Scene`.
+## Phase 1 — Cocos port (gameplay parity) ✅ DONE
+**Completed and verified in browser preview 2026-07-17:** Cocos Creator
+3.8.8 project; code-first world, battle, shop, and shared question UI;
+keyboard + virtual d-pad; encounters, boss questions, catching, potions,
+switching, running, XP/levels/prizes, faint/respawn, and change-question
+purchases. User tested the full loop successfully. `npm run typecheck`
+passes against Cocos 3.8.8 declarations; all 30 domain tests pass.
+
+`tools/uuid.mjs` implements both Cocos uuid-compression variants (editor
+script refs keep 5 hex chars + 18 base64; runtime assets 2 + 20).
 
 - **Kickoff (manual, one-time):** install Cocos Creator 3.8.x via Cocos
   Dashboard (account login required), create an empty 2D project at
@@ -97,7 +99,7 @@ TS classes under one `cc.Scene`.
 - Domain comes from `shared/`; Cocos components are thin view/input shells.
 - Art placeholder: recreate the current primitive-drawn creatures with
   Cocos `Graphics`; real sprites are Phase 3.
-- Done when: feature parity with the prototype, playable in browser preview.
+- Done when: feature parity with the prototype, playable in browser preview. ✅
 
 ## Phase 2 — Cloudflare deploy + saves
 - `worker/` with wrangler; serves the `game/` web build via Workers Static
@@ -122,5 +124,4 @@ TS classes under one `cc.Scene`.
 - **Real art pipeline** — how long primitive/kid-drawn art is enough.
 
 ## Open questions
-- Touch controls for the world scene (virtual d-pad vs tap-to-move).
 - Multi-player/sibling profiles on one shared device.
