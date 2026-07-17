@@ -9,6 +9,7 @@ import {
   QuestionBank,
   QuestionRound,
   QuestionTurn,
+  XP_PER_LEVEL,
   correctAnswerDamage,
   prizeMoney,
   rollDamage,
@@ -306,7 +307,7 @@ export class BattleScreen {
     if (showXp) {
       makeRect(panel, -25, -27, 176, 6, new Color(238, 238, 238, 255), 3);
       if (creature.xp > 0) {
-        const width = 176 * Math.min(1, creature.xp / 20);
+        const width = 176 * Math.min(1, creature.xp / XP_PER_LEVEL);
         makeRect(panel, -113 + width / 2, -27, width, 6, PALETTE.xp, 3);
       }
     }
