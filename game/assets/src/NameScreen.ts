@@ -1,0 +1,89 @@
+// Name entry, shown before the world on first sign-in (playerName is NULL)
+// and reachable later for renames. One word, letters/numbers only, 1–10
+// chars — mirrored server-side by PUT /api/profile/name.
+//
+// Uses cc.EditBox: on the web build it overlays a real <input>, so desktop
+// keyboards and the iPad on-screen keyboard both work for free.
+
+import { Color, EditBox, Label, Node, UITransform } from "cc";
+import { PALETTE, makeButton, makeLabel, makePanel } from "./ui";
+import type { Persistence } from "./persistence";
+
+export const PLAYER_NAME_RE = /^[A-Za-z0-9]{1,10}$/;
+
+export class NameScreen {
+  readonly root = new Node("name-screen");
+  private edit: EditBox;
+  private error: Label;
+  private busy = false;
+
+  constructor(
+    private persistence: Persistence,
+    current: string | null,
+    private onDone: (name: string) => void,
+  ) {
+    makePanel(this.root, 0, 20, 460, 300, {
+      fill: PALETTE.panel,
+      stroke: PALETTE.panelStroke,
+    });
+    makeLabel(this.root, current ? "Change your name" : "Choose your name", 0, 120, {
+      fontSize: 28,
+      color: PALETTE.ink,
+    });
+    makeLabel(this.root, "1–10 letters or numbers, no spaces", 0, 82, {
+      fontSize: 16,
+      color: PALETTE.sub,
+    });
+
+    this.edit = this.makeEditBox(current ?? "");
+    this.error = makeLabel(this.root, "", 0, -40, { fontSize: 16, color: PALETTE.bad });
+
+    makeButton(this.root, {
+      x: 0,
+      y: -100,
+      w: 180,
+      h: 56,
+      label: "OK",
+      color: PALETTE.actionBlue,
+      onTap: () => void this.submit(),
+    });
+  }
+
+  private makeEditBox(initial: string): EditBox {
+    const node = new Node("name-input");
+    node.parent = this.root;
+    node.setPosition(0, 20);
+    node.addComponent(UITransform).setContentSize(280, 56);
+    makePanel(node, 0, 0, 280, 56, { fill: Color.WHITE, stroke: PALETTE.panelStroke, radius: 8 });
+
+    const text = makeLabel(node, "", 0, 0, { fontSize: 24, color: PALETTE.ink });
+    const placeholder = makeLabel(node, "your name", 0, 0, { fontSize: 24, color: PALETTE.sub });
+
+    const edit = node.addComponent(EditBox);
+    edit.textLabel = text;
+    edit.placeholderLabel = placeholder;
+    edit.maxLength = 10;
+    edit.inputMode = EditBox.InputMode.SINGLE_LINE;
+    edit.string = initial;
+    edit.node.on("editing-return", () => void this.submit());
+    return edit;
+  }
+
+  private async submit(): Promise<void> {
+    if (this.busy) return;
+    const name = this.edit.string.trim();
+    if (!PLAYER_NAME_RE.test(name)) {
+      this.error.string = "1–10 letters or numbers only";
+      return;
+    }
+    this.busy = true;
+    this.error.string = "";
+    const err = await this.persistence.setName(name);
+    this.busy = false;
+    if (err) {
+      this.error.string = err;
+      return;
+    }
+    this.onDone(name);
+  }
+}

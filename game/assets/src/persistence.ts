@@ -1,81 +1,88 @@
 // Persistence adapter: the only place that knows about HTTP and localStorage.
-// The domain (shared/) and screens stay network-free; GameApp calls boot()
-// once and checkpoint() at safe moments (battle exit, respawn, shop leave).
+// Identity is a better-auth session cookie (HttpOnly — invisible to this
+// code); the Worker gates "/" so reaching the game at all implies a session.
 //
-// Offline-first: the last save is cached locally. Boot prefers the server
-// copy; on network failure it falls back to the cache (marked dirty) and the
-// next successful checkpoint reconciles. A 409 (another device wrote first)
-// re-syncs by adopting the server save at the next boot — last writer wins
-// per checkpoint, which is fine for a kids' game.
+// Boot loads the server save (the server creates a starter row on first
+// load). If a locally-cached save is marked dirty — a checkpoint that never
+// reached the server, e.g. wifi dropped or the session expired mid-play —
+// the cache wins and is pushed before play continues.
+//
+// A 401 at any point means the session died; we send the player back to
+// /login. The dirty cache survives in localStorage and reconciles on the
+// next boot. A 409 (another device wrote first) retries once with our state.
 
-import { createNewGame, validateSaveState, type SaveState } from "../shared/index";
+import { validateSaveState, type SaveState } from "../shared/index";
 
-const KEY_TOKEN = "pokemath.token";
-const KEY_CODE = "pokemath.code";
 const KEY_CACHE = "pokemath.save-cache";
+const KEY_DIRTY = "pokemath.save-dirty";
 
 export interface BootResult {
   save: SaveState;
-  code: string | null; // shown in the UI so kids can copy it to another device
-  online: boolean;
-}
-
-interface ServerSave {
-  token?: string;
-  code?: string;
-  save: unknown;
-  saveVersion: number;
+  playerName: string | null; // null → GameApp shows the name screen first
 }
 
 export class Persistence {
-  private token: string | null = null;
-  private code: string | null = null;
   private version = 0;
   private saving = false;
   private pending: SaveState | null = null;
 
-  /** Load-or-create, before any screen is constructed. Never throws. */
+  /** Load the save, reconciling any dirty local cache. Throws only via redirect. */
   async boot(): Promise<BootResult> {
-    this.token = localStorage.getItem(KEY_TOKEN);
-    this.code = localStorage.getItem(KEY_CODE);
-
-    try {
-      const res = this.token ? await this.load() : await this.create();
-      localStorage.setItem(KEY_CACHE, JSON.stringify(res.save));
-      return { save: res.save, code: this.code, online: true };
-    } catch {
-      const cached = this.readCache();
-      if (cached) return { save: cached, code: this.code, online: false };
-      // No server, no cache: fresh local game; first checkpoint will sync.
-      return { save: createNewGame(), code: null, online: false };
+    const res = await fetch("/api/save", { credentials: "include" });
+    if (res.status === 401) {
+      this.redirectToLogin();
+      return new Promise<never>(() => {}); // page is navigating away
     }
+    if (!res.ok) throw new Error(`load failed: ${res.status}`);
+    const body = (await res.json()) as {
+      save: unknown;
+      saveVersion: number;
+      playerName: string | null;
+    };
+    if (!validateSaveState(body.save)) throw new Error("server sent invalid save");
+    this.version = body.saveVersion;
+
+    // Un-synced local progress beats the server copy: push it, then play it.
+    const dirty = localStorage.getItem(KEY_DIRTY) === "1" ? this.readCache() : null;
+    if (dirty) {
+      this.checkpoint(dirty);
+      return { save: dirty, playerName: body.playerName };
+    }
+
+    localStorage.setItem(KEY_CACHE, JSON.stringify(body.save));
+    return { save: body.save, playerName: body.playerName };
   }
 
-  /** Claim an existing save by code (device transfer). Throws on bad code. */
-  async claim(rawCode: string): Promise<BootResult> {
-    const body = await this.request("/api/player/claim", {
-      method: "POST",
+  /** Set/change the in-game name. Returns an error message or null on success. */
+  async setName(name: string): Promise<string | null> {
+    const res = await fetch("/api/profile/name", {
+      method: "PUT",
+      credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: rawCode }),
+      body: JSON.stringify({ name }),
     });
-    this.adopt(body);
-    localStorage.setItem(KEY_CACHE, JSON.stringify(body.save));
-    return { save: body.save as SaveState, code: this.code, online: true };
+    if (res.status === 401) {
+      this.redirectToLogin();
+      return "signed out";
+    }
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return body?.error ?? "could not save name";
+    }
+    return null;
   }
 
   /**
-   * Checkpoint save: cache locally at once, then push to the server.
+   * Checkpoint save: cache locally at once (marked dirty), then push.
    * Serialized — if a push is in flight the newest state waits its turn.
-   * Failures are silent; the cache preserves progress for the next boot.
+   * The dirty flag only clears when the server confirms the write, so a
+   * failed push is never silently lost: the next boot reconciles it.
    */
   checkpoint(save: SaveState): void {
     localStorage.setItem(KEY_CACHE, JSON.stringify(save));
+    localStorage.setItem(KEY_DIRTY, "1");
     this.pending = save;
     if (!this.saving) void this.flush();
-  }
-
-  saveCode(): string | null {
-    return this.code;
   }
 
   private async flush(): Promise<void> {
@@ -84,23 +91,16 @@ export class Persistence {
       while (this.pending) {
         const save = this.pending;
         this.pending = null;
-        if (!this.token) {
-          // Offline-created game: acquire an identity, then overwrite the
-          // starter save the server generated with our real progress.
-          const created = await this.create();
-          void created;
-        }
         const res = await fetch("/api/save", {
           method: "PUT",
-          headers: {
-            "content-type": "application/json",
-            authorization: `Bearer ${this.token}`,
-          },
+          credentials: "include",
+          headers: { "content-type": "application/json" },
           body: JSON.stringify({ save, baseVersion: this.version }),
         });
         if (res.ok) {
           const body = (await res.json()) as { saveVersion: number };
           this.version = body.saveVersion;
+          if (!this.pending) localStorage.removeItem(KEY_DIRTY);
         } else if (res.status === 409) {
           // Another device advanced the save. Adopt its version and retry
           // once with our state (this checkpoint is the newest action).
@@ -109,64 +109,22 @@ export class Persistence {
             this.version = body.saveVersion;
             this.pending = save;
           }
+        } else if (res.status === 401) {
+          this.redirectToLogin(); // dirty cache reconciles after re-login
+          break;
         } else {
-          break; // auth/validation failure: keep cache, stop pushing
+          break; // validation/server failure: dirty cache keeps the progress
         }
       }
     } catch {
-      // Network down: cache already holds the state.
+      // Network down: dirty cache already holds the state.
     } finally {
       this.saving = false;
     }
   }
 
-  private async create(): Promise<{ save: SaveState }> {
-    const body = await this.request("/api/player", { method: "POST" });
-    this.adopt(body);
-    return { save: body.save as SaveState };
-  }
-
-  private async load(): Promise<{ save: SaveState }> {
-    const res = await fetch("/api/save", {
-      headers: { authorization: `Bearer ${this.token}` },
-    });
-    if (res.status === 401) {
-      // Token revoked/unknown: start a fresh identity. If we have cached
-      // progress, prefer it over the server's starter save and push it
-      // eagerly — otherwise closing the tab before the next checkpoint
-      // would silently lose everything since the last sync.
-      const created = await this.create();
-      const cached = this.readCache();
-      if (cached) {
-        this.checkpoint(cached);
-        return { save: cached };
-      }
-      return created;
-    }
-    if (!res.ok) throw new Error(`load failed: ${res.status}`);
-    const body = (await res.json()) as ServerSave;
-    if (!validateSaveState(body.save)) throw new Error("server sent invalid save");
-    this.version = body.saveVersion;
-    return { save: body.save };
-  }
-
-  private adopt(body: ServerSave): void {
-    if (!validateSaveState(body.save)) throw new Error("server sent invalid save");
-    if (body.token) {
-      this.token = body.token;
-      localStorage.setItem(KEY_TOKEN, body.token);
-    }
-    if (body.code) {
-      this.code = body.code;
-      localStorage.setItem(KEY_CODE, body.code);
-    }
-    this.version = body.saveVersion;
-  }
-
-  private async request(path: string, init: RequestInit): Promise<ServerSave> {
-    const res = await fetch(path, init);
-    if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-    return (await res.json()) as ServerSave;
+  private redirectToLogin(): void {
+    if (typeof location !== "undefined") location.href = "/login";
   }
 
   private readCache(): SaveState | null {

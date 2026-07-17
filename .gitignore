@@ -16,3 +16,4 @@ game/build/
 
 # Cocos native build output
 game/native/
+worker/.dev.vars

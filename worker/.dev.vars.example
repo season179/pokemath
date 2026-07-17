@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local `wrangler dev`. Production values are Worker
+# secrets: `wrangler secret put <NAME>`.
+BETTER_AUTH_SECRET = "dev-only-secret-change-me"
+GOOGLE_CLIENT_ID = "your-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "your-client-secret"

@@ -1,81 +1,72 @@
-// JSON API: anonymous player creation, save load/store, cross-device claim.
+// Game JSON API (auth itself lives under /api/auth/*, handled by better-auth):
 //
-//   POST /api/player        → create player + starter save → {token, code, save, saveVersion}
-//   GET  /api/save          → (Bearer) → {save, saveVersion}
-//   PUT  /api/save          → (Bearer, {save, baseVersion}) → CAS write → {saveVersion} | 409
-//   POST /api/player/claim  → {code} → fresh token for that player → {token, code, save, saveVersion}
+//   GET  /api/save          → (session) → {save, saveVersion, playerName} | starter
+//   PUT  /api/save          → (session, {save, baseVersion}) → CAS write → {saveVersion} | 409
+//   PUT  /api/profile/name  → (session, {name}) → validate ^[A-Za-z0-9]{1,10}$ → {name}
+//   GET  /api/health        → liveness
 //
 // Concurrency: integer version counter, compare-and-swap in one UPDATE.
-// Codes are treated as passwords: constant 404 on miss, rate-limit at the edge.
+// All routes 401 without a valid session cookie.
 
 import { createNewGame, validateSaveState, MAX_SAVE_JSON_BYTES } from "../../shared/index.ts";
-import { bearerToken, generateSaveCode, generateToken, hashToken, normalizeSaveCode } from "./auth.ts";
+import type { Auth } from "./auth.ts";
 
-export async function handleApi(request: Request, url: URL, env: Env): Promise<Response> {
+export const PLAYER_NAME_RE = /^[A-Za-z0-9]{1,10}$/;
+
+export async function handleApi(request: Request, url: URL, auth: Auth, env: Env): Promise<Response> {
   const route = `${request.method} ${url.pathname}`;
+  if (route === "GET /api/health") {
+    return json({ ok: true, service: "pokemath", time: new Date().toISOString() });
+  }
+
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) return json({ error: "unauthorized" }, 401);
+  const userId = session.user.id;
+
   switch (route) {
-    case "POST /api/player":
-      if (await isRateLimited(request, env)) return json({ error: "slow down" }, 429);
-      return createPlayer(env);
     case "GET /api/save":
-      return loadSave(request, env);
+      return loadSave(userId, env);
     case "PUT /api/save":
-      return storeSave(request, env);
-    case "POST /api/player/claim":
-      if (await isRateLimited(request, env)) return json({ error: "slow down" }, 429);
-      return claimPlayer(request, env);
-    case "GET /api/health":
-      return json({ ok: true, service: "pokemath", time: new Date().toISOString() });
+      return storeSave(request, userId, env);
+    case "PUT /api/profile/name":
+      return setName(request, userId, env);
     default:
       return json({ error: "not found" }, 404);
   }
 }
 
-async function createPlayer(env: Env): Promise<Response> {
-  const now = new Date().toISOString();
-  const playerId = crypto.randomUUID();
-  const token = generateToken();
-  const tokenHash = await hashToken(token);
-  const save = createNewGame();
+// First load after sign-in creates the starter save row — no separate
+// "create player" endpoint; the better-auth user row is the player.
+async function loadSave(userId: string, env: Env): Promise<Response> {
+  const player = await env.DB.prepare('SELECT "playerName" FROM "user" WHERE id = ?')
+    .bind(userId)
+    .first<{ playerName: string | null }>();
+  if (!player) return json({ error: "unauthorized" }, 401);
 
-  // Save codes collide rarely (26^6 ≈ 309M); retry a few times if unlucky.
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const code = generateSaveCode();
-    try {
-      await env.DB.batch([
-        env.DB.prepare("INSERT INTO players (id, code, created_at) VALUES (?, ?, ?)").bind(playerId, code, now),
-        env.DB.prepare(
-          "INSERT INTO tokens (token_hash, player_id, created_at, last_used_at) VALUES (?, ?, ?, ?)",
-        ).bind(tokenHash, playerId, now, now),
-        env.DB.prepare(
-          "INSERT INTO saves (player_id, payload_json, version, updated_at) VALUES (?, ?, 1, ?)",
-        ).bind(playerId, JSON.stringify(save), now),
-      ]);
-      return json({ token, code, save, saveVersion: 1 }, 201);
-    } catch (err) {
-      if (!isUniqueViolation(err)) throw err;
-    }
-  }
-  return json({ error: "could not allocate save code" }, 500);
-}
-
-async function loadSave(request: Request, env: Env): Promise<Response> {
-  const auth = await authenticate(request, env);
-  if (!auth) return json({ error: "unauthorized" }, 401);
-
-  const row = await env.DB.prepare("SELECT payload_json, version FROM saves WHERE player_id = ?")
-    .bind(auth.playerId)
+  const row = await env.DB.prepare("SELECT payload_json, version FROM saves WHERE user_id = ?")
+    .bind(userId)
     .first<{ payload_json: string; version: number }>();
-  if (!row) return json({ error: "no save" }, 404);
-  return json({ save: JSON.parse(row.payload_json), saveVersion: row.version });
+  if (row) {
+    return json({
+      save: JSON.parse(row.payload_json),
+      saveVersion: row.version,
+      playerName: player.playerName,
+    });
+  }
+
+  const save = createNewGame();
+  await env.DB.prepare(
+    "INSERT INTO saves (user_id, payload_json, version, updated_at) VALUES (?, ?, 1, ?) " +
+      "ON CONFLICT (user_id) DO NOTHING",
+  )
+    .bind(userId, JSON.stringify(save), new Date().toISOString())
+    .run();
+  return json({ save, saveVersion: 1, playerName: player.playerName });
 }
 
-async function storeSave(request: Request, env: Env): Promise<Response> {
-  const auth = await authenticate(request, env);
-  if (!auth) return json({ error: "unauthorized" }, 401);
-
+async function storeSave(request: Request, userId: string, env: Env): Promise<Response> {
   const body = await readJson(request);
-  if (!body || typeof body !== "object") return json({ error: "invalid body" }, 400);
+  if (!isRecord(body)) return json({ error: "invalid body" }, 400);
   const { save, baseVersion } = body as { save?: unknown; baseVersion?: unknown };
   if (typeof baseVersion !== "number" || !Number.isInteger(baseVersion)) {
     return json({ error: "baseVersion required" }, 400);
@@ -85,66 +76,30 @@ async function storeSave(request: Request, env: Env): Promise<Response> {
   if (payload.length > MAX_SAVE_JSON_BYTES) return json({ error: "save too large" }, 400);
 
   const result = await env.DB.prepare(
-    "UPDATE saves SET payload_json = ?, version = version + 1, updated_at = ? WHERE player_id = ? AND version = ?",
+    "UPDATE saves SET payload_json = ?, version = version + 1, updated_at = ? WHERE user_id = ? AND version = ?",
   )
-    .bind(payload, new Date().toISOString(), auth.playerId, baseVersion)
+    .bind(payload, new Date().toISOString(), userId, baseVersion)
     .run();
 
   if (result.meta.changes === 0) {
-    const current = await env.DB.prepare("SELECT version FROM saves WHERE player_id = ?")
-      .bind(auth.playerId)
+    const current = await env.DB.prepare("SELECT version FROM saves WHERE user_id = ?")
+      .bind(userId)
       .first<{ version: number }>();
     return json({ error: "version conflict", saveVersion: current?.version ?? null }, 409);
   }
   return json({ saveVersion: baseVersion + 1 });
 }
 
-async function claimPlayer(request: Request, env: Env): Promise<Response> {
+async function setName(request: Request, userId: string, env: Env): Promise<Response> {
   const body = await readJson(request);
-  const rawCode = isRecord(body) && typeof body.code === "string" ? body.code : null;
-  const code = rawCode ? normalizeSaveCode(rawCode) : null;
-  if (!code) return json({ error: "not found" }, 404); // same shape as a miss
-
-  const player = await env.DB.prepare("SELECT id FROM players WHERE code = ?")
-    .bind(code)
-    .first<{ id: string }>();
-  if (!player) return json({ error: "not found" }, 404);
-
-  const now = new Date().toISOString();
-  const token = generateToken();
-  await env.DB.prepare(
-    "INSERT INTO tokens (token_hash, player_id, created_at, last_used_at) VALUES (?, ?, ?, ?)",
-  )
-    .bind(await hashToken(token), player.id, now, now)
+  const name = isRecord(body) && typeof body.name === "string" ? body.name : null;
+  if (!name || !PLAYER_NAME_RE.test(name)) {
+    return json({ error: "name must be 1-10 letters or numbers" }, 400);
+  }
+  await env.DB.prepare('UPDATE "user" SET "playerName" = ?, "updatedAt" = ? WHERE id = ?')
+    .bind(name, new Date().toISOString(), userId)
     .run();
-
-  const row = await env.DB.prepare("SELECT payload_json, version FROM saves WHERE player_id = ?")
-    .bind(player.id)
-    .first<{ payload_json: string; version: number }>();
-  if (!row) return json({ error: "not found" }, 404);
-  return json({ token, code, save: JSON.parse(row.payload_json), saveVersion: row.version });
-}
-
-async function authenticate(request: Request, env: Env): Promise<{ playerId: string } | null> {
-  const token = bearerToken(request);
-  if (!token) return null;
-  const tokenHash = await hashToken(token);
-  const row = await env.DB.prepare("SELECT player_id FROM tokens WHERE token_hash = ?")
-    .bind(tokenHash)
-    .first<{ player_id: string }>();
-  if (!row) return null;
-  // Fire-and-forget freshness stamp; failure must not break the request.
-  await env.DB.prepare("UPDATE tokens SET last_used_at = ? WHERE token_hash = ?")
-    .bind(new Date().toISOString(), tokenHash)
-    .run()
-    .catch(() => {});
-  return { playerId: row.player_id };
-}
-
-async function isRateLimited(request: Request, env: Env): Promise<boolean> {
-  const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
-  const { success } = await env.SENSITIVE_RATE.limit({ key: ip });
-  return !success;
+  return json({ name });
 }
 
 async function readJson(request: Request): Promise<unknown> {
@@ -157,10 +112,6 @@ async function readJson(request: Request): Promise<unknown> {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
-}
-
-function isUniqueViolation(err: unknown): boolean {
-  return err instanceof Error && err.message.includes("UNIQUE constraint failed");
 }
 
 export function json(body: unknown, status = 200): Response {

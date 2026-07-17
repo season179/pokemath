@@ -4,6 +4,7 @@
 
 import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
 import { Creature, QuestionBank, SAMPLE_BANK, type SaveState } from "../shared/index";
+import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
 import { BattleScreen } from "./battle/BattleScreen";
 import { ShopScreen } from "./shop/ShopScreen";
@@ -33,11 +34,14 @@ export class GameApp {
   private battle: BattleScreen | null = null;
   private shop: ShopScreen | null = null;
   private dpad: Node | null = null;
+  private nameLabel: Node | null = null;
+  private nameScreen: NameScreen | null = null;
 
   constructor(
     private canvasNode: Node,
     boot: SaveState,
     private persistence: Persistence,
+    private playerName: string,
   ) {
     this.state = new GameState(boot);
     this.world = new WorldScreen(this.state, {
@@ -52,7 +56,7 @@ export class GameApp {
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     this.buildDpad();
-    this.showSaveCode();
+    this.showPlayerName();
   }
 
   update(dt: number) {
@@ -117,15 +121,32 @@ export class GameApp {
     focus();
   }
 
-  // Save code in the bottom-right corner: read it to a sibling, open the
-  // game with ?code=XXXXXX on their device, and the save follows.
-  private showSaveCode() {
-    const code = this.persistence.saveCode();
-    if (!code) return;
+  // Player name in the bottom-right corner — whose adventure this is.
+  // Tapping it opens the name screen (names are changeable anytime).
+  private showPlayerName() {
+    this.nameLabel?.destroy();
     const size = view.getDesignResolutionSize();
-    makeLabel(this.world.root, `save code: ${code}`, size.width / 2 - 120, -size.height / 2 + 20, {
-      fontSize: 14,
+    const label = makeLabel(
+      this.world.root,
+      this.playerName,
+      size.width / 2 - 24,
+      -size.height / 2 + 20,
+      { fontSize: 14, align: "right" },
+    );
+    this.nameLabel = label.node;
+    label.node.on(Node.EventType.TOUCH_END, () => this.openNameScreen());
+  }
+
+  private openNameScreen() {
+    if (this.screen !== "world" || this.nameScreen) return;
+    this.world.releaseAll();
+    this.nameScreen = new NameScreen(this.persistence, this.playerName, (name) => {
+      this.playerName = name;
+      this.nameScreen?.root.destroy();
+      this.nameScreen = null;
+      this.showPlayerName();
     });
+    this.canvasNode.addChild(this.nameScreen.root);
   }
 
   // --- keyboard ---

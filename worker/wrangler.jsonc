@@ -3,32 +3,30 @@
   "name": "pokemath",
   "main": "src/index.ts",
   "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat"], // better-auth uses node:crypto
   "assets": {
     "directory": "../game/build/web-mobile",
     "binding": "ASSETS",
     "not_found_handling": "none",
-    "run_worker_first": ["/api/*"]
+    // "/" and "/index.html" run in the Worker so unauthenticated visitors
+    // are redirected to /login before downloading the game bundle.
+    "run_worker_first": ["/api/*", "/", "/index.html", "/login"]
   },
   "routes": [{ "pattern": "game.pokemath.fun", "custom_domain": true }],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "pokemath-db",
-      "database_id": "f2b54e36-0397-4196-a61c-3e92c641a81f",
+      "database_id": "77ee97b9-b0ef-4e3c-ba5e-a02bf859e2cb",
       "migrations_dir": "migrations"
     }
   ],
   "observability": { "enabled": true },
-  // Save codes are passwords: throttle guessing on claim, and player-row spam
-  // on create. 10 requests/min per client IP.
-  "unsafe": {
-    "bindings": [
-      {
-        "name": "SENSITIVE_RATE",
-        "type": "ratelimit",
-        "namespace_id": "1001",
-        "simple": { "limit": 10, "period": 60 }
-      }
-    ]
+  "vars": {
+    "BETTER_AUTH_URL": "https://game.pokemath.fun"
   }
+  // Secrets (set with `wrangler secret put <NAME>`):
+  //   BETTER_AUTH_SECRET   — `openssl rand -base64 32`
+  //   GOOGLE_CLIENT_ID     — Google Cloud Console OAuth client
+  //   GOOGLE_CLIENT_SECRET — Google Cloud Console OAuth client
 }

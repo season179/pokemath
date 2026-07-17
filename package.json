@@ -11,6 +11,10 @@
     "deploy": "cd worker && wrangler deploy"
   },
   "devDependencies": {
+    "better-sqlite3": "^12.11.1",
     "typescript": "5.5"
+  },
+  "dependencies": {
+    "better-auth": "^1.6.23"
   }
 }

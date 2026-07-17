@@ -1,44 +1,41 @@
-// Anonymous identity: opaque bearer tokens (hash-only at rest) and short
-// human save codes. Being replaced by Google sign-in (better-auth) — see
-// ROADMAP decision 5.
+// better-auth instance: Google sign-in only, cookie sessions, D1 storage.
+// Built per-request because the D1 binding lives on the fetch handler's env.
+// If user.additionalFields changes here, regenerate the migration DDL with
+// worker/scripts/generate-auth-schema.mjs.
 
-// Unambiguous alphabet: no 0/O, 1/I/L, or vowels that spell words.
-const CODE_ALPHABET = "23456789CDFGHJKMNPQRTVWXYZ";
-export const CODE_LENGTH = 6;
+import { betterAuth } from "better-auth";
 
-export function generateToken(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return base64url(bytes);
-}
+export type Auth = ReturnType<typeof buildAuth>;
 
-export async function hashToken(token: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-export function generateSaveCode(): string {
-  const bytes = new Uint8Array(CODE_LENGTH);
-  crypto.getRandomValues(bytes);
-  return [...bytes].map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
-}
-
-export function normalizeSaveCode(raw: string): string | null {
-  const code = raw.trim().toUpperCase();
-  if (code.length !== CODE_LENGTH) return null;
-  for (const ch of code) if (!CODE_ALPHABET.includes(ch)) return null;
-  return code;
-}
-
-export function bearerToken(request: Request): string | null {
-  const header = request.headers.get("authorization");
-  if (!header?.startsWith("Bearer ")) return null;
-  const token = header.slice("Bearer ".length).trim();
-  return token.length > 0 ? token : null;
-}
-
-function base64url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+export function buildAuth(env: Env) {
+  return betterAuth({
+    database: env.DB,
+    baseURL: env.BETTER_AUTH_URL,
+    secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: [env.BETTER_AUTH_URL],
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      },
+    },
+    // No passwords — Google is the only way in.
+    emailAndPassword: { enabled: false },
+    session: {
+      expiresIn: 60 * 60 * 24 * 30, // 30 days
+      updateAge: 60 * 60 * 24, // sliding: refresh expiry at most daily
+      cookieCache: { enabled: false }, // D1 lookup each time; simple and revocable
+    },
+    user: {
+      additionalFields: {
+        // In-game display name, chosen by the player. NULL until first set.
+        // Never client-writable through better-auth's own update endpoints —
+        // PUT /api/profile/name enforces ^[A-Za-z0-9]{1,10}$.
+        playerName: { type: "string", required: false, input: false },
+      },
+    },
+    advanced: {
+      useSecureCookies: true,
+    },
+  });
 }
