@@ -17,8 +17,9 @@ import {
   tileAt,
 } from "./map-data";
 import { GameState } from "../state";
-import { PALETTE, makeLabel, makePanel } from "../ui";
-import { ENCOUNTER_RATE, SPECIES, Creature } from "../../shared/index";
+import { PALETTE, destroyChildren, makeLabel, makePanel } from "../ui";
+import { colorFromHex, paintCreature } from "../creature-art";
+import { BOSS_CHANCE, ENCOUNTER_RATE, SPECIES, Creature } from "../../shared/index";
 
 const SPEED = 240; // pixels per second (prototype: 4px/frame at 60fps)
 const PLAYER_SPAWN = { x: 2, y: 3 };
@@ -88,41 +89,12 @@ function paintTile(g: Graphics, type: string, tx: number, ty: number) {
 }
 
 function hex(s: string): Color {
-  return Color.fromHEX(new Color(), s);
+  return colorFromHex(s);
 }
 
-// Draws a creature face in a 2r×2r box centered on the node's origin.
-export function paintCreature(g: Graphics, color: Color, size: number, boss: boolean) {
-  g.fillColor = color;
-  g.circle(0, 0, size);
-  g.circle(-size * 0.6, size * 0.8, size * 0.35);
-  g.circle(size * 0.6, size * 0.8, size * 0.35);
-  g.fill();
-  g.fillColor = Color.WHITE;
-  g.circle(-size * 0.35, size * 0.15, size * 0.22);
-  g.circle(size * 0.35, size * 0.15, size * 0.22);
-  g.fill();
-  g.fillColor = hex("#333333");
-  g.circle(-size * 0.35, size * 0.12, size * 0.1);
-  g.circle(size * 0.35, size * 0.12, size * 0.1);
-  g.fill();
-  g.strokeColor = hex("#333333");
-  g.lineWidth = 3;
-  g.arc(0, -size * 0.25, size * 0.3, 0.15 * Math.PI, 0.85 * Math.PI, false);
-  g.stroke();
-  if (boss) {
-    const base = size * 1.1;
-    g.fillColor = hex("#ffca28");
-    g.moveTo(-size * 0.45, base);
-    g.lineTo(-size * 0.45, base + size * 0.4);
-    g.lineTo(-size * 0.15, base + size * 0.15);
-    g.lineTo(0, base + size * 0.5);
-    g.lineTo(size * 0.15, base + size * 0.15);
-    g.lineTo(size * 0.45, base + size * 0.4);
-    g.lineTo(size * 0.45, base);
-    g.close();
-    g.fill();
-  }
+export interface WorldActions {
+  onEncounter: (wild: Creature) => void;
+  onShop: () => void;
 }
 
 export class WorldScreen {
@@ -130,6 +102,7 @@ export class WorldScreen {
   private mapNode = new Node("map");
   private playerNode = new Node("player");
   private playerG!: Graphics;
+  private hudLayer = new Node("huds");
   private hudMoney!: Label;
 
   // grid state; pixel position is derived for smooth sliding
@@ -142,7 +115,7 @@ export class WorldScreen {
 
   private banner: Node | null = null; // encounter placeholder
 
-  constructor(private state: GameState) {
+  constructor(private state: GameState, private actions: WorldActions) {
     this.root.addChild(this.mapNode);
     this.mapNode.setPosition((-MAP_W * TILE) / 2, (-MAP_H * TILE) / 2, 0);
 
@@ -156,8 +129,9 @@ export class WorldScreen {
 
     this.playerG = this.playerNode.addComponent(Graphics);
     this.mapNode.addChild(this.playerNode);
+    this.root.addChild(this.hudLayer);
     this.snapPlayer();
-    this.buildHuds();
+    this.refreshHud();
   }
 
   // --- input (routed by GameApp) ---
@@ -229,17 +203,23 @@ export class WorldScreen {
       this.state.healTeam();
       this.refreshHud();
     } else if (t === "S") {
-      this.showBanner("Shop! (coming soon)");
+      this.releaseAll();
+      this.actions.onShop();
     } else if (t === "G" && Math.random() < ENCOUNTER_RATE) {
-      const wild = Creature.fromSpecies(SPECIES[Math.floor(Math.random() * SPECIES.length)]);
-      this.showBanner(`A wild ${wild.name} appeared! (battle coming soon)`);
+      const species = SPECIES[Math.floor(Math.random() * SPECIES.length)];
+      const wild = Math.random() < BOSS_CHANCE
+        ? Creature.boss(species)
+        : Creature.fromSpecies(species);
+      this.releaseAll();
+      this.actions.onEncounter(wild);
     }
   }
 
-  private showBanner(text: string) {
+  showNotice(text: string) {
     this.releaseAll();
     const b = makePanel(this.root, 0, -240, 620, 64, { fill: PALETTE.panel, stroke: PALETTE.panelStroke });
     makeLabel(b, text, 0, 0, { fontSize: 22 });
+    b.on(Node.EventType.TOUCH_END, () => this.tap());
     this.banner = b;
   }
 
@@ -285,7 +265,7 @@ export class WorldScreen {
   private buildHuds() {
     // team HUD (top-left)
     const teamW = 20 + this.state.team.length * 40;
-    const panel = makePanel(this.root, -460 + teamW / 2, 288, teamW, 66, {
+    const panel = makePanel(this.hudLayer, -460 + teamW / 2, 288, teamW, 66, {
       fill: new Color(255, 253, 245, 230),
       stroke: PALETTE.panelStroke,
       lineWidth: 3,
@@ -300,17 +280,30 @@ export class WorldScreen {
     });
 
     // money HUD (top-right)
-    const wallet = makePanel(this.root, 355, 288, 210, 40, {
+    const wallet = makePanel(this.hudLayer, 355, 288, 210, 40, {
       fill: new Color(255, 253, 245, 230),
       stroke: PALETTE.panelStroke,
       lineWidth: 3,
     });
     this.hudMoney = makeLabel(wallet, "", 0, 0, { fontSize: 17 });
-    this.refreshHud();
+    this.hudMoney.string = `RM ${this.state.money}   🧪${this.state.bag.potion}  ⚪${this.state.bag.ball}`;
   }
 
-  private refreshHud() {
-    this.hudMoney.string = `RM ${this.state.money}   🧪${this.state.bag.potion}  ⚪${this.state.bag.ball}`;
+  refreshHud() {
+    destroyChildren(this.hudLayer);
+    this.buildHuds();
+  }
+
+  respawnHome() {
+    this.px = PLAYER_SPAWN.x;
+    this.py = PLAYER_SPAWN.y;
+    this.dir = "down";
+    this.moving = false;
+    this.releaseAll();
+    this.state.activeIndex = 0;
+    this.state.healTeam();
+    this.snapPlayer();
+    this.refreshHud();
   }
 }
 

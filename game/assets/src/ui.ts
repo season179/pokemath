@@ -61,6 +61,25 @@ export function makeLabel(
   return label;
 }
 
+export function makeWrappedLabel(
+  parent: Node,
+  text: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  opts: { fontSize?: number; color?: Color; lineHeight?: number; name?: string } = {},
+): Label {
+  const label = makeLabel(parent, text, x, y, opts);
+  label.node.getComponent(UITransform)!.setContentSize(w, h);
+  label.overflow = Label.Overflow.SHRINK;
+  label.enableWrapText = true;
+  label.horizontalAlign = Label.HorizontalAlign.LEFT;
+  label.verticalAlign = Label.VerticalAlign.TOP;
+  label.lineHeight = opts.lineHeight ?? Math.round((opts.fontSize ?? 20) * 1.25);
+  return label;
+}
+
 // A button is a panel plus a label; taps fire onTap. Touch coordinates are
 // checked against the button's own box (nodes are center-anchored).
 export function makeButton(parent: Node, opts: ButtonOpts): Node {
@@ -105,6 +124,14 @@ export function makeRect(
   else g.rect(-w / 2, -h / 2, w, h);
   g.fill();
   return g;
+}
+
+export function destroyChildren(node: Node): void {
+  for (const child of [...node.children]) child.destroy();
+}
+
+export function fmtNum(n: number): string {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 export const PALETTE = {

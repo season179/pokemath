@@ -11,7 +11,8 @@ export class GameState {
 
   constructor(save: SaveState) {
     this.team = save.team.creatures.map((c) => Creature.fromState(c));
-    this.activeIndex = save.team.activeIndex;
+    if (this.team.length === 0) throw new Error("GameState requires at least one creature");
+    this.activeIndex = Math.min(Math.max(0, save.team.activeIndex), this.team.length - 1);
     this.money = save.money;
     this.bag = { ...save.bag };
   }
@@ -26,6 +27,12 @@ export class GameState {
 
   benchedFighters(): Creature[] {
     return this.team.filter((c) => c !== this.active && !c.fainted);
+  }
+
+  switchTo(index: number): void {
+    const creature = this.team[index];
+    if (!creature || creature.fainted) throw new Error(`Cannot switch to team index ${index}`);
+    this.activeIndex = index;
   }
 
   healTeam(): void {

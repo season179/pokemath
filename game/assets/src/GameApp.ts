@@ -3,6 +3,8 @@
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
+import { Creature, QuestionBank, SAMPLE_BANK } from "../shared/index";
+import { BattleScreen } from "./battle/BattleScreen";
 import { GameState } from "./state";
 import { Direction } from "./world/map-data";
 import { WorldScreen } from "./world/WorldScreen";
@@ -23,13 +25,18 @@ const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
 
 export class GameApp {
   private state: GameState;
+  private bank = new QuestionBank(SAMPLE_BANK);
   private screen: Screen = "world";
   private world: WorldScreen;
+  private battle: BattleScreen | null = null;
   private dpad: Node | null = null;
 
   constructor(private canvasNode: Node) {
     this.state = GameState.newGame();
-    this.world = new WorldScreen(this.state);
+    this.world = new WorldScreen(this.state, {
+      onEncounter: (wild) => this.startBattle(wild),
+      onShop: () => this.world.showNotice("Shop! (coming next)")
+    });
     this.canvasNode.addChild(this.world.root);
   }
 
@@ -42,6 +49,27 @@ export class GameApp {
 
   update(dt: number) {
     if (this.screen === "world") this.world.update(dt);
+  }
+
+  private startBattle(wild: Creature): void {
+    this.screen = "battle";
+    this.world.root.active = false;
+    if (this.dpad) this.dpad.active = false;
+    this.battle = new BattleScreen(this.state, wild, this.bank, {
+      onExit: () => this.endBattle(false),
+      onRespawn: () => this.endBattle(true),
+    });
+    this.canvasNode.addChild(this.battle.root);
+  }
+
+  private endBattle(respawn: boolean): void {
+    this.battle?.root.destroy();
+    this.battle = null;
+    this.screen = "world";
+    this.world.root.active = true;
+    if (this.dpad) this.dpad.active = true;
+    if (respawn) this.world.respawnHome();
+    else this.world.refreshHud();
   }
 
   // Cocos 3.8's web keyboard source listens on #GameCanvas (not window).
@@ -63,6 +91,11 @@ export class GameApp {
 
   // --- keyboard ---
   private onKeyDown(e: EventKeyboard) {
+    if (this.screen === "battle") {
+      this.battle?.handleKeyDown(e);
+      return;
+    }
+
     const dir = KEY_DIRS[e.keyCode];
     if (dir && this.screen === "world") this.world.pressDir(dir);
     else if ((e.keyCode === KeyCode.SPACE || e.keyCode === KeyCode.ENTER) && this.screen === "world") {
