@@ -3,13 +3,14 @@
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
-import { Creature, QuestionBank, SAMPLE_BANK } from "../shared/index";
+import { Creature, QuestionBank, SAMPLE_BANK, type SaveState } from "../shared/index";
+import { Persistence } from "./persistence";
 import { BattleScreen } from "./battle/BattleScreen";
 import { ShopScreen } from "./shop/ShopScreen";
 import { GameState } from "./state";
 import { Direction } from "./world/map-data";
 import { WorldScreen } from "./world/WorldScreen";
-import { PALETTE, makeButton } from "./ui";
+import { PALETTE, makeButton, makeLabel } from "./ui";
 
 type Screen = "world" | "battle" | "shop";
 
@@ -33,8 +34,12 @@ export class GameApp {
   private shop: ShopScreen | null = null;
   private dpad: Node | null = null;
 
-  constructor(private canvasNode: Node) {
-    this.state = GameState.newGame();
+  constructor(
+    private canvasNode: Node,
+    boot: SaveState,
+    private persistence: Persistence,
+  ) {
+    this.state = new GameState(boot);
     this.world = new WorldScreen(this.state, {
       onEncounter: (wild) => this.startBattle(wild),
       onShop: () => this.startShop(),
@@ -47,6 +52,7 @@ export class GameApp {
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     this.buildDpad();
+    this.showSaveCode();
   }
 
   update(dt: number) {
@@ -68,6 +74,7 @@ export class GameApp {
     this.battle?.root.destroy();
     this.battle = null;
     this.returnToWorld(respawn);
+    this.persistence.checkpoint(this.state.toSave());
   }
 
   private startShop(): void {
@@ -82,6 +89,7 @@ export class GameApp {
     this.shop?.root.destroy();
     this.shop = null;
     this.returnToWorld(false);
+    this.persistence.checkpoint(this.state.toSave());
   }
 
   private returnToWorld(respawn: boolean): void {
@@ -107,6 +115,17 @@ export class GameApp {
     canvas.addEventListener("pointerdown", focus);
     canvas.addEventListener("blur", () => this.world.releaseAll());
     focus();
+  }
+
+  // Save code in the bottom-right corner: read it to a sibling, open the
+  // game with ?code=XXXXXX on their device, and the save follows.
+  private showSaveCode() {
+    const code = this.persistence.saveCode();
+    if (!code) return;
+    const size = view.getDesignResolutionSize();
+    makeLabel(this.world.root, `save code: ${code}`, size.width / 2 - 120, -size.height / 2 + 20, {
+      fontSize: 14,
+    });
   }
 
   // --- keyboard ---
