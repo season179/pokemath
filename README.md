@@ -8,7 +8,9 @@ and solve change questions when buying supplies.
 
 - ✅ Phase 0 — pure TypeScript domain library
 - ✅ Phase 1 — Cocos Creator gameplay-parity port
-- ⏸️ Phase 2 — Cloudflare Workers + D1 saves (**not started**)
+- ✅ Phase 2 — Cloudflare Workers + D1 saves — **live at
+  [game.pokemath.fun](https://game.pokemath.fun)**
+- ⏸️ Phase 3 — content & media (question bank in D1, sprites in R2)
 
 See [`ROADMAP.md`](ROADMAP.md) for the long-term plan and completion evidence.
 
@@ -28,11 +30,28 @@ Then open [`game/`](game/) in Cocos Creator 3.8.8, open
 `assets/main.scene`, and start a browser preview. The committed Cocos project
 already contains the current synced domain library.
 
+The production game runs at `https://game.pokemath.fun`.
+
+## Build and deploy
+
+```bash
+# Headless web build (exit code 36 is success) → game/build/web-mobile/
+/Applications/Cocos/Creator/3.8.8/CocosCreator.app/Contents/MacOS/CocosCreator \
+  --project "$PWD/game" --build "platform=web-mobile"
+
+npm run deploy    # wrangler deploy: static assets + worker → game.pokemath.fun
+npm run cf-types  # regenerate worker Env types after wrangler.jsonc changes
+```
+
+D1 schema changes go in `worker/migrations/` and are applied with
+`wrangler d1 migrations apply pokemath-db --remote` (wrangler defaults to
+the local database without `--remote`).
+
 ## Verify changes
 
 ```bash
 npm test          # 30 pure-domain tests
-npm run typecheck # game + shared code against Cocos 3.8.8 declarations
+npm run typecheck # game + shared (Cocos 3.8.8 declarations) + worker
 npm run demo      # small command-line domain demonstration
 ```
 
@@ -77,6 +96,11 @@ pokemath/
 │           ├── battle/     Battle phase state machine and rendering
 │           ├── questions/  Shared Cocos question UI
 │           └── shop/       Shop and purchase flow
+├── worker/                 Cloudflare Worker — game.pokemath.fun
+│   ├── src/index.ts        Static-asset serving + /api/* routing
+│   ├── src/api.ts          Player/save/claim endpoints (D1)
+│   ├── src/auth.ts         Tokens (hash-only at rest) and save codes
+│   └── migrations/         D1 schema
 ├── tools/                  Shared-sync and Cocos UUID utilities
 └── *.js, *.html            Frozen vanilla prototype (reference only)
 ```
@@ -88,7 +112,21 @@ pokemath/
   duplicate battle or question arithmetic.
 - `Main.ts` boots one `cc.Scene`. World, battle, and shop are runtime-built
   TypeScript classes managed by `GameApp`, not separate editor scenes.
-- `SaveState` is the stable contract for Phase 2 persistence.
+- `SaveState` is the stable contract for persistence; `shared/save-validate.ts`
+  guards it at the network boundary (worker validates writes, client validates
+  server responses).
+- `game/assets/src/persistence.ts` is the only client code that knows about
+  HTTP and localStorage: offline-first boot from a cached save, checkpoint
+  pushes on battle exit / respawn / shop leave, `?code=XXXXXX` device claim.
+
+## Saves and identity
+
+Anonymous, no PII. Each device holds a server-issued bearer token in
+localStorage (stored hash-only in D1). Every player has a six-character save
+code, shown in the world corner — enter it on another device via
+`https://game.pokemath.fun/?code=XXXXXX` to carry the save over. Save writes
+use an integer-version compare-and-swap; claim/create endpoints are
+rate-limited.
 
 ## Cocos repository hygiene
 
