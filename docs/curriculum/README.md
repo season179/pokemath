@@ -12,12 +12,17 @@ prompt can be constrained to age-correct items.
 | Standard 1 (一年级) | [standard-1-sjkc-math.md](./standard-1-sjkc-math.md) | ≤ 100 | `+ −` only | 7 topics; non-standard units; pictograph |
 | Standard 2 (二年级) | [standard-2-sjkc-math.md](./standard-2-sjkc-math.md) | ≤ 1000 | `+ − × ÷` (basic facts) | 8 topics; +fractions/decimals; standard units; bar chart |
 | Standard 3 (三年级) | [standard-3-sjkc-math.md](./standard-3-sjkc-math.md) | ≤ 10 000 | `+ − × ÷` (multi-digit; combined) | 9 topics; +percentages, unit conversion, symmetry, coordinates, pie chart; first multi-step |
-| Standard 4–6 | _not yet researched_ | — | — | — |
+| Standard 4 (四年级) | [standard-4-sjkc-math.md](./standard-4-sjkc-math.md) | ≤ 100 000 | `+ − × ÷` (mixed `×÷`) | 8 topics; +even/odd, unknowns (pre-algebra), area/perimeter/volume, ratio & proportion, (x,y) coords; **Tahap 2 / UASA** |
+| Standard 5–6 | _not yet researched_ | — | — | — |
 
-**Tahap 1 (Years 1–3) is complete.** Years 4–6 are **Tahap 2**, governed by a
-different circular (DPK Edisi 3 covers Tahap 1 only) and — importantly — **do have
-a national UASA exam**, so those docs will need an exam-format section the Tahap 1
-docs don't.
+### Tahap boundary (important)
+- **Tahap 1 = Years 1–3.** Governed by DSKP **or** the slimmer DPK Edisi 3
+  (teacher option → profile split). Assessment is pure classroom PBD; **no exam**.
+- **Tahap 2 = Years 4–6.** **No DPK** — the DSKP is the sole authority, so the
+  `dpk3_2026_core`/`original_dskp_extra` split does **not** apply (only
+  `sjkc_representation` remains). Adds a **national UASA exam** (KPM standard
+  format + JSU, MCQ + constructed-response), so Tahap-2 docs carry a UASA section
+  and an `item_format` generation parameter.
 
 ## Shared framing (applies to every grade doc)
 
