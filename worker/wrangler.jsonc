@@ -1,0 +1,34 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "pokemath",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "../game/build/web-mobile",
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "run_worker_first": ["/api/*"]
+  },
+  "routes": [{ "pattern": "game.pokemath.fun", "custom_domain": true }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pokemath-db",
+      "database_id": "f2b54e36-0397-4196-a61c-3e92c641a81f",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": true },
+  // Save codes are passwords: throttle guessing on claim, and player-row spam
+  // on create. 10 requests/min per client IP.
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "SENSITIVE_RATE",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": { "limit": 10, "period": 60 }
+      }
+    ]
+  }
+}

@@ -6,7 +6,9 @@
     "test": "node --test",
     "demo": "node shared/examples/quickstart.ts",
     "sync": "node tools/sync-shared.mjs",
-    "typecheck": "tsc --noEmit -p game/tsconfig.check.json"
+    "typecheck": "tsc --noEmit -p game/tsconfig.check.json && tsc --noEmit -p worker/tsconfig.json",
+    "cf-types": "cd worker && wrangler types",
+    "deploy": "cd worker && wrangler deploy"
   },
   "devDependencies": {
     "typescript": "5.5"
