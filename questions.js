@@ -276,18 +276,21 @@ function drawQuestionBubble(boxY) {
   }
   const by = 16;
 
-  // tail first, pointing down at the wild creature; the bubble covers the joint
-  const tailX = canvas.width * 0.68;
-  ctx.fillStyle = "#fffdf5";
-  ctx.strokeStyle = "#3b4a6b";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(tailX - 28, by + h - 6);
-  ctx.lineTo(tailX, by + h + 36);
-  ctx.lineTo(tailX + 28, by + h - 6);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+  // tail pointing down at the wild creature; skipped when a tall question
+  // already reaches the creature (the bubble covers the joint when drawn)
+  if (by + h < 140) {
+    const tailX = canvas.width * 0.68;
+    ctx.fillStyle = "#fffdf5";
+    ctx.strokeStyle = "#3b4a6b";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(tailX - 28, by + h - 6);
+    ctx.lineTo(tailX, by + h + 36);
+    ctx.lineTo(tailX + 28, by + h - 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
 
   ctx.fillStyle = "#fffdf5";
   ctx.strokeStyle = "#3b4a6b";

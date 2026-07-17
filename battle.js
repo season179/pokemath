@@ -18,13 +18,22 @@ let ENCOUNTER_RATE = 0.2; // chance per step onto tall grass
 let scene = "world";      // world | battle
 let battle = null;        // { wild, phase: msg | menu | switch, msgs, onMsgsDone, buttons, switchForced }
 
+const BOSS_CHANCE = 0.15; // of encounters; bosses ask multi-step problems
+
 function maybeStartEncounter() {
   if (tileAt(player.x, player.y) !== "G") return;
   if (Math.random() >= ENCOUNTER_RATE) return;
   const c = CREATURES[Math.floor(Math.random() * CREATURES.length)];
-  battle = { wild: { ...c, hp: c.maxHp, level: 1 }, phase: "msg", msgs: [], buttons: [], switchForced: false };
+  let wild = { ...c, hp: c.maxHp, level: 1 };
+  const msgs = [`A wild ${c.name} appeared!`];
+  if (Math.random() < BOSS_CHANCE) {
+    wild = { ...wild, name: `Boss ${c.name}`, maxHp: c.maxHp * 2, hp: c.maxHp * 2, attack: c.attack + 1, level: 3, boss: true };
+    msgs[0] = `A wild ${wild.name} appeared!`;
+    msgs.push("It asks tricky problems — solve them step by step!");
+  }
+  battle = { wild, phase: "msg", msgs: [], buttons: [], switchForced: false, quest: null };
   scene = "battle";
-  say([`A wild ${c.name} appeared!`], () => { battle.phase = "menu"; });
+  say(msgs, () => { battle.phase = "menu"; });
 }
 
 // Show messages one at a time (click/Space to continue), then run `then`.
@@ -51,20 +60,44 @@ function rollDamage(attacker) {
 // Attacking means answering the monster's question: it asks a word problem
 // in a speech bubble and the answer options are your attack moves. The right
 // answer hits (× and ÷ hit harder); a wrong answer does no damage.
+// Bosses ask multi-step problems, one step per turn: a wrong answer means the
+// same step comes back next turn, and finishing the whole problem lands a
+// double-damage blow.
 function playerAttack() {
-  const turn = questionTurns(pickQuestion((q) => !q.steps))[0];
-  const expr = turn.q.expression;
-  const ans = turn.q.answer;
+  let turn;
+  if (battle.wild.boss) {
+    if (!battle.quest || battle.quest.idx >= battle.quest.turns.length) {
+      battle.quest = { turns: questionTurns(pickQuestion((q) => q.steps)), idx: 0 };
+    }
+    turn = battle.quest.turns[battle.quest.idx];
+  } else {
+    turn = questionTurns(pickQuestion((q) => !q.steps))[0];
+  }
+  const expr = turn.step ? turn.step.expression : turn.q.expression;
+  const ans = turn.step ? turn.step.answer : turn.q.answer;
   battle.phase = "question";
   askQuestion(turn, (correct) => {
     if (!correct) {
       say([`Not quite... ${expr} = ${fmtNum(ans)}`, "The attack did no damage!"], wildAttack);
       return;
     }
-    const hard = /multiplication|division/.test(turn.q.operation);
-    const dmg = rollDamage(active) + (hard ? 3 : 0);
+    const msgs = [`Correct! ${expr} = ${fmtNum(ans)}`];
+    let dmg;
+    if (battle.wild.boss) {
+      battle.quest.idx++;
+      if (battle.quest.idx >= battle.quest.turns.length) {
+        dmg = rollDamage(active) * 2;
+        msgs.push("Problem solved! A mighty blow!");
+      } else {
+        dmg = rollDamage(active);
+      }
+    } else {
+      const hard = /multiplication|division/.test(turn.q.operation);
+      dmg = rollDamage(active) + (hard ? 3 : 0);
+    }
     battle.wild.hp = Math.max(0, battle.wild.hp - dmg);
-    say([`Correct! ${expr} = ${fmtNum(ans)}`, `${active.name} attacks! ${dmg} damage!`], () => {
+    msgs.push(`${active.name} attacks! ${dmg} damage!`);
+    say(msgs, () => {
       if (battle.wild.hp === 0) {
         say([`${battle.wild.name} fainted.`, "You won! Hooray!"], giveXp);
       } else {
@@ -191,7 +224,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 // --- Drawing ---
-function drawCreature(cx, cy, color, size) {
+function drawCreature(cx, cy, color, size, boss) {
   // body
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -219,6 +252,24 @@ function drawCreature(cx, cy, color, size) {
   ctx.beginPath();
   ctx.arc(cx, cy + size * 0.25, size * 0.3, 0.15 * Math.PI, 0.85 * Math.PI);
   ctx.stroke();
+  // boss crown
+  if (boss) {
+    const base = cy - size * 1.1;
+    ctx.fillStyle = "#ffca28";
+    ctx.strokeStyle = "#f9a825";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - size * 0.45, base);
+    ctx.lineTo(cx - size * 0.45, base - size * 0.4);
+    ctx.lineTo(cx - size * 0.15, base - size * 0.15);
+    ctx.lineTo(cx, base - size * 0.5);
+    ctx.lineTo(cx + size * 0.15, base - size * 0.15);
+    ctx.lineTo(cx + size * 0.45, base - size * 0.4);
+    ctx.lineTo(cx + size * 0.45, base);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
 }
 
 function drawHpPanel(x, y, creature) {
@@ -294,7 +345,7 @@ function drawTeamHud() {
   ctx.font = "bold 12px sans-serif";
   ctx.textAlign = "center";
   team.forEach((c, i) => {
-    drawCreature(30 + i * 40, 36, c.color, 13);
+    drawCreature(30 + i * 40, 36, c.color, 13, c.boss);
     ctx.fillStyle = "#333";
     ctx.fillText(`Lv.${c.level}`, 30 + i * 40, 66);
   });
@@ -316,7 +367,7 @@ function drawBattle() {
   ctx.beginPath();
   ctx.ellipse(W * 0.68, H * 0.5, 130, 34, 0, 0, Math.PI * 2);
   ctx.fill();
-  drawCreature(W * 0.68, H * 0.36, battle.wild.color, 55);
+  drawCreature(W * 0.68, H * 0.36, battle.wild.color, 55, battle.wild.boss);
   drawHpPanel(24, 24, battle.wild);
 
   // my creature (bottom left) + its HP panel (bottom right)
@@ -324,7 +375,7 @@ function drawBattle() {
   ctx.beginPath();
   ctx.ellipse(W * 0.25, H * 0.72, 150, 38, 0, 0, Math.PI * 2);
   ctx.fill();
-  drawCreature(W * 0.25, H * 0.575, active.color, 70);
+  drawCreature(W * 0.25, H * 0.575, active.color, 70, active.boss);
   drawHpPanel(W - 274, H * 0.60, active);
 
   // text box
