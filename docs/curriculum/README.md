@@ -11,7 +11,13 @@ prompt can be constrained to age-correct items.
 |---|---|---|---|---|
 | Standard 1 (一年级) | [standard-1-sjkc-math.md](./standard-1-sjkc-math.md) | ≤ 100 | `+ −` only | 7 topics; non-standard units; pictograph |
 | Standard 2 (二年级) | [standard-2-sjkc-math.md](./standard-2-sjkc-math.md) | ≤ 1000 | `+ − × ÷` (basic facts) | 8 topics; +fractions/decimals; standard units; bar chart |
-| Standard 3–6 | _not yet researched_ | — | — | — |
+| Standard 3 (三年级) | [standard-3-sjkc-math.md](./standard-3-sjkc-math.md) | ≤ 10 000 | `+ − × ÷` (multi-digit; combined) | 9 topics; +percentages, unit conversion, symmetry, coordinates, pie chart; first multi-step |
+| Standard 4–6 | _not yet researched_ | — | — | — |
+
+**Tahap 1 (Years 1–3) is complete.** Years 4–6 are **Tahap 2**, governed by a
+different circular (DPK Edisi 3 covers Tahap 1 only) and — importantly — **do have
+a national UASA exam**, so those docs will need an exam-format section the Tahap 1
+docs don't.
 
 ## Shared framing (applies to every grade doc)
 
