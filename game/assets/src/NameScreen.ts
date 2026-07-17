@@ -56,8 +56,14 @@ export class NameScreen {
     node.addComponent(UITransform).setContentSize(280, 56);
     makePanel(node, 0, 0, 280, 56, { fill: Color.WHITE, stroke: PALETTE.panelStroke, radius: 8 });
 
-    const text = makeLabel(node, "", 0, 0, { fontSize: 24, color: PALETTE.ink });
-    const placeholder = makeLabel(node, "your name", 0, 0, { fontSize: 24, color: PALETTE.sub });
+    // EditBox repositions assigned labels itself (top-left corner + small
+    // padding, full box size) and assumes editor-style label nodes:
+    // anchor (0,1), CLAMP overflow, CENTER vertical align. makeLabel's
+    // center-anchored defaults render half outside the box, so build these
+    // to the engine's contract instead — see docs/cocos-editbox-alignment.md.
+    const text = this.makeEditLabel(node, "TEXT_LABEL", PALETTE.ink);
+    const placeholder = this.makeEditLabel(node, "PLACEHOLDER_LABEL", PALETTE.sub);
+    placeholder.string = "your name";
 
     const edit = node.addComponent(EditBox);
     edit.textLabel = text;
@@ -67,6 +73,20 @@ export class NameScreen {
     edit.string = initial;
     edit.node.on("editing-return", () => void this.submit());
     return edit;
+  }
+
+  private makeEditLabel(parent: Node, name: string, color: Color): Label {
+    const node = new Node(name);
+    node.parent = parent;
+    node.addComponent(UITransform).setAnchorPoint(0, 1);
+    const label = node.addComponent(Label);
+    label.fontSize = 24;
+    label.color = color;
+    label.horizontalAlign = Label.HorizontalAlign.LEFT;
+    label.verticalAlign = Label.VerticalAlign.CENTER;
+    label.overflow = Label.Overflow.CLAMP; // keep the box EditBox assigns
+    label.enableWrapText = false;
+    return label;
   }
 
   private async submit(): Promise<void> {
