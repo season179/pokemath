@@ -8,3 +8,4 @@ export * from "./creature.ts";
 export * from "./battle-rules.ts";
 export * from "./shop-rules.ts";
 export * from "./save-types.ts";
+export * from "./save-validate.ts";
