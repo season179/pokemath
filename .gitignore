@@ -3,3 +3,6 @@ node_modules/
 dist/
 build/
 .wrangler/
+
+# Downloaded art samples — reference only, never committed (no licenses)
+art-samples/
