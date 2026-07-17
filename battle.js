@@ -7,8 +7,10 @@ const CREATURES = [
 ];
 
 const STARTER = { name: "Multiplybara", color: "#81c784", maxHp: 22, attack: 5 };
-const team = [{ ...STARTER, hp: STARTER.maxHp }];
+const team = [{ ...STARTER, hp: STARTER.maxHp, level: 1, xp: 0 }];
 let active = team[0];
+
+const XP_PER_LEVEL = 20;
 
 const PLAYER_SPAWN = { x: 2, y: 3 };
 
@@ -20,7 +22,7 @@ function maybeStartEncounter() {
   if (tileAt(player.x, player.y) !== "G") return;
   if (Math.random() >= ENCOUNTER_RATE) return;
   const c = CREATURES[Math.floor(Math.random() * CREATURES.length)];
-  battle = { wild: { ...c, hp: c.maxHp }, phase: "msg", msgs: [], buttons: [], switchForced: false };
+  battle = { wild: { ...c, hp: c.maxHp, level: 1 }, phase: "msg", msgs: [], buttons: [], switchForced: false };
   scene = "battle";
   say([`A wild ${c.name} appeared!`], () => { battle.phase = "menu"; });
 }
@@ -51,7 +53,7 @@ function playerAttack() {
   battle.wild.hp = Math.max(0, battle.wild.hp - dmg);
   say([`${active.name} attacks! ${dmg} damage!`], () => {
     if (battle.wild.hp === 0) {
-      say([`${battle.wild.name} fainted.`, "You won! Hooray!"], endBattle);
+      say([`${battle.wild.name} fainted.`, "You won! Hooray!"], giveXp);
     } else {
       wildAttack();
     }
@@ -70,6 +72,22 @@ function wildAttack() {
       say([`${active.name} fainted...`, "All your friends are tired!", "You hurry home to rest."], respawnHome);
     }
   });
+}
+
+// Winning gives the fighter XP; every XP_PER_LEVEL points is a level: +3 HP, +1 attack.
+function giveXp() {
+  const gain = battle.wild.maxHp; // bigger creatures teach more
+  active.xp += gain;
+  const msgs = [`${active.name} got ${gain} XP!`];
+  while (active.xp >= XP_PER_LEVEL) {
+    active.xp -= XP_PER_LEVEL;
+    active.level++;
+    active.maxHp += 3;
+    active.attack += 1;
+    active.hp = active.maxHp;
+    msgs.push(`${active.name} grew to level ${active.level}!`);
+  }
+  say(msgs, endBattle);
 }
 
 function beginSwitch(forced) {
@@ -93,7 +111,7 @@ function throwBall() {
   const chance = 0.3 + 0.6 * (1 - wild.hp / wild.maxHp);
   say([`You throw a ball at ${wild.name}...`], () => {
     if (Math.random() < chance) {
-      team.push({ ...wild, hp: wild.maxHp });
+      team.push({ ...wild, hp: wild.maxHp, xp: 0 });
       say([`Gotcha! ${wild.name} joined your team!`], endBattle);
     } else {
       say([`Oh no! ${wild.name} broke free!`], wildAttack);
@@ -202,6 +220,10 @@ function drawHpPanel(x, y, creature) {
   ctx.font = "bold 19px sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(creature.name, x + 14, y + 26);
+  ctx.font = "bold 16px sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(`Lv.${creature.level}`, x + 236, y + 26);
+  ctx.textAlign = "left";
 
   const frac = creature.hp / creature.maxHp;
   ctx.fillStyle = "#ddd";
@@ -217,6 +239,20 @@ function drawHpPanel(x, y, creature) {
   ctx.font = "bold 17px sans-serif";
   ctx.fillStyle = "#333";
   ctx.fillText(`${creature.hp}/${creature.maxHp}`, x + 184, y + 49);
+
+  // XP progress (team creatures only — wild ones don't earn XP)
+  if (creature.xp !== undefined) {
+    ctx.fillStyle = "#eee";
+    ctx.beginPath();
+    ctx.roundRect(x + 14, y + 56, 160, 6, 3);
+    ctx.fill();
+    if (creature.xp > 0) {
+      ctx.fillStyle = "#42a5f5";
+      ctx.beginPath();
+      ctx.roundRect(x + 14, y + 56, 160 * Math.min(1, creature.xp / XP_PER_LEVEL), 6, 3);
+      ctx.fill();
+    }
+  }
 }
 
 function drawButton(b) {
@@ -238,12 +274,17 @@ function drawTeamHud() {
   ctx.strokeStyle = "#3b4a6b";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.roundRect(8, 8, w, 52, 12);
+  ctx.roundRect(8, 8, w, 66, 12);
   ctx.fill();
   ctx.stroke();
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "center";
   team.forEach((c, i) => {
-    drawCreature(30 + i * 40, 38, c.color, 13);
+    drawCreature(30 + i * 40, 36, c.color, 13);
+    ctx.fillStyle = "#333";
+    ctx.fillText(`Lv.${c.level}`, 30 + i * 40, 66);
   });
+  ctx.textAlign = "left";
 }
 
 function drawBattle() {
