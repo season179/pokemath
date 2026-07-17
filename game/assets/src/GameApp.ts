@@ -5,6 +5,7 @@
 import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
 import { Creature, QuestionBank, SAMPLE_BANK } from "../shared/index";
 import { BattleScreen } from "./battle/BattleScreen";
+import { ShopScreen } from "./shop/ShopScreen";
 import { GameState } from "./state";
 import { Direction } from "./world/map-data";
 import { WorldScreen } from "./world/WorldScreen";
@@ -29,13 +30,14 @@ export class GameApp {
   private screen: Screen = "world";
   private world: WorldScreen;
   private battle: BattleScreen | null = null;
+  private shop: ShopScreen | null = null;
   private dpad: Node | null = null;
 
   constructor(private canvasNode: Node) {
     this.state = GameState.newGame();
     this.world = new WorldScreen(this.state, {
       onEncounter: (wild) => this.startBattle(wild),
-      onShop: () => this.world.showNotice("Shop! (coming next)")
+      onShop: () => this.startShop(),
     });
     this.canvasNode.addChild(this.world.root);
   }
@@ -65,6 +67,24 @@ export class GameApp {
   private endBattle(respawn: boolean): void {
     this.battle?.root.destroy();
     this.battle = null;
+    this.returnToWorld(respawn);
+  }
+
+  private startShop(): void {
+    this.screen = "shop";
+    this.world.root.active = false;
+    if (this.dpad) this.dpad.active = false;
+    this.shop = new ShopScreen(this.state, () => this.endShop());
+    this.canvasNode.addChild(this.shop.root);
+  }
+
+  private endShop(): void {
+    this.shop?.root.destroy();
+    this.shop = null;
+    this.returnToWorld(false);
+  }
+
+  private returnToWorld(respawn: boolean): void {
     this.screen = "world";
     this.world.root.active = true;
     if (this.dpad) this.dpad.active = true;
@@ -93,6 +113,10 @@ export class GameApp {
   private onKeyDown(e: EventKeyboard) {
     if (this.screen === "battle") {
       this.battle?.handleKeyDown(e);
+      return;
+    }
+    if (this.screen === "shop") {
+      this.shop?.handleKeyDown(e);
       return;
     }
 
