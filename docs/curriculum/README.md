@@ -15,6 +15,25 @@ prompt can be constrained to age-correct items.
 | Standard 4 (四年级) | [standard-4-sjkc-math.md](./standard-4-sjkc-math.md) | ≤ 100 000 | `+ − × ÷` (mixed `×÷`) | 8 topics; +even/odd, unknowns (pre-algebra), area/perimeter/volume, ratio & proportion, (x,y) coords; **Tahap 2 / UASA** |
 | Standard 5–6 | _not yet researched_ | — | — | — |
 
+### Question-style layers (how questions are *asked*)
+
+The grade docs above define **what** a question may contain. A companion doc
+defines **how** it is asked — the many authentic exam *formats* (direct
+computation, fill-in-the-blank, solve/identify the unknown, figure reading,
+error-spotting, model-the-equation, construct-a-chart, …), with verbatim bilingual
+examples and MCQ distractor patterns, so the generator produces real variety
+instead of only word problems.
+
+| Grade | Format doc | Status |
+|---|---|---|
+| Standard 4 (四年级) | [standard-4-question-style.md](./standard-4-question-style.md) | ✅ ~20 formats, all 8 topics, verbatim examples from real papers |
+| Standards 1–3, 5–6 | — | _not yet layered_ |
+
+**Key insight:** formats are largely **topic-independent** — the same ~20 formats
+recur across fractions, money, and geometry. The cross-cutting taxonomy (§A of the
+format doc) is the reusable core for the generator prompt; per-topic catalogs just
+record weighting + authentic phrasing.
+
 ### Tahap boundary (important)
 - **Tahap 1 = Years 1–3.** Governed by DSKP **or** the slimmer DPK Edisi 3
   (teacher option → profile split). Assessment is pure classroom PBD; **no exam**.
