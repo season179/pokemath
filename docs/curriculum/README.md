@@ -28,8 +28,9 @@ instead of only word problems.
 |---|---|---|
 | Standard 1 (一年级) | [standard-1-question-style.md](./standard-1-question-style.md) | ✅ ~20 age-appropriate formats, all 8 topics, verbatim examples from real papers/activity books; **no exam** (PBD only) |
 | Standard 2 (二年级) | [standard-2-question-style.md](./standard-2-question-style.md) | ✅ ~30 formats, all 8 topics + extras, verbatim from text-based buxi unit tests + DPK *Contoh*; adds `×÷`/remainder, fractions/decimals, nets, bar charts; **no exam** (PBD only) |
+| Standard 3 (三年级) | [standard-3-question-style.md](./standard-3-question-style.md) | ✅ ~35 formats, all 9 topics + extras, verbatim from 29 text-based buxi unit tests + DPK/DSKP; adds multi-step, percentages, compound units, symmetry, coordinates, pie charts; **no exam** (PBD only) |
 | Standard 4 (四年级) | [standard-4-question-style.md](./standard-4-question-style.md) | ✅ ~20 formats, all 8 topics, verbatim examples from real papers |
-| Standards 3, 5–6 | — | _not yet layered_ |
+| Standards 5–6 | — | _not yet layered_ |
 
 **Key insight:** formats are largely **topic-independent** — the same ~20 formats
 recur across fractions, money, and geometry. The cross-cutting taxonomy (§A of the

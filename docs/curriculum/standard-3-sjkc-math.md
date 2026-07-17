@@ -213,7 +213,7 @@ Generate these **only** when the profile is `original_dskp_extra`:
 - **解决问题 · Explicit problem-solving standard per topic** (1.8, 2.7, 3.5, 4.8,
   6.4, 7.5, …): solve a routine daily-life problem **and** **write a story (编写故事)
   for a given number sentence** (now including sentences with fractions/decimals/
-  percentages, e.g. "write a story for `28% of ...`"), taught with the 4-step method
+  percentages represented as parts of 100), taught with the 4-step method
   (审题 → 拟定策略 → 进行策略 → 验算).
 - **钱币 · Foreign-currency exchange rate** — DSKP 4.6.2 requires stating the
   **current RM ↔ foreign-currency exchange rate** (说出当前一令吉与外币的兑换率),
