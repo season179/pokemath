@@ -10,9 +10,12 @@
     "not_found_handling": "none",
     // "/" and "/index.html" run in the Worker so unauthenticated visitors
     // are redirected to /login before downloading the game bundle.
-    "run_worker_first": ["/api/*", "/", "/index.html", "/login"]
+    "run_worker_first": ["/api/*", "/", "/index.html", "/login", "/art/*"]
   },
   "routes": [{ "pattern": "game.pokemath.fun", "custom_domain": true }],
+  // Licensed art lives in R2, never in this public repo. See docs/art-assets.md.
+  // Upload: `npm run sync-art` (from repo root).
+  "r2_buckets": [{ "binding": "ART", "bucket_name": "pokemath-art" }],
   "d1_databases": [
     {
       "binding": "DB",

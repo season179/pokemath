@@ -6,9 +6,10 @@
     "test": "node --test",
     "demo": "node shared/examples/quickstart.ts",
     "sync": "node tools/sync-shared.mjs",
+    "sync-art": "node tools/sync-art.mjs",
     "typecheck": "tsc --noEmit -p game/tsconfig.check.json && tsc --noEmit -p worker/tsconfig.json",
-    "cf-types": "cd worker && wrangler types",
-    "deploy": "cd worker && wrangler deploy"
+    "cf-types": "cd worker && npx wrangler types",
+    "deploy": "cd worker && npx wrangler deploy"
   },
   "devDependencies": {
     "better-sqlite3": "^12.11.1",

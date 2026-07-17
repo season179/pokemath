@@ -5,6 +5,7 @@
 //   /api/*             game API (session-cookie protected) — api.ts
 //   / , /index.html    302 → /login without a valid session (run_worker_first)
 //   /login             sign-in page, served inline (survives Cocos rebuilds)
+//   /art/*             licensed art from R2 (kept out of the public repo) — docs/art-assets.md
 //   everything else    Cocos web build via Static Assets
 //
 // `Env` comes from worker-configuration.d.ts (regenerate: `npm run cf-types`).
@@ -31,6 +32,10 @@ export default {
       }
     }
 
+    if (url.pathname.startsWith("/art/")) {
+      return serveArt(url, env);
+    }
+
     if (url.pathname === "/login") {
       const session = await getSession(auth, request);
       if (session) return redirect("/"); // already signed in
@@ -49,6 +54,24 @@ export default {
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;
+
+// Licensed art from the private R2 bucket (see docs/art-assets.md).
+// URL /art/<key> maps to R2 object <key>. Served ungated — same exposure as
+// the rest of the Cocos bundle — with immutable caching (keys are versioned,
+// e.g. art/v1/...; re-uploads must bump the version prefix).
+async function serveArt(url: URL, env: Env): Promise<Response> {
+  const key = decodeURIComponent(url.pathname.slice("/art/".length));
+  if (!key || key.includes("..")) return new Response("not found", { status: 404 });
+
+  const obj = await env.ART.get(key);
+  if (!obj) return new Response("not found", { status: 404 });
+
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set("etag", obj.httpEtag);
+  headers.set("cache-control", "public, max-age=31536000, immutable");
+  return new Response(obj.body, { headers });
+}
 
 async function getSession(auth: ReturnType<typeof buildAuth>, request: Request) {
   try {
