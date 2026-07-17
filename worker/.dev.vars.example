@@ -3,3 +3,5 @@
 BETTER_AUTH_SECRET = "dev-only-secret-change-me"
 GOOGLE_CLIENT_ID = "your-client-id.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "your-client-secret"
+# Enables the email/password provider locally (see docs/local-testing.md)
+ENVIRONMENT = "development"

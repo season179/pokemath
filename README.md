@@ -121,12 +121,9 @@ pokemath/
 
 ## Saves and identity
 
-Each device holds a server-issued bearer token in
-localStorage (stored hash-only in D1). Every player has a six-character save
-code, shown in the world corner — enter it on another device via
-`https://game.pokemath.fun/?code=XXXXXX` to carry the save over. Save writes
-use an integer-version compare-and-swap; claim/create endpoints are
-rate-limited.
+Google sign-in via better-auth. Saves are keyed per Google account and
+server-side with an integer-version compare-and-swap. To test the game
+locally without a Google account, see [`docs/local-testing.md`](docs/local-testing.md).
 
 ## Cocos repository hygiene
 

@@ -26,7 +26,10 @@
   ],
   "observability": { "enabled": true },
   "vars": {
-    "BETTER_AUTH_URL": "https://game.pokemath.fun"
+    "BETTER_AUTH_URL": "https://game.pokemath.fun",
+    // "development" enables the email/password provider for local testing
+    // (set in .dev.vars). Absent = production behavior: Google only.
+    "ENVIRONMENT": "production"
   }
   // Secrets (set with `wrangler secret put <NAME>`):
   //   BETTER_AUTH_SECRET   — `openssl rand -base64 32`

@@ -19,8 +19,10 @@ export function buildAuth(env: Env) {
         clientSecret: env.GOOGLE_CLIENT_SECRET,
       },
     },
-    // No passwords — Google is the only way in.
-    emailAndPassword: { enabled: false },
+    // No passwords in production — Google is the only way in. Development
+    // (ENVIRONMENT=development, .dev.vars) enables email/password so coding
+    // agents can sign in locally without a Google account; see docs/local-testing.md.
+    emailAndPassword: { enabled: env.ENVIRONMENT === "development" },
     session: {
       expiresIn: 60 * 60 * 24 * 30, // 30 days
       updateAge: 60 * 60 * 24, // sliding: refresh expiry at most daily
