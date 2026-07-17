@@ -70,7 +70,15 @@ function update() {
     player.py += Math.sign(ty - player.py) * Math.min(player.speed, Math.abs(ty - player.py));
     if (player.px === tx && player.py === ty) {
       player.moving = false;
-      maybeStartEncounter();
+      const t = tileAt(player.x, player.y);
+      if (t === "H") {
+        team.forEach((c) => { c.hp = c.maxHp; }); // home sweet home
+      } else if (t === "S") {
+        scene = "shop";
+        for (const k in keys) keys[k] = false;
+      } else {
+        maybeStartEncounter();
+      }
     }
   }
 }
@@ -101,6 +109,33 @@ function drawTile(type, x, y) {
       ctx.lineTo(gx + 10, py + 40);
       ctx.fill();
     }
+  } else if (type === "H") {
+    // home: red-roofed house
+    ctx.fillStyle = "#fff3e0";
+    ctx.fillRect(px + 10, py + 22, 28, 20);
+    ctx.fillStyle = "#e53935";
+    ctx.beginPath();
+    ctx.moveTo(px + 6, py + 24);
+    ctx.lineTo(px + 24, py + 8);
+    ctx.lineTo(px + 42, py + 24);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#8a5a2b";
+    ctx.fillRect(px + 20, py + 30, 9, 12);
+  } else if (type === "S") {
+    // shop: striped-awning stall
+    ctx.fillStyle = "#ffe082";
+    ctx.fillRect(px + 10, py + 20, 28, 22);
+    ctx.fillStyle = "#e53935";
+    for (let i = 0; i < 4; i++) {
+      ctx.fillRect(px + 6 + i * 9, py + 12, 5, 10);
+    }
+    ctx.fillStyle = "#fff";
+    for (let i = 0; i < 4; i++) {
+      ctx.fillRect(px + 11 + i * 9, py + 12, 4, 10);
+    }
+    ctx.fillStyle = "#5d4037";
+    ctx.fillRect(px + 14, py + 30, 20, 8);
   } else if (type === "T") {
     // trunk
     ctx.fillStyle = "#8a5a2b";
@@ -171,6 +206,7 @@ function draw() {
   }
   drawPlayer();
   drawTeamHud();
+  drawMoneyHud();
 }
 
 function loop() {
@@ -179,6 +215,9 @@ function loop() {
     draw();
   } else if (scene === "battle") {
     drawBattle(); // includes the question bubble when the monster is asking
+  } else if (scene === "shop") {
+    drawShop();
+    if (questionActive()) drawQuestionCard(); // the change question
   }
   requestAnimationFrame(loop);
 }

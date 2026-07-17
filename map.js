@@ -2,16 +2,18 @@
 //   T = tree (blocks walking)
 //   . = grass ground
 //   p = path
-//   G = tall grass (wild encounters later, in Slice 2)
+//   G = tall grass (wild encounters)
+//   H = home (stepping on it heals the team)
+//   S = shop (stepping on it opens the shop)
 const MAP = [
   "TTTTTTTTTTTTTTTT",
   "T....GGG.......T",
   "T....GGG..TT...T",
-  "T.ppppppppppp..T",
+  "T.Hpppppppppp..T",
   "T.p...T...GGG..T",
   "T.p...T...GGG..T",
   "T.p.......GGG..T",
-  "T.ppppppp......T",
+  "T.ppppppS......T",
   "T....GG.p..TT..T",
   "T....GG.p......T",
   "T........ppppp.T",

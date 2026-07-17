@@ -122,10 +122,13 @@ function wildAttack() {
 }
 
 // Winning gives the fighter XP; every XP_PER_LEVEL points is a level: +3 HP, +1 attack.
+// It also pays prize money, scaled the same way.
 function giveXp() {
   const gain = battle.wild.maxHp; // bigger creatures teach more
+  const prize = battle.wild.maxHp * 5;
   active.xp += gain;
-  const msgs = [`${active.name} got ${gain} XP!`];
+  money += prize;
+  const msgs = [`${active.name} got ${gain} XP!`, `You won RM ${fmtNum(prize)}!`];
   while (active.xp >= XP_PER_LEVEL) {
     active.xp -= XP_PER_LEVEL;
     active.level++;
@@ -153,6 +156,11 @@ function switchTo(c) {
 }
 
 function throwBall() {
+  if (bag.ball <= 0) {
+    say(["No balls left! Buy more at the shop."], () => { battle.phase = "menu"; });
+    return;
+  }
+  bag.ball--;
   const wild = battle.wild;
   // The weaker the wild creature, the easier the catch: 30% at full HP, ~90% near zero.
   const chance = 0.3 + 0.6 * (1 - wild.hp / wild.maxHp);
@@ -166,6 +174,14 @@ function throwBall() {
   });
 }
 
+const POTION_HEAL = 10;
+
+function usePotion() {
+  bag.potion--;
+  active.hp = Math.min(active.maxHp, active.hp + POTION_HEAL);
+  say([`Glug glug! ${active.name} healed ${POTION_HEAL} HP!`], wildAttack);
+}
+
 function runAway() {
   say(["Got away safely!"], endBattle);
 }
@@ -176,11 +192,11 @@ function respawnHome() {
   player.px = player.x * TILE;
   player.py = player.y * TILE;
   player.dir = "down";
+  team.forEach((c) => { c.hp = c.maxHp; }); // resting at home heals everyone
   endBattle();
 }
 
 function endBattle() {
-  team.forEach((c) => { c.hp = c.maxHp; }); // no potions yet, so heal after every battle
   battle = null;
   scene = "world";
   for (const k in keys) keys[k] = false; // drop any keys held during battle
@@ -399,16 +415,20 @@ function drawBattle() {
     }
   } else if (battle.phase === "menu") {
     ctx.fillText(`What will ${active.name} do?`, 40, boxY + 45);
-    battle.buttons = [
-      { x: W - 476, y: boxY + 48, w: 140, h: 52, label: "Attack", color: "#42a5f5", action: playerAttack },
-      { x: W - 324, y: boxY + 48, w: 140, h: 52, label: "Catch",  color: "#ab47bc", action: throwBall },
-      { x: W - 172, y: boxY + 48, w: 140, h: 52, label: "Run",    color: "#ff8a65", action: runAway },
-    ];
+    const actions = [];
     if (benchedFighters().length > 0) {
-      battle.buttons.unshift(
-        { x: W - 628, y: boxY + 48, w: 140, h: 52, label: "Switch", color: "#8d6e63", action: () => beginSwitch(false) }
-      );
+      actions.push({ label: "Switch", color: "#8d6e63", action: () => beginSwitch(false) });
     }
+    actions.push({ label: "Attack", color: "#42a5f5", action: playerAttack });
+    actions.push({ label: "Catch", color: "#ab47bc", action: throwBall });
+    if (bag.potion > 0 && active.hp < active.maxHp) {
+      actions.push({ label: "Potion", color: "#26a69a", action: usePotion });
+    }
+    actions.push({ label: "Run", color: "#ff8a65", action: runAway });
+    const bw = 118, gap = 8, total = actions.length * (bw + gap) - gap;
+    battle.buttons = actions.map((a, i) => ({
+      ...a, x: W - 32 - total + i * (bw + gap), y: boxY + 48, w: bw, h: 52,
+    }));
     battle.buttons.forEach(drawButton);
   } else if (battle.phase === "switch") {
     ctx.fillText("Who will fight?", 40, boxY + 45);

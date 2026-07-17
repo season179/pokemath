@@ -67,8 +67,10 @@ turns each step into its own answer turn so kids solve one piece at a time.
 - Big XP reward
 
 ### Slice 10: Money economy
-- Wins pay RM; shop for potions/balls so arithmetic with money loops back
-  into gameplay (prices, change)
+- Wins pay RM (5× the wild creature's max HP)
+- Shop tile on the map sells potions (heal in battle) and balls (now
+  consumed by Catch); the shopkeeper asks a change question before selling
+- Home tile heals the team (no more free heal after every battle)
 
 ### Later ideas
 - Difficulty follows creature level; catch chance boosted by streaks
