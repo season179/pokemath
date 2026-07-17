@@ -1,0 +1,9 @@
+{
+  "name": "pokemath",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "demo": "node shared/examples/quickstart.ts"
+  }
+}
