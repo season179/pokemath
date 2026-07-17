@@ -68,7 +68,10 @@ function update() {
     const ty = player.y * TILE;
     player.px += Math.sign(tx - player.px) * Math.min(player.speed, Math.abs(tx - player.px));
     player.py += Math.sign(ty - player.py) * Math.min(player.speed, Math.abs(ty - player.py));
-    if (player.px === tx && player.py === ty) player.moving = false;
+    if (player.px === tx && player.py === ty) {
+      player.moving = false;
+      maybeStartEncounter();
+    }
   }
 }
 
@@ -170,8 +173,12 @@ function draw() {
 }
 
 function loop() {
-  update();
-  draw();
+  if (scene === "world") {
+    update();
+    draw();
+  } else if (scene === "battle") {
+    drawBattle();
+  }
   requestAnimationFrame(loop);
 }
 loop();
