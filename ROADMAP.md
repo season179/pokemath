@@ -101,16 +101,28 @@ script refs keep 5 hex chars + 18 base64; runtime assets 2 + 20).
   Cocos `Graphics`; real sprites are Phase 3.
 - Done when: feature parity with the prototype, playable in browser preview. ✅
 
-## Phase 2 — Cloudflare deploy + saves
+## Phase 2 — Cloudflare deploy + saves ✅ DONE
+**Live at `https://game.pokemath.fun`** (custom domain on the Worker; no
+workers.dev step — zone verified on the same account). Verified 2026-07-17:
+progress survives refresh and restores on a second browser via save code.
+
 - `worker/` with wrangler; serves the `game/` web build via Workers Static
-  Assets, plus a small JSON API. Wrangler sets `run_worker_first: ["/api/*"]`
-  so API routes aren't shadowed by static-asset routing.
-- D1 schema: `players(id, code, created_at)`, `saves(player_id, payload_json,
-  updated_at)`; `POST /api/save`, `GET /api/save?code=…`.
-- Client: save on battle end / shop purchase / world exit; resume via token,
-  restore-on-another-device via save-code.
-- Done when: playable at a `workers.dev` URL and progress survives refresh
-  and a device swap.
+  Assets, plus a JSON API. `run_worker_first: ["/api/*"]` so API routes
+  aren't shadowed by static-asset routing.
+- D1 schema (evolved from the sketch): `players(id, code, created_at)`,
+  `tokens(token_hash, player_id, …)` — per-device tokens, hash-only at
+  rest, independently revocable — and `saves(player_id, payload_json,
+  version, updated_at)` with an integer-version compare-and-swap on write.
+- API: `POST /api/player` (create), `GET/PUT /api/save` (bearer),
+  `POST /api/player/claim` (save code → fresh device token). Save payloads
+  validated by `shared/save-validate.ts` and capped at 16KB; claim/create
+  rate-limited 10/min/IP (a save code is a password).
+- Client: `persistence.ts` adapter at the app boundary — offline-first boot
+  from a cached save, checkpoints on battle exit / respawn / shop leave,
+  `?code=XXXXXX` URL claim for device transfer, save code shown in-world.
+- Build note: headless Cocos build works — `CocosCreator --project game
+  --build "platform=web-mobile"` → `game/build/web-mobile/` (exit code 36
+  is success). Deploy: `npm run deploy`.
 
 ## Phase 3 — Content & media
 - Question bank → D1 with an import script (query by operation, difficulty,
