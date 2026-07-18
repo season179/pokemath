@@ -365,7 +365,10 @@ export class WorldScreen {
       fill: PALETTE.panel,
       stroke: PALETTE.panelStroke,
     });
-    makeWrappedLabel(box, `${npc.name}: ${npc.message}`, -170, 0, 420, 74, {
+    // Text area: panel spans ±360, buttons start at x=159 — keep 20px
+    // padding on the left and a clear gap before the Go button. The label
+    // node is center-anchored, so x is the box center, not its left edge.
+    makeWrappedLabel(box, `${npc.name}: ${npc.message}`, -101, 0, 478, 74, {
       fontSize: 18,
       lineHeight: 23,
     });
