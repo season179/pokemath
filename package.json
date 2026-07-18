@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node --test",
     "demo": "node shared/examples/quickstart.ts",
+    "review:questions": "node tools/render-question-bank-review.mjs",
     "generate:creature": "node tools/generate-creature.mjs",
     "setup-art": "node tools/art-registry.mjs setup",
     "publish-art": "node tools/art-registry.mjs publish",
@@ -16,6 +17,7 @@
     "deploy": "cd worker && npx wrangler deploy"
   },
   "devDependencies": {
+    "ajv": "^8.20.0",
     "better-sqlite3": "^12.11.1",
     "typescript": "5.5",
     "wrangler": "4.112.0"

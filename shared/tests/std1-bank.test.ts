@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import Ajv2020 from "ajv/dist/2020.js";
 
 import {
   evaluateExpression,
@@ -7,8 +9,27 @@ import {
   verifyBank,
   verifyQuestion,
 } from "../question-verify.ts";
-import { formatAnswer, QuestionRound, turnsOf, type Question } from "../question-engine.ts";
-import { STD1_WOOLLY_BANK, STD1_WOOLLY_BANK_DATA } from "../std1-bank.ts";
+import {
+  formatAnswer,
+  QuestionBank,
+  QuestionRound,
+  turnsOf,
+  type Question,
+} from "../question-engine.ts";
+import { parseQuestionBankData } from "../question-bank-validate.ts";
+import { renderQuestionBankReview } from "../../tools/render-question-bank-review.mjs";
+import { SAMPLE_BANK } from "../question-bank.ts";
+
+const BANK_URL = new URL(
+  "../../game/assets/resources/question-banks/std1/woolly-meadows.v1.json",
+  import.meta.url,
+);
+const BANK_SOURCE = await readFile(BANK_URL, "utf8");
+const STD1_WOOLLY_BANK = parseQuestionBankData(JSON.parse(BANK_SOURCE));
+const SCHEMA_URL = new URL("../../schemas/question-bank-v1.schema.json", import.meta.url);
+const QUESTION_BANK_SCHEMA = JSON.parse(await readFile(SCHEMA_URL, "utf8"));
+const schemaAjv = new Ajv2020({ allErrors: true });
+const validateSchema = schemaAjv.compile(QUESTION_BANK_SCHEMA);
 
 // --- expression evaluator: positive cases ---
 
@@ -226,7 +247,100 @@ test("QuestionRound: authored order is shuffled (correct slot varies)", () => {
 
 // --- the wire-format view still feeds the engine like the legacy bank ---
 
-test("std1 bank: wire-format data is QuestionBank-compatible", () => {
-  assert.equal(STD1_WOOLLY_BANK_DATA.questions.length, STD1_WOOLLY_BANK.questions.length);
-  assert.equal(STD1_WOOLLY_BANK_DATA.currency, "RM");
+test("std1 bank: versioned JSON is QuestionBank-compatible", () => {
+  const runtime = new QuestionBank(STD1_WOOLLY_BANK);
+  assert.equal(runtime.questions.length, STD1_WOOLLY_BANK.questions.length);
+  assert.equal(runtime.data.currency, "RM");
+  assert.equal(STD1_WOOLLY_BANK.schema_version, 1);
+  assert.equal(STD1_WOOLLY_BANK.bank_id, "std1.woolly-meadows");
+  assert.equal(STD1_WOOLLY_BANK.version, 1);
+});
+
+test("std1 bank: canonical JSON passes the executable JSON Schema", () => {
+  assert.equal(
+    validateSchema(JSON.parse(BANK_SOURCE)),
+    true,
+    schemaAjv.errorsText(validateSchema.errors),
+  );
+});
+
+test("question-bank v1 contract supports legacy stepped questions", () => {
+  const versionedLegacy = {
+    schema_version: 1,
+    bank_id: "legacy.sample",
+    version: 1,
+    ...SAMPLE_BANK,
+  };
+  assert.equal(
+    validateSchema(versionedLegacy),
+    true,
+    schemaAjv.errorsText(validateSchema.errors),
+  );
+  const parsed = parseQuestionBankData(versionedLegacy);
+  assert.equal(parsed.questions[4].steps?.length, 2);
+  assert.deepEqual(parsed.questions[4].table, { P: 8655, Q: 40256 });
+  assert.match(
+    renderQuestionBankReview(parsed, JSON.stringify(versionedLegacy), "#source"),
+    /No authored choices; the runtime generates near-misses/,
+  );
+});
+
+test("parseQuestionBankData rejects unsupported or malformed JSON", () => {
+  assert.throws(
+    () => parseQuestionBankData({ ...STD1_WOOLLY_BANK, schema_version: 2 }),
+    /unsupported question-bank schema version/,
+  );
+  assert.throws(
+    () => parseQuestionBankData({ ...STD1_WOOLLY_BANK, questions: [] }),
+    /at least one question/,
+  );
+
+  const malformedChoice = structuredClone(STD1_WOOLLY_BANK);
+  malformedChoice.questions[0].distractors![0].value = malformedChoice.questions[0].answer;
+  assert.throws(
+    () => parseQuestionBankData(malformedChoice),
+    /answer and distractors must be unique/,
+  );
+
+  const malformedUnit = structuredClone(STD1_WOOLLY_BANK) as unknown as Record<string, unknown>;
+  const questions = malformedUnit.questions as Array<Record<string, unknown>>;
+  questions[0].answer_unit = "coins";
+  assert.throws(
+    () => parseQuestionBankData(malformedUnit),
+    /answer_unit is unsupported/,
+  );
+
+  const malformedCount = structuredClone(STD1_WOOLLY_BANK);
+  malformedCount.questions[0].distractors!.pop();
+  assert.throws(
+    () => parseQuestionBankData(malformedCount),
+    /exactly 3 choices/,
+  );
+
+  const duplicateId = structuredClone(STD1_WOOLLY_BANK);
+  duplicateId.questions[1].id = duplicateId.questions[0].id;
+  assert.throws(
+    () => parseQuestionBankData(duplicateId),
+    /duplicate question id/,
+  );
+
+  const misspelledField = structuredClone(STD1_WOOLLY_BANK) as unknown as Record<string, unknown>;
+  const misspelledQuestions = misspelledField.questions as Array<Record<string, unknown>>;
+  delete misspelledQuestions[0].answer_unit;
+  misspelledQuestions[0].answer_unitt = "none";
+  assert.throws(
+    () => parseQuestionBankData(misspelledField),
+    /unknown field.*answer_unitt/,
+  );
+});
+
+test("human review document is generated from the canonical JSON", async () => {
+  const reviewUrl = new URL(
+    "../../docs/question-banks/std1-woolly-meadows-v1-review.md",
+    import.meta.url,
+  );
+  assert.equal(
+    await readFile(reviewUrl, "utf8"),
+    renderQuestionBankReview(STD1_WOOLLY_BANK, BANK_SOURCE),
+  );
 });

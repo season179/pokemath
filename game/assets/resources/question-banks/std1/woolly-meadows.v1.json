@@ -1,0 +1,531 @@
+{
+  "schema_version": 1,
+  "bank_id": "std1.woolly-meadows",
+  "version": 1,
+  "source": "Hand-authored for the first Woolly Meadows encounter (M2A, issue #6); scope: docs/curriculum/standard-1-sjkc-math.md; format/distractor patterns: docs/curriculum/standard-1-question-style.md",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.1; TP1–TP2 (Woolly Meadows)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "question_zh": "数一数，羊圈里共有几只羊？\n🐑🐑🐑🐑🐑🐑🐑🐑",
+      "question_en": "Count the sheep in the pen. How many are there?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count (skipped one)"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count (double-counted one)"
+        },
+        {
+          "value": 10,
+          "strategy": "near-ten-bias"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "question_zh": "树下有几个苹果？\n🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎",
+      "question_en": "How many apples are under the tree?",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 13,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "round-to-ten"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "15",
+      "answer": 15,
+      "question_zh": "花园里有几只蝴蝶？\n🦋🦋🦋🦋🦋🦋🦋🦋🦋🦋🦋🦋🦋🦋🦋",
+      "question_en": "How many butterflies are in the garden?",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 16,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 20,
+          "strategy": "round-to-ten"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "20",
+      "answer": 20,
+      "question_zh": "数一数，共有几朵花？\n🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸",
+      "question_en": "Count the flowers. How many are there?",
+      "distractors": [
+        {
+          "value": 19,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 21,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 18,
+          "strategy": "off-by-two"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "70 + 3",
+      "answer": 73,
+      "question_zh": "7 个十和 3 个一合起来是多少？",
+      "question_en": "7 tens and 3 ones make what number?",
+      "distractors": [
+        {
+          "value": 37,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 70,
+          "strategy": "drop-ones (raw-operand)"
+        },
+        {
+          "value": 3,
+          "strategy": "drop-tens (raw-operand)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "50 + 6",
+      "answer": 56,
+      "question_zh": "5 个十和 6 个一合起来是多少？",
+      "question_en": "5 tens and 6 ones make what number?",
+      "distractors": [
+        {
+          "value": 65,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 50,
+          "strategy": "drop-ones (raw-operand)"
+        },
+        {
+          "value": 11,
+          "strategy": "digit-sum (5 + 6)"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "30 + 2",
+      "answer": 32,
+      "question_zh": "3 个十和 2 个一合起来是多少？",
+      "question_en": "3 tens and 2 ones make what number?",
+      "distractors": [
+        {
+          "value": 23,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 30,
+          "strategy": "drop-ones (raw-operand)"
+        },
+        {
+          "value": 5,
+          "strategy": "digit-sum (3 + 2)"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "6 + 2",
+      "answer": 8,
+      "question_zh": "按规律填数：2, 4, 6, __, 10。",
+      "question_en": "Fill in the pattern: 2, 4, 6, __, 10.",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "wrong-step (counted by 1)"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one"
+        },
+        {
+          "value": 10,
+          "strategy": "raw-operand (repeated the last shown)"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "30 + 10",
+      "answer": 40,
+      "question_zh": "十个十个地数：10, 20, 30, __, 50。",
+      "question_en": "Count by tens: 10, 20, 30, __, 50.",
+      "distractors": [
+        {
+          "value": 31,
+          "strategy": "wrong-step (counted by 1)"
+        },
+        {
+          "value": 35,
+          "strategy": "wrong-step (halved the step)"
+        },
+        {
+          "value": 50,
+          "strategy": "raw-operand (repeated the last shown)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "13 - 1",
+      "answer": 12,
+      "question_zh": "倒着数：15, 14, 13, __, 11。",
+      "question_en": "Count backwards: 15, 14, 13, __, 11.",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "wrong-direction (counted up)"
+        },
+        {
+          "value": 11,
+          "strategy": "raw-operand (next shown)"
+        },
+        {
+          "value": 13,
+          "strategy": "raw-operand (prev shown)"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 3",
+      "answer": 7,
+      "question_zh": "__ 和 3 合起来是 10。空格里是多少？",
+      "question_en": "__ and 3 make 10. What is the missing number?",
+      "distractors": [
+        {
+          "value": 13,
+          "strategy": "wrong-operation (10 + 3)"
+        },
+        {
+          "value": 10,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "8 + 5",
+      "answer": 13,
+      "question_zh": "8 和 5 合起来是多少？",
+      "question_en": "8 and 5 make what number?",
+      "distractors": [
+        {
+          "value": 12,
+          "strategy": "off-by-one"
+        },
+        {
+          "value": 14,
+          "strategy": "off-by-one"
+        },
+        {
+          "value": 3,
+          "strategy": "wrong-operation (8 − 5)"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 6",
+      "answer": 4,
+      "question_zh": "6 和 __ 合起来是 10。空格里是多少？",
+      "question_en": "6 and __ make 10. What is the missing number?",
+      "distractors": [
+        {
+          "value": 16,
+          "strategy": "wrong-operation (10 + 6)"
+        },
+        {
+          "value": 10,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "9 - 6",
+      "answer": 3,
+      "question_zh": "9 比 6 多几？",
+      "question_en": "How many more is 9 than 6?",
+      "distractors": [
+        {
+          "value": 15,
+          "strategy": "wrong-operation (9 + 6)"
+        },
+        {
+          "value": 9,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "8 - 5",
+      "answer": 3,
+      "question_zh": "5 比 8 少几？",
+      "question_en": "How many fewer is 5 than 8?",
+      "distractors": [
+        {
+          "value": 13,
+          "strategy": "wrong-operation (8 + 5)"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "20 - 13",
+      "answer": 7,
+      "question_zh": "13 和 __ 合起来是 20。空格里是多少？",
+      "question_en": "13 and __ make 20. What is the missing number?",
+      "distractors": [
+        {
+          "value": 33,
+          "strategy": "wrong-operation (20 + 13)"
+        },
+        {
+          "value": 20,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 13,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "60 + 4",
+      "answer": 64,
+      "question_zh": "6 个十和 4 个一合起来是多少？",
+      "question_en": "6 tens and 4 ones make what number?",
+      "distractors": [
+        {
+          "value": 46,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 60,
+          "strategy": "drop-ones (raw-operand)"
+        },
+        {
+          "value": 10,
+          "strategy": "digit-sum (6 + 4)"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "20",
+      "answer": 20,
+      "question_zh": "选出最大的数目：18, 20, 14, 10。",
+      "question_en": "Choose the largest number: 18, 20, 14, 10.",
+      "distractors": [
+        {
+          "value": 18,
+          "strategy": "place-value-slip (compared the ones digit)"
+        },
+        {
+          "value": 14,
+          "strategy": "near-pick"
+        },
+        {
+          "value": 10,
+          "strategy": "wrong-extreme (smallest)"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "19",
+      "answer": 19,
+      "question_zh": "选出最小的数目：23, 32, 19, 41。",
+      "question_en": "Choose the smallest number: 23, 32, 19, 41.",
+      "distractors": [
+        {
+          "value": 23,
+          "strategy": "near-pick"
+        },
+        {
+          "value": 32,
+          "strategy": "digit-reversal confusion"
+        },
+        {
+          "value": 41,
+          "strategy": "wrong-extreme (largest)"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "40",
+      "answer": 40,
+      "question_zh": "在 42 中，数字 4 的数值是多少？",
+      "question_en": "In 42, what is the value of the digit 4?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "place-value-slip (digit, not its value)"
+        },
+        {
+          "value": 42,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 2,
+          "strategy": "ones-digit"
+        }
+      ]
+    }
+  ]
+}

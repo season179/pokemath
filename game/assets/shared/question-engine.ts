@@ -2,8 +2,8 @@
 // Pure domain — no DOM, no canvas. Ported from the prototype's questions.js.
 //
 // Data schema note: Question/QuestionStep keep the snake_case field names of
-// the authored bank format (math-questions.json). That schema IS the wire
-// format — banks are authored in it and Phase 3 imports it into D1 as-is.
+// the authored JSON bank format. JSON is the content source of truth; this
+// module owns the runtime contract and behavior, not the authored questions.
 
 export interface QuestionStep {
   prompt_zh: string;
@@ -57,6 +57,16 @@ export interface QuestionBankData {
   source: string;
   currency: string;
   questions: Question[];
+}
+
+// Versioned envelope used by authored JSON assets. Schema v2 will extend this
+// additively; v1 remains the contract for the first Woolly Meadows preview.
+export interface VersionedQuestionBankData extends QuestionBankData {
+  schema_version: 1;
+  bank_id: string;
+  version: number;
+  profile?: string;
+  scope?: string;
 }
 
 // A "turn" is one answer round. Plain questions are one turn; questions with

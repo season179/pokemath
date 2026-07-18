@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pokemath.fun/schemas/question-bank-v1.schema.json",
+  "title": "PokeMath question bank v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bank_id",
+    "version",
+    "source",
+    "currency",
+    "questions"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "bank_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer", "minimum": 1 },
+    "source": { "type": "string", "minLength": 1 },
+    "currency": { "type": "string" },
+    "profile": { "type": "string", "minLength": 1 },
+    "scope": { "type": "string", "minLength": 1 },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "distractor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "strategy"],
+      "properties": {
+        "value": { "type": "integer" },
+        "strategy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt_zh", "prompt_en", "expression", "answer"],
+      "properties": {
+        "prompt_zh": { "type": "string", "minLength": 1 },
+        "prompt_en": { "type": "string", "minLength": 1 },
+        "expression": { "type": "string", "minLength": 1 },
+        "answer": { "type": "integer" }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "operation",
+        "expression",
+        "answer",
+        "question_zh",
+        "question_en"
+      ],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "topic": { "type": "string", "minLength": 1 },
+        "tp_level": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "profile": { "type": "string", "minLength": 1 },
+        "answer_unit": { "enum": ["none", "RM", "sen"] },
+        "operation": { "type": "string", "minLength": 1 },
+        "expression": { "type": "string", "minLength": 1 },
+        "answer": { "type": "integer" },
+        "question_zh": { "type": "string", "minLength": 1 },
+        "question_en": { "type": "string", "minLength": 1 },
+        "table": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/step" }
+        },
+        "distractors": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/distractor" }
+        }
+      },
+      "not": { "required": ["steps", "distractors"] }
+    }
+  }
+}

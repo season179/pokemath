@@ -3,8 +3,8 @@
 // Cloudflare Worker (Phase 2) tomorrow.
 
 export * from "./question-engine";
+export * from "./question-bank-validate";
 export * from "./question-bank";
-export * from "./std1-bank";
 export * from "./creature";
 export * from "./battle-rules";
 export * from "./shop-rules";

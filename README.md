@@ -51,9 +51,10 @@ the local database without `--remote`).
 ## Verify changes
 
 ```bash
-npm test          # 30 pure-domain tests
+npm test          # project test suite
 npm run typecheck # game + shared (Cocos 3.8.8 declarations) + worker
 npm run demo      # small command-line domain demonstration
+npm run review:questions # regenerate the parent-facing question review
 ```
 
 `npm run sync` copies the pure domain library from `shared/` into
@@ -108,6 +109,10 @@ pokemath/
 ### Boundaries
 
 - `shared/` owns game rules and must remain independent of Cocos and browser APIs.
+- Versioned question banks are JSON game assets under
+  `game/assets/resources/question-banks/`; TypeScript defines their runtime
+  contract but does not contain authored questions. Parent-facing review files
+  under `docs/question-banks/` are generated from the same JSON source.
 - Cocos screens own rendering/input and call the shared domain; they do not
   duplicate battle or question arithmetic.
 - `Main.ts` boots one `cc.Scene`. World, battle, and shop are runtime-built
