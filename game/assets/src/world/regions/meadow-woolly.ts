@@ -37,7 +37,7 @@ export const MEADOW_WOOLLY: RegionDef = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 10 },
-  npcs: [guide(2, 11, "characters/character_05/character05-sheet.png")],
+  npcs: [guide(2, 11, "characters/character_5/character05-sheet.png")],
   // Preview roster (M2A): three ordinary, catchable creatures. Weights sum to
   // 100 so they read as percentages — clear common / uncommon / rare rates.
   //   Fluffball (common) 65 · Balltail Hare (uncommon) 27 · Woolly Ram (rare) 8
