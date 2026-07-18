@@ -8,6 +8,7 @@ export const MEADOW_DOCK: RegionDef = {
   id: "meadow/dock",
   title: "MEADOW DOCK  ·  青草码头",
   art: "meadow",
+  map: { group: "meadow", role: "transit", position: { x: 28, y: 52 } },
   rows: [
     "TTTTTTTT..TTTTTTTTTTTTTT",
     "T.......p..............T",
@@ -36,6 +37,7 @@ export const MEADOW_DOCK: RegionDef = {
       characterSheet: "characters/character_10/character10-sheet.png",
       sailTo: "harbor",
       sailArrive: "ferry",
+      sailKind: "ferry",
     },
   ],
   gateways: [

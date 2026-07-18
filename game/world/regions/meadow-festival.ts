@@ -7,6 +7,7 @@ export const MEADOW_FESTIVAL: RegionDef = {
   id: "meadow/festival",
   title: "HARVEST FESTIVAL GREEN  ·  丰收节草地",
   art: "meadow",
+  map: { group: "meadow", role: "monster", position: { x: 86, y: 40 } },
   rows: [
     "TTTTTTTTTTTTTTpTTTTTTTTTTTTT",
     "T.............p............T",

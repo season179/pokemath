@@ -7,6 +7,7 @@ export const MEADOW_TICKTOCK: RegionDef = {
   id: "meadow/ticktock",
   title: "TICKTOCK KNOLL  ·  滴答山丘",
   art: "meadow",
+  map: { group: "meadow", role: "monster", position: { x: 62, y: 82 } },
   rows: [
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
     "T..........................T",

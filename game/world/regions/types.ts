@@ -47,9 +47,44 @@ export interface NpcDef {
   readonly sailTo?: string;
   /** …arriving through this named gateway there. */
   readonly sailArrive?: string;
+  /**
+   * Map-graph role of this NPC's travel offer. "ferry" edges are core island
+   * geography and show on the world map (e.g. Harbor ⇄ Dock captains);
+   * "shortcut" edges are convenience guides (the back-to-dock Meadow Guides)
+   * and stay hidden so the world map draws the real ring, not a Dock star.
+   */
+  readonly sailKind?: "ferry" | "shortcut";
 }
 
 export type TileHandler = "heal" | "shop" | "workshop";
+
+/**
+ * Which island/hub cluster a region belongs to on the world map. Open-ended:
+ * the known clusters are listed for autocomplete, but a future island simply
+ * uses its own value ("tallgrass", "tidepool", …) — no map code needs to change
+ * to accept it. Contrast MapRole below, which is a closed semantic set.
+ */
+export type MapGroup = "harbor" | "meadow" | (string & {});
+
+/**
+ * Semantic role of a region on the maps. Drives the world-map icon and lock
+ * caption, and the mini-map's exit styling. "monster" marks ordinary creature
+ * areas; "guardian" marks a boss ground; "transit" is open infrastructure that
+ * is never a monster area (Meadow Dock); "hub" is the peaceful home town.
+ */
+export type MapRole = "hub" | "transit" | "monster" | "guardian";
+
+/**
+ * World-map descriptor. The ONLY authored geography beyond the tile grid:
+ * every region carries its own pin so the map derives from the region registry
+ * (one geography) rather than a second hard-coded layout. Positions are in a
+ * shared abstract map space (x right, y up); the renderer scales them.
+ */
+export interface RegionMapDef {
+  readonly group: MapGroup;
+  readonly role: MapRole;
+  readonly position: { readonly x: number; readonly y: number };
+}
 
 export interface RegionDef {
   readonly id: string;
@@ -57,6 +92,8 @@ export interface RegionDef {
   readonly title: string;
   /** Art pipeline: Harbor keeps its bespoke composition; meadow is char-driven. */
   readonly art: "harbor" | "meadow";
+  /** World-map pin. Required so no region can ship without appearing on the map. */
+  readonly map: RegionMapDef;
   readonly rows: readonly string[];
   readonly spawn: { readonly x: number; readonly y: number };
   readonly npcs: readonly NpcDef[];

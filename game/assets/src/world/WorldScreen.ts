@@ -41,7 +41,7 @@ import {
 } from "./regions/index";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
-import { paintBagIcon } from "../ui-icons";
+import { paintBagIcon, paintMapIcon } from "../ui-icons";
 import { colorFromHex, paintCreature } from "../creature-art";
 import { loadPixelTexture, pixelFrame } from "../remote-art";
 
@@ -93,6 +93,8 @@ export interface WorldActions {
   onBag: () => void;
   /** Sail or walk into another region, arriving through the named gateway. */
   onTravel: (regionId: string, gateway: string | null) => void;
+  /** Open the informational world map overlay (M key / HUD button). */
+  onMap: () => void;
 }
 
 export class WorldScreen {
@@ -129,6 +131,13 @@ export class WorldScreen {
   private buffered: Direction | null = null;
   private banner: Node | null = null;
   private pendingSail: { to: string; arrive: string | null } | null = null;
+
+  // Mini-map geometry (#30): the route is drawn once per region; only the
+  // player dot moves each frame.
+  private miniPlayer: Node | null = null;
+  private miniScale = 1;
+  private miniHalfW = 0;
+  private miniHalfH = 0;
 
   constructor(
     private state: GameState,
@@ -220,6 +229,7 @@ export class WorldScreen {
   }
 
   update(dt: number) {
+    this.updateMiniPlayer();
     if (this.banner) return;
 
     if (!this.moving) {
@@ -980,6 +990,181 @@ export class WorldScreen {
     bagIcon.parent = bag;
     paintBagIcon(bagIcon.addComponent(Graphics), 31);
     bag.on(Node.EventType.TOUCH_END, this.actions.onBag);
+
+    // Visible desktop control that opens the world map (#30). The M key is
+    // the keyboard equivalent, routed by GameApp.
+    const mapBtn = makePanel(
+      this.hudLayer,
+      size.width / 2 - 107,
+      size.height / 2 - 47,
+      54,
+      54,
+      {
+        fill: new Color(255, 253, 245, 230),
+        stroke: PALETTE.panelStroke,
+        lineWidth: 3,
+      },
+    );
+    const mapIcon = new Node("map-icon");
+    mapIcon.parent = mapBtn;
+    mapIcon.setPosition(0, 4);
+    paintMapIcon(mapIcon.addComponent(Graphics), 30);
+    makeLabel(mapBtn, "Map [M]", 0, -17, { fontSize: 9, color: PALETTE.sub });
+    mapBtn.on(Node.EventType.TOUCH_END, this.actions.onMap);
+
+    this.buildMiniMap();
+  }
+
+  // --- mini-map (#30) ---
+
+  /**
+   * Compact local map in the bottom-left HUD corner. Pure view of the current
+   * region: walkable route shape, exits (green = open, amber = preview-sealed,
+   * grey = reserved pocket), the ferry captain, and a live player dot. It never
+   * overlaps the creature card (top-left) or the bag/map buttons (top-right).
+   */
+  private buildMiniMap() {
+    const size = view.getVisibleSize();
+    const MW = 176;
+    const MH = 152;
+    const panel = makePanel(
+      this.hudLayer,
+      -size.width / 2 + MW / 2 + 14,
+      -size.height / 2 + MH / 2 + 14,
+      MW,
+      MH,
+      { fill: new Color(255, 253, 245, 218), stroke: PALETTE.panelStroke, lineWidth: 3 },
+    );
+    const title = makeLabel(panel, this.def.title, 0, MH / 2 - 12, { fontSize: 11 });
+    title.horizontalAlign = Label.HorizontalAlign.CENTER;
+    title.overflow = Label.Overflow.SHRINK;
+    title.node.getComponent(UITransform)!.setContentSize(MW - 16, 16);
+
+    const innerW = MW - 24;
+    const innerH = MH - 50; // leaves room for the title and the legend footer
+    const scale = Math.min(innerW / (this.w * TILE), innerH / (this.h * TILE));
+    this.miniScale = scale;
+    this.miniHalfW = (this.w * TILE) / 2;
+    this.miniHalfH = (this.h * TILE) / 2;
+
+    const field = new Node("mini-field");
+    field.parent = panel;
+    field.setPosition(0, 8);
+    field.addComponent(UITransform).setContentSize(innerW, innerH);
+    const g = field.addComponent(Graphics);
+
+    const tileMini = (tx: number, ty: number): [number, number] => {
+      const mapPxX = tx * TILE + TILE / 2;
+      const mapPxY = (this.h - 1 - ty) * TILE + TILE / 2;
+      return [(mapPxX - this.miniHalfW) * scale, (mapPxY - this.miniHalfH) * scale];
+    };
+
+    const tile = TILE * scale * 0.92;
+    for (let ty = 0; ty < this.h; ty++) {
+      for (let tx = 0; tx < this.w; tx++) {
+        if (!isWalkable(this.def, tx, ty)) continue;
+        const ch = tileAt(this.def, tx, ty);
+        const [mx, my] = tileMini(tx, ty);
+        g.fillColor = "pHPSNdD".includes(ch)
+          ? new Color(234, 223, 201, 255)
+          : new Color(207, 232, 212, 255);
+        g.rect(mx - tile / 2, my - tile / 2, tile, tile);
+        g.fill();
+      }
+    }
+
+    // Exits: filled dots for open routes and the ferry; hollow rings for
+    // sealed gateways and reserved pockets, so a glance tells go-vs-locked.
+    for (const gateway of this.def.gateways) {
+      for (const t of gateway.tiles) {
+        const [mx, my] = tileMini(t.x, t.y);
+        if (gateway.to === null) this.miniRing(g, mx, my, 3.4, new Color(150, 150, 150, 255));
+        else if (canTraverseGateway(gateway)) this.miniDot(g, mx, my, 3.6, PALETTE.good);
+        else this.miniRing(g, mx, my, 3.6, new Color(255, 167, 38, 255));
+      }
+    }
+    for (const npc of this.def.npcs) {
+      if (npc.sailKind !== "ferry") continue;
+      const [mx, my] = tileMini(npc.x, npc.y);
+      this.miniDot(g, mx, my, 3.8, PALETTE.actionBlue);
+    }
+
+    // Player marker: white core with a dark outline — distinct from every
+    // exit (the ferry is a filled blue dot, so this avoids blue-on-blue).
+    const player = new Node("mini-player");
+    player.parent = field;
+    const pg = player.addComponent(Graphics);
+    pg.fillColor = new Color(255, 255, 255, 255);
+    pg.strokeColor = PALETTE.ink;
+    pg.lineWidth = 1.6;
+    pg.circle(0, 0, 4.4);
+    pg.fill();
+    pg.stroke();
+    this.miniPlayer = player;
+    this.updateMiniPlayer();
+
+    this.buildMiniLegend(panel, MW, MH);
+  }
+
+  private miniDot(g: Graphics, x: number, y: number, r: number, color: Color) {
+    g.fillColor = new Color(255, 255, 255, 255);
+    g.circle(x, y, r + 1.4);
+    g.fill();
+    g.fillColor = color;
+    g.circle(x, y, r);
+    g.fill();
+  }
+
+  /** A hollow ring — used for sealed/pocket exits so they read as unavailable. */
+  private miniRing(g: Graphics, x: number, y: number, r: number, color: Color) {
+    g.fillColor = new Color(255, 253, 245, 255);
+    g.strokeColor = color;
+    g.lineWidth = 1.8;
+    g.circle(x, y, r);
+    g.fill();
+    g.stroke();
+  }
+
+  /** Compact footer key so the mini-map dots are self-explanatory. */
+  private buildMiniLegend(panel: Node, MW: number, MH: number) {
+    const ink = PALETTE.ink;
+    const items: Array<{ draw: (g: Graphics) => void; label: string }> = [
+      {
+        draw: (g) => {
+          g.fillColor = new Color(255, 255, 255, 255);
+          g.strokeColor = ink;
+          g.lineWidth = 1.4;
+          g.circle(0, 0, 3.6);
+          g.fill();
+          g.stroke();
+        },
+        label: "You",
+      },
+      { draw: (g) => this.miniDot(g, 0, 0, 3.2, PALETTE.good), label: "Go" },
+      { draw: (g) => this.miniRing(g, 0, 0, 3.2, new Color(255, 167, 38, 255)), label: "Lock" },
+      { draw: (g) => this.miniDot(g, 0, 0, 3.2, PALETTE.actionBlue), label: "Ferry" },
+    ];
+    const slot = (MW - 12) / items.length;
+    const baseX = -MW / 2 + 6;
+    const y = -MH / 2 + 11;
+    items.forEach((item, i) => {
+      const cx = baseX + slot * (i + 0.5);
+      const dot = new Node("legend-dot");
+      dot.parent = panel;
+      dot.setPosition(cx - 14, y);
+      item.draw(dot.addComponent(Graphics));
+      makeLabel(panel, item.label, cx - 6, y, { fontSize: 8, color: PALETTE.sub, align: "left" });
+    });
+  }
+
+  private updateMiniPlayer() {
+    if (!this.miniPlayer) return;
+    const pos = this.playerNode.position;
+    this.miniPlayer.setPosition(
+      (pos.x - this.miniHalfW) * this.miniScale,
+      (pos.y - this.miniHalfH) * this.miniScale,
+      0,
+    );
   }
 
   refreshHud() {
