@@ -28,8 +28,10 @@ import {
   RegionDef,
   TILE,
   camOffset,
+  canTraverseGateway,
   gatewayAt,
   gatewayNamed,
+  gatewayNotice,
   isWalkable,
   npcAt,
   region,
@@ -289,11 +291,14 @@ export class WorldScreen {
   private onArrive() {
     const gateway = gatewayAt(this.def, this.px, this.py);
     if (gateway) {
-      if (gateway.to) {
+      // Pocket gateways (reserved lots) and preview-sealed gateways both fall
+      // through to their notice; only gateways whose target is currently open
+      // actually travel. See regions/index.ts canTraverseGateway (issue #29).
+      if (canTraverseGateway(gateway)) {
         this.releaseAll();
-        this.actions.onTravel(gateway.to, gateway.toGateway ?? null);
-      } else if (gateway.message) {
-        this.showNotice(gateway.message);
+        this.actions.onTravel(gateway.to!, gateway.toGateway ?? null);
+      } else {
+        this.showNotice(gatewayNotice(gateway));
       }
       return;
     }

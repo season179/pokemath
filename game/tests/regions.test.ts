@@ -2,9 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  PREVIEW_LOCKED_MESSAGE,
   REGIONS,
   camOffset,
+  canTraverseGateway,
   gatewayNamed,
+  gatewayNotice,
+  isEncounterRegion,
+  isOpenRegion,
   isWalkable,
   npcAt,
   regionH,
@@ -98,7 +103,9 @@ test("open gateways come in symmetric pairs", () => {
   }
 });
 
-test("every region is reachable from Harbor Town", () => {
+test("the full region graph stays connected when preview locks are ignored", () => {
+  // Every region stays wired for later reopening (#29 criterion 5): with the
+  // preview scope ignored, every region is still reachable from Harbor Town.
   const edges: Array<[string, string]> = [];
   for (const def of Object.values(REGIONS)) {
     for (const gateway of def.gateways) {
@@ -121,6 +128,99 @@ test("every region is reachable from Harbor Town", () => {
   for (const id of Object.keys(REGIONS)) {
     assert.ok(visited.has(id), `${id} is reachable from harbor`);
   }
+});
+
+test("preview scope: only Harbor, Meadow Dock, and Woolly are open", () => {
+  // Woolly Meadows is the only open monster area for the kids-playtest
+  // preview; Meadow Dock is transit-only, every other area stays sealed.
+  const open = Object.keys(REGIONS).filter((id) => isOpenRegion(id));
+  assert.deepEqual(open, ["harbor", "meadow/dock", "meadow/woolly"]);
+});
+
+test("preview: only the open set is reachable from Harbor (gateways + ferries)", () => {
+  // Breadth-first over actual traversal edges: crossable gateways use the
+  // same canTraverseGateway helper as WorldScreen, and NPC sail offers are
+  // included so a future sail route can never silently bypass the preview
+  // seal by dropping a player in a locked region.
+  const reachable = new Set<string>(["harbor"]);
+  const queue = ["harbor"];
+  for (let i = 0; i < queue.length; i++) {
+    const def = REGIONS[queue[i]];
+    for (const gateway of def.gateways) {
+      if (gateway.to && canTraverseGateway(gateway) && !reachable.has(gateway.to)) {
+        reachable.add(gateway.to);
+        queue.push(gateway.to);
+      }
+    }
+    for (const npc of def.npcs) {
+      if (npc.sailTo && !reachable.has(npc.sailTo)) {
+        reachable.add(npc.sailTo);
+        queue.push(npc.sailTo);
+      }
+    }
+  }
+  assert.deepEqual([...reachable].sort(), ["harbor", "meadow/dock", "meadow/woolly"]);
+});
+
+test("preview: the two outward gates stay sealed but keep their wiring", () => {
+  const dockSouth = gatewayNamed(REGIONS["meadow/dock"], "south")!;
+  const woollyNorth = gatewayNamed(REGIONS["meadow/woolly"], "north")!;
+  // Wiring is fully retained for later reopening (criterion 5)…
+  assert.equal(dockSouth.to, "meadow/gardens");
+  assert.equal(dockSouth.toGateway, "north");
+  assert.ok(dockSouth.arriveAt, "dock.south still has an arrival point");
+  assert.equal(woollyNorth.to, "meadow/ticktock");
+  assert.equal(woollyNorth.toGateway, "west");
+  assert.ok(woollyNorth.arriveAt, "woolly.north still has an arrival point");
+  // …but neither can be crossed in the preview (criterion 3).
+  assert.equal(canTraverseGateway(dockSouth), false);
+  assert.equal(canTraverseGateway(woollyNorth), false);
+});
+
+test("preview: the Harbor ⇄ Dock ⇄ Woolly route is open both ways", () => {
+  // Harbor ⇄ Dock via the ferry captains.
+  const harborCaptain = REGIONS.harbor.npcs.find((n) => n.sailTo === "meadow/dock");
+  const dockCaptain = REGIONS["meadow/dock"].npcs.find((n) => n.sailTo === "harbor");
+  assert.ok(harborCaptain, "Harbor captain sails to Meadow Dock");
+  assert.ok(dockCaptain, "Dock captain sails back to Harbor Town");
+  // Dock ⇄ Woolly via the ring road gateways.
+  assert.equal(canTraverseGateway(gatewayNamed(REGIONS["meadow/dock"], "east")!), true);
+  assert.equal(canTraverseGateway(gatewayNamed(REGIONS["meadow/woolly"], "west")!), true);
+});
+
+test("preview: only Woolly is encounter-capable; Meadow Dock is transit-only", () => {
+  // Criteria 2 + 4: among all regions, only Woolly may host encounters in the
+  // preview, and Meadow Dock is reachable but explicitly transit-only.
+  const encounterRegions = Object.keys(REGIONS).filter((id) => isEncounterRegion(id));
+  assert.deepEqual(encounterRegions, ["meadow/woolly"]);
+  // Encounter capability is a strict subset of travel openness — a region the
+  // player cannot reach can never be a preview encounter region either.
+  for (const id of encounterRegions) {
+    assert.ok(isOpenRegion(id), `encounter region ${id} must also be open`);
+  }
+  assert.equal(isOpenRegion("meadow/dock"), true);
+  assert.equal(isEncounterRegion("meadow/dock"), false);
+  assert.equal(isOpenRegion("meadow/woolly"), true);
+  assert.equal(isEncounterRegion("meadow/woolly"), true);
+});
+
+test("preview: sealed wired gateways show the bilingual opens-later notice", () => {
+  // Criterion 3: the notice itself is friendly AND bilingual (English + 中文).
+  assert.match(PREVIEW_LOCKED_MESSAGE, /[A-Za-z]/, "notice has English copy");
+  assert.match(PREVIEW_LOCKED_MESSAGE, /[\u4e00-\u9fff]/, "notice has Chinese copy");
+  // The two outward preview gates carry no per-gateway message, so they must
+  // resolve to the bilingual opens-later notice — not the pocket rustle copy.
+  const dockSouth = gatewayNamed(REGIONS["meadow/dock"], "south")!;
+  const woollyNorth = gatewayNamed(REGIONS["meadow/woolly"], "north")!;
+  assert.equal(dockSouth.message, undefined);
+  assert.equal(woollyNorth.message, undefined);
+  assert.equal(gatewayNotice(dockSouth), PREVIEW_LOCKED_MESSAGE);
+  assert.equal(gatewayNotice(woollyNorth), PREVIEW_LOCKED_MESSAGE);
+  // A reserved pocket keeps its own rustle message instead.
+  const pocket = REGIONS["meadow/dock"].gateways.find((g) => g.name === "pocket-north")!;
+  assert.equal(pocket.to, null);
+  assert.ok(pocket.message, "pocket has its own message");
+  assert.equal(gatewayNotice(pocket), pocket.message);
 });
 
 test("Meadow Isle regions are explorable: every gateway is reachable from spawn", () => {
