@@ -58,6 +58,12 @@ break them):**
    …) is diegetic here.
 5. **Gentle tone, real stakes.** Defeat sends you back to the dock with
    everything kept; the guardian is impressive but kind.
+6. **A satisfying session before a return mechanic.** A normal visit targets
+   10–15 minutes: 2–4 battles plus one chosen payoff such as helping an NPC,
+   opening a shortcut, revealing a habitat clue, or changing a landmark.
+   End with one visible but non-urgent next possibility. Meadow Isle has no
+   hard streak, daily obligation, answer timer, idle-pet punishment, public
+   leaderboard, gacha, or extra reward currency.
 
 ## Island layout
 
@@ -336,16 +342,20 @@ area_context := {
 
 ## Creature roster (Meadow Isle)
 
-Pack: `art-samples/Pocket Creature Tamer/Creatures/` — each folder is one
-evolution family; the PNG is a horizontal strip of **all stages**; `*_alt.png`
-is the rare special-colour variant. **IDs are canonical; names below are
-provisional placeholders pending proper (bilingual) naming.** Working reads
-describe the whole line, because a family picked for its cute stage 1 will be
-played at every stage — on Meadow Isle, wild grazing encounters are mostly
-stage-1 forms, while later stages (a fae, a strider) appear mainly as
-evolved player pets.
+The table below records current **art candidates**, not save identity. Licensed
+Pocket Creature Tamer strips may be streamed from private R2, and original
+PokeMath strips may be produced by `tools/generate-creature.mjs`. Every family
+receives a permanent semantic `speciesId` after the bilingual naming pass;
+its species data points to a replaceable `artRef`. Pack paths, generated
+filenames, and bucket keys must never become `speciesId` values.
 
-| Pack ID | Working read (all stages) | Stages | Rarity | Where |
+Each strip contains all evolution stages; alternate palettes are variants,
+not a separate species or a separate rarity. Working reads describe the whole
+line because a family chosen for its cute stage 1 will be played at every
+stage. Meadow wild encounters are mostly stage-1 forms; later forms appear
+mainly as evolved player pets.
+
+| Current artRef candidate | Working read (all stages) | Stages | Rarity | Where |
 |---|---|---|---|---|
 | `3EVO/05` | larva → cocoon → great moth | 3 | common | Dockside, Pattern Gardens |
 | `3EVO/06` | fluffball → winged lambkin → meadow fae | 3 | common | Woolly Meadows (the flocks) |
@@ -367,20 +377,70 @@ serpents (`3EVO/09`, `3EVO/10`) → Tidepool Coast; the sun-maned lion
 `3EVO/18`) → later, rougher islands; the green kirin (`Uniques/06`) → a
 later, more mythical island.
 
+## Progression, collection, and reward contract
+
+These foundations land in **M1.5 before broad encounters**:
+
+- The **player**, not each pet, owns permanent `level` and `totalXp`.
+  Migration preserves the highest old creature level plus its fractional
+  progress, then uses the approved variable player-level curve.
+- `ownedCreatures` is the full collection. `teamIds` references at most six
+  active creatures. Capturing a seventh friend sends it safely to storage;
+  Meadow never rejects a successful ordinary capture because the team is full.
+- Field Guide state records **Unknown → Seen → Caught**, discovered variants,
+  habitat clues, and discovery notes. A minimal Harbor Sanctuary provides the
+  physical place to inspect storage and change the active team.
+- Every ordinary battle shows deterministic player XP and RM in the compact
+  victory result. The displayed total and saved total must match exactly.
+  Capturing cannot award full kill XP when it bypasses remaining questions.
+- Common, uncommon, and rare creatures use the calm ordinary capture flow:
+  **no flee clock and no timed mathematics**.
+- **Only Unique rarity** may use an authored hunt, telegraphed remaining
+  actions, and a larger trust meter. Each question still has unlimited thinking
+  time. If the Unique flees, its silhouette, habitat clue, trail progress, and
+  second chance remain.
+- XP truth and presentation ship with the first satisfying encounter slice;
+  M7 tunes observed constants rather than postponing progression itself.
+
+## Revised implementation order (2026-07-18)
+
+1. **M1 — Sail there and walk it.** Finish the region graph without changing
+   its current scope.
+2. **M1.5 — Save, progression, and collection foundation.** Save v2,
+   persistent location, player XP, semantic species identity, owned storage,
+   active team, Field Guide state, badges, profile, and migration tests.
+3. **M2A — One satisfying encounter loop.** One area, small real roster,
+   compliant hand-authored bank, immediate feedback, calm capture, gentle
+   defeat, XP bar, and victory result.
+4. **M2B — Expand encounters and collection.** All ordinary habitat tables,
+   replaceable art references, Field Guide UI, and Harbor Sanctuary.
+5. **M3 — Versioned Std-1 question schema.** New answer forms stay additive;
+   the legacy path is protected by golden tests.
+6. **M4 — Validated offline generator.** Mechanical rejection, adversarial
+   verify pass, and human sampling; no generation during a child's battle.
+7. **M5 — Landmarks, topic arcs, and session payoffs.** Shared figure kit,
+   short goals, shortcuts, visible world changes, and selected mini-guardians.
+8. **M6 — Unique hunt and finale.** Unique-only pressure, persistent second
+   chances, fixed guardian slate, Meadow Badge, and starter evolution.
+9. **M7 — Observed tuning and healthy return.** Tune XP/capture/question rank,
+   measure learning-quality retention, then optionally add a non-resetting
+   three-day expedition journal and interleaved review.
+
 ## Open questions
 
 - **Bilingual creature naming.** Every species needs a Chinese + English
-  name; the working reads above are just visual notes.
+  name and permanent semantic `speciesId`; the working reads above are just
+  visual notes.
 - Do landmark interactions (moving sheep between pens, setting clock hands)
   become first-class `activity` answer forms, or stay flavour around
   standard answer forms?
-- Alt-colour (`_alt`) encounter rate, and whether alt colours are purely
-  cosmetic or tied to anything.
+- Variant encounter rate and cosmetics. Variants never add capture pressure;
+  only Unique rarity can do that.
 - **Audio/voice** (read-aloud for pre-readers, creature cries): explicitly
   **deferred by Season (2026-07-17)** — the island takes shape first.
   Design note for later: the zh-first UI must not assume reading fluency.
 
-## Decisions locked with the dev plan (2026-07-17)
+## Decisions locked with the revised dev plan (2026-07-18)
 
 - **Guardian question slate: fixed authored set** (one hand-checked item per
   topic: count, `+ −` sentence, clock read, money change, pictograph read),
@@ -388,15 +448,20 @@ later, more mythical island.
   upgrade, once per-topic mastery tracking exists.
 - **Starter evolution at the Meadow Badge: always.** The badge evolves the
   player's starter, located by `starterCreatureId` in save v2 — no FOMO
-  rule. Meadow Isle has no box storage yet, so "wherever it is" means the
-  team for now; the rule extends automatically when storage lands.
+  rule. The starter evolves whether it is active or in the Harbor Sanctuary.
 - **Save v2 creature identity.** Every creature gains `speciesId`, `stage`,
   `variant`, and a stable per-instance `creatureId`; the save gains
-  `starterCreatureId`. Box storage is out of scope for this island (the
-  team, max 6, is the whole collection until a later milestone).
-- **Full-team capture rule.** With no box storage, capture at 6/6 is
-  **blocked with a gentle message**, never pushed into an invalid save.
-  Releasing/storage is a later-island feature.
+  `starterCreatureId`. Species identity is semantic and independent of its
+  replaceable `artRef`.
+- **Collection storage is part of M1.5.** `ownedCreatures` is separate from
+  active `teamIds[≤6]`; a seventh capture goes to storage. Field Guide state
+  and a minimal Harbor Sanctuary ship before broad capture.
+- **Unique-only capture pressure.** Common, uncommon, and rare captures remain
+  calm and untimed. Only Unique rarity can use telegraphed flee actions and a
+  larger trust meter; escape preserves hunt progress and a fair second chance.
+- **Healthy return, not compulsion.** Short session payoffs land before any
+  return feature. A later expedition journal never resets and never punishes a
+  missed day.
 - **`trace-write` / `drawing` answer forms are cut from this island.**
   Hand-setting (clock) becomes tap-to-set; nothing on Meadow Isle requires
   freehand input.

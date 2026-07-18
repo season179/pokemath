@@ -28,7 +28,7 @@
     </div>
     <h1 class="text-4xl font-bold">Meadow Isle — Development Plan</h1>
     <div class="flex flex-wrap items-center gap-2">
-      <span class="badge badge-success">FINAL · 2026-07-17 · reviewed with Buddy</span>
+      <span class="badge badge-success">REVISED · 2026-07-18 · research integrated</span>
       <span class="badge badge-outline">design authority: docs/islands/meadow-isle.md</span>
     </div>
     <p class="text-lg opacity-80 max-w-3xl">
@@ -45,32 +45,53 @@
 
   <!-- ══════════════ CURRENT STATE ══════════════ -->
   <section id="current-state" class="space-y-4">
-    <h2 class="text-2xl font-bold">Where we stand <span class="text-sm font-normal opacity-60">(verified against the repo, 2026-07-17)</span></h2>
+    <h2 class="text-2xl font-bold">Where we stand <span class="text-sm font-normal opacity-60">(verified against the repo, 2026-07-18)</span></h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
-        <h3 class="card-title text-sm">✅ World rendering</h3>
-        <p class="text-sm opacity-75"><code>game/assets/src/world/</code> — tile-map format (<code>MAP: string[]</code>, 48px tiles, collision, dock tiles) proven by Harbor Town. Meadow Isle reuses the same format.</p>
+        <h3 class="card-title text-sm">✅ M1 region graph</h3>
+        <p class="text-sm opacity-75"><code>game/assets/src/world/regions/</code> now contains Harbor and all eight Meadow regions, named gateways, camera follow, and region travel. The M1 implementation is in final review.</p>
       </div></div>
       <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
         <h3 class="card-title text-sm">✅ Battle + shop loops</h3>
         <p class="text-sm opacity-75"><code>BattleScreen.ts</code>, <code>QuestionView.ts</code>, <code>shared/battle-rules.ts</code>, <code>shared/shop-rules.ts</code> — turn-based battle and a shop exist.</p>
       </div></div>
       <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
-        <h3 class="card-title text-sm">✅ Art pipeline</h3>
-        <p class="text-sm opacity-75"><code>remote-art.ts</code> already serves the licensed Pocket Creature Tamer pack from private R2 (<code>/art/v1/…</code>). The 12-family Meadow roster can render as real sprites — no new infra.</p>
+        <h3 class="card-title text-sm">✅ Two safe art paths</h3>
+        <p class="text-sm opacity-75"><code>remote-art.ts</code> streams licensed pack art from private R2, while <code>tools/generate-creature.mjs</code> can produce original PokeMath evolution strips. Neither art source becomes save identity.</p>
       </div></div>
       <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
         <h3 class="card-title text-sm">⚠️ Question engine is Year-4 shaped</h3>
         <p class="text-sm opacity-75"><code>shared/question-engine.ts</code> = numeric answer + <code>makeChoices()</code> near-misses. Std 1 needs visual formats, non-numeric answers, TP levels, profile gating. <strong>This is the long pole.</strong></p>
       </div></div>
       <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
-        <h3 class="card-title text-sm">⚠️ Stats live on the creature</h3>
-        <p class="text-sm opacity-75"><code>shared/creature.ts</code> stores HP/attack/level/XP per creature. World-map direction says the <em>player</em> owns stats. A migration is owed; timing is Decision D2 below.</p>
+        <h3 class="card-title text-sm">⚠️ Foundation migration owed</h3>
+        <p class="text-sm opacity-75">Stats still live on creatures, saves have no persistent region, collection storage, Field Guide, or player XP, and species IDs are not separated from art references. M1.5 resolves these together.</p>
       </div></div>
       <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
         <h3 class="card-title text-sm">✅ Curriculum ground truth</h3>
         <p class="text-sm opacity-75">Two research docs pin scope + formats with real-paper evidence and a validated schema (§E). The generator prompt is mostly written already.</p>
       </div></div>
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">✅ Reward direction</h3>
+        <p class="text-sm opacity-75">Player-owned XP, a compact victory result, calm normal captures, collection as a first-class reward, and Unique-only flee pressure are now locked. No streak loss, answer timers, or idle punishment.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ REVISION ══════════════ -->
+  <section id="revision" class="space-y-4">
+    <h2 class="text-2xl font-bold">What the new research changed</h2>
+    <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+      <table class="table table-zebra">
+        <thead><tr><th>Earlier plan</th><th>Revised decision</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td>Team of six is the entire collection</td><td><strong>Owned collection + active team ≤6 in M1.5</strong></td><td>Broad capture cannot become a retention pillar if the seventh friend is rejected.</td></tr>
+          <tr><td>XP waits until M7</td><td><strong>Deterministic XP truth and result UX ship before broad encounters</strong></td><td>Every battle needs an understandable payoff; M7 remains final tuning.</td></tr>
+          <tr><td>Pack folder ID is canonical species ID</td><td><strong>Permanent semantic <code>speciesId</code> + replaceable <code>artRef</code></strong></td><td>Licensed and original generated art can change without corrupting saves.</td></tr>
+          <tr><td>Only landmarks, then final guardian</td><td><strong>Short topic arcs, mini-payoffs, and visible world changes</strong></td><td>A child needs a satisfying 10–15 minute stopping point, not only a months-away ending.</td></tr>
+          <tr><td>Capture pressure not rarity-scoped</td><td><strong>Flee turns and trust hearts are Unique-only</strong></td><td>Common, uncommon, and rare captures stay calm and untimed.</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -117,108 +138,69 @@
 
   <!-- ══════════════ MILESTONES ══════════════ -->
   <section id="milestones" class="space-y-4">
-    <h2 class="text-2xl font-bold">Milestones <span class="text-sm font-normal opacity-60">— each ends playable</span></h2>
-    <ul class="timeline timeline-vertical">
-      <li>
-        <div class="timeline-start timeline-box mi-card">
-          <div class="font-bold">M1 — Sail there &amp; walk it</div>
-          <div class="text-sm opacity-75 mt-1">Harbor-master NPC at the existing dock (<code>D</code> tiles) sails you out. Meadow Isle is a <strong>region graph, not one big rectangle</strong>: each area is its own <code>MAP: string[]</code> chunk with stable local coordinates, connected by named gateways in a ring — <strong>never resized after shipping</strong>. An expansion pocket is a gateway pointing at a not-yet-existing region; future rest stops / mini-games attach as new chunks on the inner or outer ring without moving any existing geography, NPC, or save coordinate. Regions are still bigger than one screen; camera follows the player, clamped to the current region; region banners on crossing ("Woolly Meadows 羊毛草原"). Location persistence (<code>regionId + local x/y</code>, with a load-time walkable check and fallback to the region's safe gateway) lands with the save-v2 PR before M2 — M1 stays session-only like today, so the island is never blocked on the migration. Placeholder creature art, signpost shortcuts to the dock, exit ferry home.</div>
-          <div class="text-xs opacity-60 mt-2">Touches: new <code>world/regions/</code> registry (one stable file per region + named gateway definitions), <code>GameApp.ts</code> routing, <code>state.ts</code></div>
-          <div class="badge badge-success badge-sm mt-2">Playable: walk the whole island</div>
-        </div>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg></div>
-        <hr class="bg-primary"/>
-      </li>
-      <li>
-        <hr class="bg-primary"/>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg></div>
-        <div class="timeline-end timeline-box mi-card">
-          <div class="font-bold">M2 — Real creatures, real encounters</div>
-          <div class="text-sm opacity-75 mt-1">12-family roster into species data keyed by pack ID; slice the 144×48 strips into 48×48 stage frames via the existing R2 loader; per-area encounter tables + rarity; <code>_alt</code> as special-colour rares.</div>
-          <div class="rounded-box bg-warning/10 border border-warning/40 p-3 mt-2 text-sm">
-            <div class="font-semibold">Two gates before encounters may ship</div>
-            <ul class="list-disc list-inside opacity-80 mt-1 space-y-1">
-              <li><strong>Curriculum-compliant placeholder bank.</strong> Today's <code>SAMPLE_BANK</code> is Year-4 content (<code>40 × 320</code>, RM55,000) — it must not be heard on Meadow Isle even as a placeholder. M2 includes a hand-authored ~20-item legacy-numeric bank that obeys every island law (≤100, <code>+ −</code> only, ≤RM10, single-step), verified by the same mechanical checks M4 will automate.</li>
-              <li><strong>Full-team capture rule.</strong> The team (max 6) is the whole collection for now — so when it's full, capture is <strong>blocked with a gentle message</strong> ("Your team is full! Make a friend at home first.") rather than pushing a 7th creature into an invalid save. Acceptance test: a capture attempt at 6/6 leaves the save valid and unchanged. Box storage / releasing is a later-island feature.</li>
-              <li><strong>Creature identity in save v2.</strong> Real sprites/evolution/variants need <code>speciesId</code> (pack ID), <code>stage</code>, and <code>variant</code> on each creature. Lands with the D2 migration PR (below), which maps legacy creatures to <code>legacy/&lt;name&gt;</code> species, stage 1, normal variant.</li>
-            </ul>
-          </div>
-          <div class="text-xs opacity-60 mt-2">Touches: <code>shared/creature.ts</code> (SPECIES), <code>remote-art.ts</code> (frame slicing), encounter config per area, placeholder bank</div>
-          <div class="badge badge-success badge-sm mt-2">Playable: wild battles with real sprites across the island</div>
-        </div>
-        <hr class="bg-primary"/>
-      </li>
-      <li>
-        <hr class="bg-primary"/>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-warning"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
-        <div class="timeline-start timeline-box mi-card border-warning">
-          <div class="font-bold">M3 — Std-1 question schema <span class="badge badge-warning badge-sm align-middle">long pole</span></div>
-          <div class="text-sm opacity-75 mt-1">Extend <code>question-engine.ts</code> to the §E schema: <code>format_type</code>, <code>tp_level</code>, <code>item_format</code>, <code>presentation</code>, <code>answer_form</code> (numeral · circle · ordering · match · chinese-word …), <code>distractor_strategy</code>, bilingual <code>{numeral, zh_word}</code>. Numeric answers become <em>one</em> answer form, not the only one. Domain tests first.</div>
-          <div class="rounded-box bg-info/10 border border-info/40 p-3 mt-2 text-sm">
-            <div class="font-semibold">Compatibility strategy (keeps battle &amp; shop playable through M2–M5)</div>
-            <ul class="list-disc list-inside opacity-80 mt-1 space-y-1">
-              <li><strong>Versioned schema, no in-place rewrite.</strong> Legacy <code>Question</code> (numeric, snake_case bank format) stays byte-for-byte untouched: <strong>absent <code>schema</code> (or <code>schema: 1</code>) means legacy</strong>; only new items carry the <code>schema: 2</code> discriminator. Banks may mix both, and the existing <code>SAMPLE_BANK</code> needs zero edits.</li>
-              <li><strong>Adapters in <code>shared/</code>.</strong> <code>asLegacyTurn(v2)</code> degrades any V2 item whose <code>answer_form</code> is <code>numeral</code> to the existing <code>QuestionTurn</code>/<code>makeChoices()</code> path; <code>toV2(q)</code> upgrades authored v1 items. <code>QuestionRound</code> becomes a union wrapper — legacy rounds keep <code>choices: number[]</code> + <code>judge(number)</code>; new forms carry their own graders.</li>
-              <li><strong><code>QuestionView</code> switches on <code>answer_form</code></strong>, one sub-renderer per form, defaulting to today's numeric panel. Battle/shop code compiles and plays unchanged against v1 the whole time.</li>
-              <li><strong>Rollback switch.</strong> The V2 path is gated by the save's <code>profile</code> + bank <code>schema</code> field — a bad V2 batch is disabled server-side, v1 never redeploys.</li>
-            </ul>
-          </div>
-          <div class="text-xs opacity-60 mt-2">Touches: <code>shared/question-engine.ts</code>, <code>shared/question-bank.ts</code>, <code>shared/tests/</code>, <code>save-types.ts</code> (profile flag)</div>
-          <div class="badge badge-success badge-sm mt-2">Playable: engine unit-tests every §A format <em>and</em> the legacy suite passes unmodified</div>
-        </div>
-        <hr/>
-      </li>
-      <li>
-        <hr/>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
-        <div class="timeline-end timeline-box mi-card">
-          <div class="font-bold">M4 — Generator pipeline</div>
-          <div class="text-sm opacity-75 mt-1">LLM generation constrained by the two curriculum docs (hard constraints as system rules; per-topic format weights; distractor strategies). <strong>Validation gate</strong>: schema check + constraint rejection (≤100, +− only, RM10, single-step) + adversarial verify pass, mirroring how the research corpus itself was verified. Approved items → D1. See Decision D1 (batch vs serve-time).</div>
-          <div class="text-xs opacity-60 mt-2">Touches: <code>tools/</code> (generator + validator), <code>worker/</code> (bank API), D1 schema</div>
-          <div class="badge badge-success badge-sm mt-2">Playable: island encounters serve validated Std-1 items</div>
-        </div>
-        <hr/>
-      </li>
-      <li>
-        <hr/>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
-        <div class="timeline-start timeline-box mi-card">
-          <div class="font-bold">M5 — Landmarks &amp; figures</div>
-          <div class="text-sm opacity-75 mt-1">The figure renderers + interactions that make questions visible: ten-frame sheep pens, settable clock-tower face, fruit stand (reuse shop UI, ≤RM10 catalog), festival pictograph board, marble balance, shape flowerbeds. Ship per <code>presentation</code> type, most-referenced first (ten-frame, clock, coins, objects → then balance, pictograph, abacus, calendar).</div>
-          <div class="text-xs opacity-60 mt-2">Touches: <code>QuestionView.ts</code> figure components, landmark NPC scripts, <code>shop-rules.ts</code> catalog</div>
-          <div class="badge badge-success badge-sm mt-2">Playable: questions render as world objects, not prose</div>
-        </div>
-        <hr/>
-      </li>
-      <li>
-        <hr/>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
-        <div class="timeline-end timeline-box mi-card">
-          <div class="font-bold">M6 — Guardian, badge, evolution</div>
-          <div class="text-sm opacity-75 mt-1">Cloud-Maned Horse (<code>Uniques/03</code>) at the Hundred Stones: a multi-topic slate (count, +− sentence, clock read, money change, pictograph read), TP3–4 with one TP5 twist — <strong>fixed authored slate</strong> (D4). Victory → <strong>Meadow Badge</strong> in save data; the badge evolves the player's starter, located by <code>starterCreatureId</code> — no FOMO rule. (No box storage on Meadow Isle yet, so in practice: the team; the rule extends automatically when storage lands.) Gentle defeat back to the dock, nothing lost.</div>
-          <div class="text-xs opacity-60 mt-2">Touches: boss config in battle, <code>save-types.ts</code> (badges), evolution table in <code>creature.ts</code></div>
-          <div class="badge badge-success badge-sm mt-2">Playable: Meadow Isle is completable end-to-end</div>
-        </div>
-        <hr/>
-      </li>
-      <li>
-        <hr/>
-        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
-        <div class="timeline-start timeline-box mi-card">
-          <div class="font-bold">M7 — Progression tuning</div>
-          <div class="text-sm opacity-75 mt-1">Level-relative XP falloff (island below your level → 0–1 XP), island stat curve so Tallgrass reads "lethal" at level 1 and Meadow reads "breeze" at level 10, catch rates, alt-colour rates. Numbers validated by playtesting with the target audience (two kids, ages 7 &amp; 10, conveniently on file).</div>
-          <div class="text-xs opacity-60 mt-2">Touches: <code>battle-rules.ts</code>, encounter/XP config; depends on Decision D2</div>
-          <div class="badge badge-success badge-sm mt-2">Playable: the stat curve <em>is</em> the gate</div>
-        </div>
-      </li>
-    </ul>
-    <p class="text-sm opacity-60">M1→M2→M3 is the critical path. M4 depends on M3's schema. M5 can overlap M4. M6 needs M4+M5. M7 is last because tuning needs everything real.</p>
+    <h2 class="text-2xl font-bold">Revised milestones <span class="text-sm font-normal opacity-60">— foundations first, then vertical slices</span></h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <article class="card card-border bg-success/10 border-success mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge badge-success">M1 · finishing</span><h3 class="font-bold">Sail there &amp; walk it</h3></div>
+        <p class="text-sm opacity-75">Keep the current region graph, named gateways, camera follow, banners, ferry confirmation, safe arrivals, and return route. M1 remains session-only.</p>
+        <p class="text-xs opacity-60">Playable exit: walk every Meadow region and sail home; region tests and typecheck pass.</p>
+      </div></article>
+
+      <article class="card card-border bg-warning/10 border-warning mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge badge-warning">M1.5 · new gate</span><h3 class="font-bold">Save, progression &amp; collection foundation</h3></div>
+        <p class="text-sm opacity-75">Land save v2 before encounters: player-owned <code>{ level, totalXp }</code>, persistent <code>regionId + x/y</code>, semantic <code>speciesId</code>, replaceable <code>artRef</code>, stable <code>creatureId</code>, <code>starterCreatureId</code>, <code>ownedCreatures</code>, active <code>teamIds[≤6]</code>, Field Guide seen/caught/variant state, badges, and curriculum profile.</p>
+        <p class="text-xs opacity-60">Playable exit: v1 saves migrate without lost progress; a seventh capture enters storage; team selection remains valid.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge badge-primary">M2A</span><h3 class="font-bold">One satisfying encounter loop</h3></div>
+        <p class="text-sm opacity-75">Ship one Meadow area with a small real roster, a mechanically checked ~20-item Std-1 numeric bank, calm ordinary capture, gentle defeat, immediate answer feedback, deterministic player XP, persistent XP bar, and compact victory result. Capture never awards full kill XP when it bypasses the remaining questions.</p>
+        <p class="text-xs opacity-60">Playable exit: 2–4 battles produce a clear 10–15 minute adventure and every reward displayed equals the saved result.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge badge-primary">M2B</span><h3 class="font-bold">Expand encounters &amp; collection</h3></div>
+        <p class="text-sm opacity-75">Expand the stable species registry and habitat tables across Meadow. Licensed R2 art and original generated art are interchangeable behind <code>artRef</code>; pack paths never enter saves. Add Field Guide UI and a minimal Harbor Sanctuary for storage/team changes. Common, uncommon, and rare captures remain calm and untimed.</p>
+        <p class="text-xs opacity-60">Playable exit: discover, catch, store, inspect, and field creatures from every ordinary rarity without losing one at 6/6.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge badge-warning">M3 · long pole</span><h3 class="font-bold">Std-1 question schema</h3></div>
+        <p class="text-sm opacity-75">Add schema-v2 questions with <code>format_type</code>, <code>tp_level</code>, <code>presentation</code>, <code>answer_form</code>, misconception-driven distractors, bilingual values, and profile gating. Preserve legacy schema-v1 behavior byte-for-byte through adapters and golden tests.</p>
+        <p class="text-xs opacity-60">Playable exit: numeral, objective circle, and ordering forms work; legacy battle and shop remain unchanged.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge">M4</span><h3 class="font-bold">Validated batch generator</h3></div>
+        <p class="text-sm opacity-75">Generate offline by grade/topic/TP/profile, mechanically reject curriculum violations and wrong answers, run an adversarial verify pass, then human-review the first 200 and sample later batches. Serve only approved banks; no generation runs during a child's battle.</p>
+        <p class="text-xs opacity-60">Playable exit: every island encounter draws from an approved, rollback-safe Std-1 bank.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge">M5</span><h3 class="font-bold">Landmarks, topic arcs &amp; session payoffs</h3></div>
+        <p class="text-sm opacity-75">Build the shared <code>FigureView</code> kit (ten-frame, clock, coins, objects first), then wrap landmarks in short goals that repair a shortcut, help an NPC, reveal a habitat clue, or visibly change the region. Add selected mini-guardians and evolution beats across levels 1–25.</p>
+        <p class="text-xs opacity-60">Playable exit: each 10–15 minute session can resolve one chosen intention and reveal a non-urgent next possibility.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge badge-secondary">M6</span><h3 class="font-bold">Unique hunt, guardian, badge &amp; evolution</h3></div>
+        <p class="text-sm opacity-75">Author a Unique research trail with persistent clues. <strong>Only Unique rarity</strong> gets telegraphed action-count flee pressure and a larger trust meter; question thinking time remains unlimited and escape never erases trail progress. Finish with the fixed Cloud-Maned Horse guardian slate, Meadow Badge, and guaranteed starter evolution.</p>
+        <p class="text-xs opacity-60">Playable exit: Meadow is completable end-to-end and the Unique hunt always offers a fair second chance.</p>
+      </div></article>
+
+      <article class="card card-border bg-base-100 mi-card md:col-span-2"><div class="card-body p-5">
+        <div class="flex items-center gap-2"><span class="badge">M7</span><h3 class="font-bold">Observed tuning &amp; healthy return</h3></div>
+        <p class="text-sm opacity-75">Tune the already-shipped XP constants, level gaps, effort, catch rates, variants, and question-rank calibration from observed battles. Add telemetry for correctness, hints, abandonment, delayed review, collection variety, and healthy stopping. Only after enough content exists, add the optional three-separated-day expedition journal and 20–30% interleaved review—never a breakable streak.</p>
+        <p class="text-xs opacity-60">Playable exit: progression feels fair from levels 1–30 and returning supports learning without guilt or pressure.</p>
+      </div></article>
+    </div>
+    <div class="alert alert-info"><span><strong>Critical path:</strong> M1 → M1.5 → M2A → M2B → M3 → M4. M5 can overlap late M4. M6 needs M2B + M4 + M5. M7 tunes real behavior; it does not postpone the XP system itself.</span></div>
   </section>
 
   <!-- ══════════════ ENGINE GAP TABLE ══════════════ -->
   <section id="engine-gap" class="space-y-4">
     <h2 class="text-2xl font-bold">The real work: question-engine gap</h2>
-    <p class="text-sm opacity-75">Why M3–M5 dominate the plan. Today's engine satisfies roughly topics 4.1–4.3 in <code>a + b = ?</code> form only.</p>
+    <p class="text-sm opacity-75">M1.5 and M2 establish a trustworthy game loop; M3–M5 remain the content long pole. Today's engine satisfies roughly topics 4.1–4.3 in <code>a + b = ?</code> form only.</p>
     <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
       <table class="table table-zebra">
         <thead><tr><th>Capability</th><th>Today (<code>question-engine.ts</code>)</th><th>Std-1 requirement (§E schema)</th><th>Milestone</th></tr></thead>
@@ -237,11 +219,11 @@
 
   <!-- ══════════════ CREATURE ROSTER ══════════════ -->
   <section id="roster" class="space-y-4">
-    <h2 class="text-2xl font-bold">Roster to wire in (M2)</h2>
-    <p class="text-sm opacity-75">Pack IDs canonical; names provisional until bilingual naming pass. Wild encounters = stage-1 forms; later stages arrive via evolution.</p>
+    <h2 class="text-2xl font-bold">Roster art candidates (M2B)</h2>
+    <p class="text-sm opacity-75"><strong>Pack IDs are art references, not species identity.</strong> M1.5 assigns permanent semantic <code>speciesId</code> values after the bilingual naming pass. A species record points to a replaceable licensed-R2 or original-generated <code>artRef</code>. Wild encounters use mostly stage-1 forms; later stages arrive through evolution.</p>
     <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
       <table class="table">
-        <thead><tr><th>Pack ID</th><th>Line (all stages)</th><th>Rarity</th><th>Habitat</th></tr></thead>
+        <thead><tr><th>Current artRef candidate</th><th>Line (all stages)</th><th>Rarity</th><th>Habitat</th></tr></thead>
         <tbody>
           <tr><td><code>3EVO/05</code></td><td>larva → cocoon → great moth</td><td><span class="badge badge-sm badge-ghost">common</span></td><td>Dockside, Pattern Gardens</td></tr>
           <tr><td><code>3EVO/06</code></td><td>fluffball → winged lambkin → meadow fae</td><td><span class="badge badge-sm badge-ghost">common</span></td><td>Woolly Meadows (the flocks)</td></tr>
@@ -262,7 +244,7 @@
 
   <!-- ══════════════ DECISIONS ══════════════ -->
   <section id="decisions" class="space-y-4">
-    <h2 class="text-2xl font-bold">Decisions needed from you</h2>
+    <h2 class="text-2xl font-bold">Locked implementation decisions</h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
       <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
@@ -284,29 +266,27 @@
       </div></div>
 
       <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
-        <h3 class="card-title">D2 · Stats migration timing</h3>
+        <h3 class="card-title">D2 · Save and collection foundation</h3>
         <div class="text-sm space-y-2">
           <div class="rounded-box bg-success/10 border border-success/40 p-3">
-            <div class="font-semibold">A · Migrate to player-owned stats <em>before</em> M2 <span class="badge badge-success badge-sm">recommended</span></div>
-            <p class="opacity-75 mt-1">World-map direction already chose this; doing it now means encounters, catching, and M7 tuning are built once on the final model. Small change today: <code>creature.ts</code> + <code>battle-rules.ts</code> + save migration (plan below).</p>
+            <div class="font-semibold">Land save v2 as M1.5, before encounters <span class="badge badge-success badge-sm">locked</span></div>
+            <p class="opacity-75 mt-1">Progression, persistent location, creature identity, collection storage, Field Guide state, badges, and curriculum profile migrate together so later milestones build on one final ownership model.</p>
           </div>
           <div class="rounded-box bg-info/10 border border-info/40 p-3">
-            <div class="font-semibold">Save migration plan (v1 → v2) — prerequisite for option A</div>
+            <div class="font-semibold">Save migration plan (v1 → v2)</div>
             <p class="opacity-75 mt-1 text-xs">Honest starting point: <code>validateSaveState</code> today <em>rejects</em> anything but <code>version === 1</code>, and <code>SaveState</code> has no player stats, badges, or curriculum profile. "Versioning exists" means a version <em>field</em>, not a migrator.</p>
             <ul class="list-disc list-inside opacity-80 mt-2 space-y-1 text-xs">
               <li><strong>Upgrader, not rewriter.</strong> New <code>migrateSave(raw)</code> in <code>shared/</code>: accepts only well-formed v1 (<code>version: 1</code> <strong>required</strong> — absent stays invalid, exactly as today), then validates-as-v1 → migrates → validates-as-v2. One-way, tested per version pair.</li>
               <li><strong>Strict decode, no pass-through.</strong> <code>validateSaveState</code> is a trust boundary: decode <em>only known v1 fields</em> and construct a fresh v2 object from them — arbitrary unknown fields are dropped at the boundary, never carried into the new schema. Every known v1 field has a defined home: team (names, colors, boss flags), money, bag, savedAt carry over verbatim; per-creature stat fields become derived-from-player going forward (world-map model) and are retained read-only for one version, then removed in v3.</li>
-              <li><strong>Creature identity added in v2.</strong> Each creature gains <code>speciesId</code>, <code>stage</code>, <code>variant</code>, plus a stable per-instance <code>creatureId</code>; the save gains <code>starterCreatureId</code> (set to the v1 team's first creature — the professor's starter). Legacy creatures map to reserved legacy species (<code>legacy/addlepuff</code>, <code>legacy/subtractopus</code>, …) at stage 1, variant <code>normal</code> — they stay playable forever but never appear in island encounter tables. <strong>Box storage is out of scope for Meadow Isle</strong>: the team (max 6) is the whole collection until a later milestone adds storage; <code>creatureId</code> makes that migration safe when it lands.</li>
+              <li><strong>Identity is independent of art.</strong> Each creature gains semantic <code>speciesId</code>, <code>stage</code>, <code>variant</code>, and stable <code>creatureId</code>; species data owns a replaceable <code>artRef</code>. The save gains <code>starterCreatureId</code>. Legacy creatures map to reserved <code>legacy/&lt;name&gt;</code> species and stay playable forever.</li>
+              <li><strong>Collection added in v2.</strong> <code>ownedCreatures</code> stores every creature; <code>teamIds</code> references at most six; Field Guide state records unknown/seen/caught species and discovered variants. A seventh capture enters storage instead of being rejected.</li>
               <li><strong>Location added in v2.</strong> <code>location: { regionId, x, y }</code> — v1 saves migrate to the Harbor Town spawn. On every load the saved tile is validated walkable; if a layout edit made it solid, spawn falls back to that region's named safe gateway.</li>
-              <li><strong>Concrete XP conversion.</strong> New player XP is <em>derived</em> so no child ever loses ground: <code>playerXp := max over team of ((level − 1) × XP_PER_LEVEL + xp)</code> (matching <code>creature.ts</code>'s current per-creature accumulation; <code>XP_PER_LEVEL = 20</code>).</li>
+              <li><strong>Concrete XP conversion.</strong> New player total XP preserves the highest creature's old level and fractional progress, then uses the approved variable player-level curve. No child silently loses ground and old flat-20 XP is never treated as the new threshold.</li>
               <li><strong>Rollout order.</strong> Worker deploys the accept-and-migrate reader <em>first</em>; the game client ships v2 writes only after. D1 stores saves as JSON payloads keyed per account, so migration happens at the read/write boundary — no DB schema change.</li>
               <li><strong>Acceptance tests.</strong> Fixture v1 saves (fresh <code>createNewGame()</code> + a mid-game example) must migrate, re-validate, round-trip, and boot into a playable battle. A corrupted or future-version save still fails cleanly.</li>
             </ul>
           </div>
-          <div class="rounded-box bg-base-200 p-3">
-            <div class="font-semibold">B · Ship Meadow on creature-owned stats, migrate later</div>
-            <p class="opacity-75 mt-1">Faster M1–M2, but every tuning number in M7 gets computed twice, and catching "instantly usable pets" can't work as designed until the migration lands.</p>
-          </div>
+          <div class="rounded-box bg-warning/10 border border-warning/30 p-3"><strong>Do not split this across repeated migrations.</strong><p class="opacity-75 mt-1">Shipping player XP first and storage later would churn the same trust boundary and still leave capture built on a temporary model.</p></div>
         </div>
       </div></div>
 
@@ -335,6 +315,22 @@
             <div class="font-semibold">B · Mastery-weighted sampling</div>
             <p class="opacity-75 mt-1">Targets each child's weakest topics — great pedagogy, but needs per-topic mastery tracking that doesn't exist yet. A later-island upgrade.</p>
           </div>
+        </div>
+      </div></div>
+
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
+        <h3 class="card-title">D5 · Capture pressure by rarity</h3>
+        <div class="rounded-box bg-success/10 border border-success/40 p-3 text-sm">
+          <div class="font-semibold">Unique rarity only <span class="badge badge-success badge-sm">locked by Season</span></div>
+          <p class="opacity-75 mt-1">Common, uncommon, and rare encounters use the calm ordinary capture flow with no flee clock and no timed mathematics. Only an authored Unique hunt may use telegraphed remaining actions and a larger trust meter. Thinking time per question is always unlimited; a fleeing Unique preserves its trail, silhouette, habitat clue, and next chance.</p>
+        </div>
+      </div></div>
+
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
+        <h3 class="card-title">D6 · Healthy retention boundary</h3>
+        <div class="rounded-box bg-success/10 border border-success/40 p-3 text-sm">
+          <div class="font-semibold">Satisfying sessions before return mechanics <span class="badge badge-success badge-sm">locked</span></div>
+          <p class="opacity-75 mt-1">Build clear battle payoff, collection, short goals, shortcuts, and topic arcs first. The three-day expedition journal waits until M7 and never resets progress. No hard streaks, answer-speed XP, daily obligation, idle pet punishment, public leaderboard, gacha, or extra currencies.</p>
         </div>
       </div></div>
 
@@ -373,7 +369,7 @@
         <div><span class="badge badge-warning badge-sm mr-2 align-middle">Medium</span><strong>Save migration.</strong> <code>validateSaveState</code> currently rejects everything except <code>version === 1</code> and there is no migrator — D2 without one silently invalidates existing saves.</div>
         <div class="rounded-box bg-success/10 border border-success/30 p-2">
           <span class="badge badge-success badge-xs mr-1">Recommended</span>
-          <strong>Land the D2 migration plan as its own PR before any stats work:</strong> <code>migrateSave()</code> upgrader (v1 → migrate → validate-as-v2), preservation rules (nothing dropped; player XP derived from strongest creature), Worker deploys the migrating reader before the client ships v2 writes, and fixture saves (fresh + mid-game) pinned in <code>shared/tests/</code> as permanent regression tests.
+          <strong>Land M1.5 as its own migration sequence before encounters:</strong> <code>migrateSave()</code> upgrader (v1 → migrate → validate-as-v2), explicit preservation rules, player progression, location, semantic species identity, owned storage/team references, and Field Guide state. Worker deploys the migrating reader before the client ships v2 writes; fixture saves (fresh + mid-game) remain permanent regression tests.
         </div>
       </div>
       <div class="rounded-box bg-base-100 border border-base-content/10 p-3 text-sm space-y-2">
@@ -390,8 +386,9 @@
   <section id="open-questions" class="space-y-3 pb-8">
     <h2 class="text-2xl font-bold">Open questions parked for later</h2>
     <ul class="list-disc list-inside text-sm opacity-80 space-y-1">
+      <li>Final bilingual names and semantic <code>speciesId</code> values for the 12 Meadow families; pack paths and generated filenames cannot be used as IDs.</li>
       <li>Do landmark interactions (moving sheep between pens, setting clock hands) become first-class <code>activity</code> answer forms, or stay flavour around standard forms?</li>
-      <li>Alt-colour (<code>_alt</code>) encounter rate — purely cosmetic, or tied to something?</li>
+      <li>Variant encounter rate and cosmetics. Variants never add capture pressure; only Unique rarity can do that.</li>
       <li>Audio/voice for pre-readers — deferred by Season (2026-07-17): the island takes shape first; the zh-first UI should not assume reading fluency forever.</li>
     </ul>
   </section>
