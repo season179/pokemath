@@ -631,9 +631,7 @@ export class WorldScreen {
       this.buildHarborScenery(buildings, trees, flowers);
       this.buildPlayerSprite(player);
       this.fallbackLandmarks.active = false;
-      const npcSheets = await this.loadNpcSheets();
-      if (!this.root.isValid) return; // travel may destroy this screen mid-load
-      this.buildNpcSprites(npcSheets);
+      await this.attachNpcSprites();
     } catch (error) {
       console.error("Harbor Town world art failed to load; using fallback graphics", error);
     }
@@ -657,27 +655,27 @@ export class WorldScreen {
       this.buildPixelGround({ grass, path, beach, water, interiors });
       this.buildMeadowScenery(trees, flowers);
       this.buildPlayerSprite(player);
-      const npcSheets = await this.loadNpcSheets();
-      if (!this.root.isValid) return; // travel may destroy this screen mid-load
-      this.buildNpcSprites(npcSheets);
+      await this.attachNpcSprites();
     } catch (error) {
       console.error(`${this.regionId} world art failed to load; using fallback graphics`, error);
     }
   }
 
   /**
-   * NPC sprites are optional dressing: a single missing sheet must only
-   * degrade that one NPC. It must never reject the region's whole art load and
-   * force the terrain, scenery, and player back to flat fallback graphics, so
-   * NPC sheets are settled independently of the core world-art Promise.all.
-   * Callers must re-check this.root.isValid after the await, since route
-   * travel can destroy this screen while sheets are still loading.
+   * Load and attach NPC sprites independently of the core world art. NPC sheets
+   * are optional dressing: a single missing sheet must only degrade that one
+   * NPC (to a flat fallback actor), never reject the region's whole art load
+   * and force terrain, scenery, and the player back to flat fallback graphics.
+   *
+   * Route travel can destroy this screen while sheets are still loading, so
+   * the scene graph is only touched after re-checking this.root.isValid.
    */
-  private async loadNpcSheets(): Promise<(Texture2D | null)[]> {
+  private async attachNpcSprites() {
     const results = await Promise.allSettled(
       this.def.npcs.map((npc) => loadPixelTexture(npc.characterSheet)),
     );
-    return results.map((result, index) => {
+    if (!this.root.isValid) return; // travel may destroy this screen mid-load
+    const sheets = results.map((result, index) => {
       if (result.status === "fulfilled") return result.value;
       const npc = this.def.npcs[index];
       console.warn(
@@ -686,6 +684,7 @@ export class WorldScreen {
       );
       return null;
     });
+    this.buildNpcSprites(sheets);
   }
 
   private buildPixelGround(textures: {
