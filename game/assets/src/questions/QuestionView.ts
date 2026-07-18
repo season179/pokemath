@@ -2,8 +2,8 @@
 // both use it; the pure answer logic remains in shared/question-engine.ts.
 
 import { Color, KeyCode, Label, Node } from "cc";
-import { QuestionRound } from "../../shared/index";
-import { PALETTE, fmtNum, makeButton, makeLabel, makePanel, makeWrappedLabel } from "../ui";
+import { QuestionRound, formatAnswer } from "../../shared/index";
+import { PALETTE, makeButton, makeLabel, makePanel, makeWrappedLabel } from "../ui";
 
 export class QuestionView {
   readonly root = new Node("question");
@@ -61,7 +61,7 @@ export class QuestionView {
 
     if (q.table) {
       const row = Object.entries(q.table)
-        .map(([k, v]) => `${k}: RM ${fmtNum(v)}`)
+        .map(([k, v]) => `${k}: ${formatAnswer(v, q.answer_unit)}`)
         .join("        ");
       const table = makeLabel(card, row, 0, -40, { fontSize: 16 });
       table.horizontalAlign = Label.HorizontalAlign.CENTER;
@@ -96,7 +96,7 @@ export class QuestionView {
         y,
         w: 390,
         h: 62,
-        label: `${i + 1}.   RM ${fmtNum(v)}`,
+        label: `${i + 1}.   ${formatAnswer(v, q.answer_unit)}`,
         color: new Color(84, 110, 122, 255),
         fontSize: 21,
         onTap: () => this.choose(i),
