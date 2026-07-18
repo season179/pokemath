@@ -373,16 +373,17 @@ export class WorldScreen {
       fill: PALETTE.panel,
       stroke: PALETTE.panelStroke,
     });
-    // Text area: panel spans ±360, buttons start at x=159 — keep 20px
-    // padding on the left and a clear gap before the Go button. The label
-    // node is center-anchored, so x is the box center, not its left edge.
+    // Text area: panel spans ±360, buttons start at x=155 — keep 20px
+    // padding on the left and even ~17px gaps between text, Go, ✕, and the
+    // right edge. The label node is center-anchored, so x is the box
+    // center, not its left edge.
     makeWrappedLabel(box, `${npc.name}: ${npc.message}`, -101, 0, 478, 74, {
       fontSize: 18,
       lineHeight: 23,
     });
     const sail = { to: npc.sailTo!, arrive: npc.sailArrive ?? null };
     makeButton(box, {
-      x: 218,
+      x: 214,
       y: 0,
       w: 118,
       h: 50,
@@ -397,7 +398,7 @@ export class WorldScreen {
       },
     });
     makeButton(box, {
-      x: 332,
+      x: 316,
       y: 0,
       w: 52,
       h: 50,
@@ -1067,8 +1068,8 @@ export class WorldScreen {
    */
   private buildMiniMap() {
     const size = view.getVisibleSize();
-    const MW = 176;
-    const MH = 152;
+    const MW = 204;
+    const MH = 172;
     const panel = makePanel(
       this.hudLayer,
       -size.width / 2 + MW / 2 + 14,
@@ -1077,13 +1078,13 @@ export class WorldScreen {
       MH,
       { fill: new Color(255, 253, 245, 218), stroke: PALETTE.panelStroke, lineWidth: 3 },
     );
-    const title = makeLabel(panel, this.def.title, 0, MH / 2 - 12, { fontSize: 11 });
+    const title = makeLabel(panel, this.def.title, 0, MH / 2 - 15, { fontSize: 14 });
     title.horizontalAlign = Label.HorizontalAlign.CENTER;
     title.overflow = Label.Overflow.SHRINK;
-    title.node.getComponent(UITransform)!.setContentSize(MW - 16, 16);
+    title.node.getComponent(UITransform)!.setContentSize(MW - 16, 20);
 
     const innerW = MW - 24;
-    const innerH = MH - 50; // leaves room for the title and the legend footer
+    const innerH = MH - 58; // leaves room for the title and the legend footer
     const scale = Math.min(innerW / (this.w * TILE), innerH / (this.h * TILE));
     this.miniScale = scale;
     this.miniHalfW = (this.w * TILE) / 2;
@@ -1091,7 +1092,7 @@ export class WorldScreen {
 
     const field = new Node("mini-field");
     field.parent = panel;
-    field.setPosition(0, 8);
+    field.setPosition(0, -2);
     field.addComponent(UITransform).setContentSize(innerW, innerH);
     const g = field.addComponent(Graphics);
 
@@ -1188,14 +1189,14 @@ export class WorldScreen {
     ];
     const slot = (MW - 12) / items.length;
     const baseX = -MW / 2 + 6;
-    const y = -MH / 2 + 11;
+    const y = -MH / 2 + 13;
     items.forEach((item, i) => {
       const cx = baseX + slot * (i + 0.5);
       const dot = new Node("legend-dot");
       dot.parent = panel;
-      dot.setPosition(cx - 14, y);
+      dot.setPosition(cx - 16, y);
       item.draw(dot.addComponent(Graphics));
-      makeLabel(panel, item.label, cx - 6, y, { fontSize: 8, color: PALETTE.sub, align: "left" });
+      makeLabel(panel, item.label, cx - 8, y, { fontSize: 11, color: PALETTE.sub, align: "left" });
     });
   }
 

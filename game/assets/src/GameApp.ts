@@ -2,7 +2,7 @@
 // (world / overlays / battle / shop) under the single cc.Scene. Screens are plain TS
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
-import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
+import { Color, EventKeyboard, Input, KeyCode, Label, Node, UITransform, input, view } from "cc";
 import { Creature, QuestionBank, type SaveState } from "../shared/index";
 import { loadQuestionBank } from "./questions/loadQuestionBank";
 import { NameScreen } from "./NameScreen";
@@ -16,7 +16,7 @@ import { GameState } from "./state";
 import { Direction, isEncounterRegion, isOpenRegion } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { WorldMapScreen } from "./world/WorldMapScreen";
-import { PALETTE, makeLabel } from "./ui";
+import { PALETTE, makeLabel, makePanel } from "./ui";
 
 type Screen = "world" | "party" | "bag" | "battle" | "shop" | "map" | "signout";
 
@@ -44,9 +44,8 @@ export class GameApp {
   private battle: BattleScreen | null = null;
   private shop: ShopScreen | null = null;
   private map: WorldMapScreen | null = null;
-  private nameLabel: Node | null = null;
+  private nameChip: Node | null = null;
   private nameScreen: NameScreen | null = null;
-  private signOutLabel: Node | null = null;
   private signOutScreen: SignOutScreen | null = null;
   private canvasElement: HTMLCanvasElement | null = null;
   private canvasFocusHandler: (() => void) | null = null;
@@ -277,35 +276,66 @@ export class GameApp {
     focus();
   }
 
-  // Player name in the bottom-right corner — whose adventure this is.
-  // Tapping it opens the name screen (names are changeable anytime).
+  // Exact text width via canvas measureText with the same font web Labels
+  // render with (Arial + system CJK fallback) — estimates left the chip
+  // with fat empty margins. Falls back to a rough guess without a DOM.
+  private static textWidth(text: string, fontSize: number): number {
+    const ctx =
+      typeof document !== "undefined"
+        ? document.createElement("canvas").getContext("2d")
+        : null;
+    if (!ctx) return text.length * fontSize * 0.6;
+    ctx.font = `${fontSize}px Arial`;
+    return ctx.measureText(text).width;
+  }
+
+  // Player name + sign-out in the bottom-right corner — whose adventure this
+  // is. A HUD chip (same cream panel as the Bag/Map buttons) so it stays
+  // readable over any world art; bare labels vanished against dark water.
+  // The chip hugs its text — short names get a small chip, not a wide slab.
+  // Tapping the name opens the name screen (names are changeable anytime).
   private showPlayerName() {
-    if (this.nameLabel?.isValid) this.nameLabel.destroy();
-    this.nameLabel = null;
-    if (this.signOutLabel?.isValid) this.signOutLabel.destroy();
-    this.signOutLabel = null;
+    if (this.nameChip?.isValid) this.nameChip.destroy();
+    this.nameChip = null;
     const size = view.getVisibleSize();
-    const label = makeLabel(
-      this.world.root,
-      this.playerName,
-      size.width / 2 - 24,
-      -size.height / 2 + 20,
-      { fontSize: 14, align: "right" },
+    const NAME_FS = 16;
+    const OUT_FS = 16;
+    const signOutText = "Sign out · 退出";
+    // The chip hugs the widest line: 9px side padding, no fat margins.
+    const chipW = Math.min(
+      260,
+      Math.max(
+        GameApp.textWidth(this.playerName, NAME_FS),
+        GameApp.textWidth(signOutText, OUT_FS),
+      ) + 18,
     );
-    this.nameLabel = label.node;
-    label.node.on(Node.EventType.TOUCH_END, () => this.openNameScreen());
+    const chipH = 60;
+    const chip = makePanel(
+      this.world.root,
+      size.width / 2 - chipW / 2 - 14,
+      -size.height / 2 + chipH / 2 + 14,
+      chipW,
+      chipH,
+      { fill: new Color(255, 253, 245, 230), stroke: PALETTE.panelStroke, lineWidth: 3 },
+    );
+    this.nameChip = chip;
+
+    const name = makeLabel(chip, this.playerName, 0, 13, { fontSize: NAME_FS });
+    name.node.getComponent(UITransform)!.setContentSize(chipW - 12, 24);
+    name.enableWrapText = false;
+    name.overflow = Label.Overflow.SHRINK;
+    name.node.on(Node.EventType.TOUCH_END, () => this.openNameScreen());
 
     // Sign-out lives with the name — siblings taking turns on one computer
     // switch accounts here. It only opens the confirmation screen, so a
     // stray tap can never end the session by itself.
-    const signOut = makeLabel(
-      this.world.root,
-      "Sign out · 退出",
-      size.width / 2 - 24,
-      -size.height / 2 + 42,
-      { fontSize: 11, color: PALETTE.sub, align: "right" },
-    );
-    this.signOutLabel = signOut.node;
+    const signOut = makeLabel(chip, signOutText, 0, -15, {
+      fontSize: OUT_FS,
+      color: PALETTE.sub,
+    });
+    signOut.node.getComponent(UITransform)!.setContentSize(chipW - 12, 24);
+    signOut.enableWrapText = false;
+    signOut.overflow = Label.Overflow.SHRINK;
     signOut.node.on(Node.EventType.TOUCH_END, () => this.openSignOut());
   }
 
