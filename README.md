@@ -65,7 +65,7 @@ anything under `shared/`, then run both `npm test` and `npm run typecheck`.
 
 | Context | Keyboard | Touch |
 |---|---|---|
-| Walk | Arrow keys or WASD | Virtual d-pad |
+| Walk | Arrow keys or WASD | — |
 | Advance a message | Enter or Space | Tap message panel |
 | Default battle action | Enter or Space | Tap button |
 | Choose an answer | 1–4 (top row or numpad) | Tap answer |

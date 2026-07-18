@@ -13,7 +13,7 @@ import { ShopScreen } from "./shop/ShopScreen";
 import { GameState } from "./state";
 import { Direction } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
-import { PALETTE, makeButton, makeLabel } from "./ui";
+import { makeLabel } from "./ui";
 
 type Screen = "world" | "party" | "bag" | "battle" | "shop";
 
@@ -37,7 +37,6 @@ export class GameApp {
   private bag: BagScreen | null = null;
   private battle: BattleScreen | null = null;
   private shop: ShopScreen | null = null;
-  private dpad: Node | null = null;
   private nameLabel: Node | null = null;
   private nameScreen: NameScreen | null = null;
   private canvasElement: HTMLCanvasElement | null = null;
@@ -63,13 +62,12 @@ export class GameApp {
   };
 
   // Swap the world to another region, arriving through the named gateway.
-  // The d-pad and player name are rebuilt so they stay above the new world.
+  // The player name is rebuilt so it stays above the new world.
   private travel(regionId: string, gateway: string | null): void {
     this.world.releaseAll();
     this.world.root.destroy();
     this.world = new WorldScreen(this.state, this.worldActions, regionId, gateway);
     this.canvasNode.addChild(this.world.root);
-    this.buildDpad();
     this.showPlayerName();
     this.screen = "world";
   }
@@ -80,7 +78,6 @@ export class GameApp {
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     view.on("canvas-resize", this.onViewResize, this);
     view.on("design-resolution-changed", this.onViewResize, this);
-    this.buildDpad();
     this.showPlayerName();
   }
 
@@ -168,7 +165,6 @@ export class GameApp {
   private hideWorld(): void {
     this.world.releaseAll();
     this.world.root.active = false;
-    if (this.dpad) this.dpad.active = false;
   }
 
   private endShop(): void {
@@ -182,14 +178,12 @@ export class GameApp {
     this.screen = "world";
     if (respawn && this.world.regionId !== "harbor") this.travel("harbor", null);
     this.world.root.active = true;
-    if (this.dpad) this.dpad.active = true;
     if (respawn) this.world.respawnHome();
     else this.world.refreshHud();
   }
 
   private onViewResize() {
     this.world.refreshLayout();
-    this.buildDpad();
     this.showPlayerName();
   }
 
@@ -274,39 +268,5 @@ export class GameApp {
   private onKeyUp(e: EventKeyboard) {
     const dir = KEY_DIRS[e.keyCode];
     if (dir && this.screen === "world") this.world.releaseDir(dir);
-  }
-
-  // --- touch d-pad (bottom-left), for iPad play ---
-  private buildDpad() {
-    this.world.releaseAll();
-    this.dpad?.destroy();
-    this.dpad = new Node("dpad");
-    this.canvasNode.addChild(this.dpad);
-    this.dpad.active = this.screen === "world";
-    const size = view.getVisibleSize();
-    const cx = -size.width / 2 + 110;
-    const cy = -size.height / 2 + 110;
-    const gap = 56;
-    const mk = (dir: Direction, x: number, y: number, glyph: string) => {
-      const b = makeButton(this.dpad!, {
-        x: cx + x,
-        y: cy + y,
-        w: 52,
-        h: 52,
-        label: glyph,
-        color: PALETTE.actionBlue,
-        fontSize: 26,
-      });
-      b.on(Node.EventType.TOUCH_START, () => this.world.pressDir(dir));
-      // Release only stops movement. Dialog dismissal/travel choices live on
-      // the banner and its own buttons — a d-pad release must never confirm
-      // whatever a bump just opened.
-      b.on(Node.EventType.TOUCH_END, () => this.world.releaseDir(dir));
-      b.on(Node.EventType.TOUCH_CANCEL, () => this.world.releaseDir(dir));
-    };
-    mk("up", 0, gap, "▲");
-    mk("down", 0, -gap, "▼");
-    mk("left", -gap, 0, "◀");
-    mk("right", gap, 0, "▶");
   }
 }
