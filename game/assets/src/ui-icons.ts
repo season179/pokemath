@@ -18,7 +18,7 @@ export function paintBagIcon(g: Graphics, size: number): void {
   g.fillColor = new Color(255, 183, 77, 255);
   g.strokeColor = INK;
   g.lineWidth = Math.max(2, size * 0.08);
-  g.roundRect(-half * 0.72, bodyY, size * 0.72 * 2, bodyH, size * 0.14);
+  g.roundRect(-half * 0.72, bodyY, size * 0.72, bodyH, size * 0.14);
   g.fill();
   g.stroke();
 
