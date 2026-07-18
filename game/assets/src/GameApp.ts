@@ -11,7 +11,7 @@ import { BagScreen } from "./bag/BagScreen";
 import { PartyScreen } from "./party/PartyScreen";
 import { ShopScreen } from "./shop/ShopScreen";
 import { GameState } from "./state";
-import { Direction } from "./world/regions/index";
+import { Direction, isEncounterRegion, isOpenRegion } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { makeLabel } from "./ui";
 
@@ -64,6 +64,15 @@ export class GameApp {
   // Swap the world to another region, arriving through the named gateway.
   // The player name is rebuilt so it stays above the new world.
   private travel(regionId: string, gateway: string | null): void {
+    // Defense-in-depth for the preview seal (#29): gateway arrival already
+    // refuses sealed targets with a notice (canTraverseGateway), and the
+    // region tests prove no NPC offer targets a sealed region either. This
+    // guard is the last line at the single region-entry choke point — never
+    // enter a region that isn't open yet, no matter which caller gets here.
+    if (!isOpenRegion(regionId)) {
+      console.warn(`Refusing travel to sealed region: ${regionId}`);
+      return;
+    }
     this.world.releaseAll();
     this.world.root.destroy();
     this.world = new WorldScreen(this.state, this.worldActions, regionId, gateway);
@@ -103,8 +112,15 @@ export class GameApp {
   }
 
   // Battles stay unreachable until Meadow Isle's encounter grass lands in
-  // M2 — regions have no encounter trigger yet.
+  // #8 — regions have no encounter trigger yet. Until then this guard is pure
+  // defense-in-depth: a battle can never start outside a preview encounter
+  // region (Woolly), so Meadow Dock stays transit-only and sealed areas stay
+  // empty no matter how a future trigger gets wired (issue #29).
   private startBattle(wild: Creature): void {
+    if (!isEncounterRegion(this.world.regionId)) {
+      console.warn(`Refusing battle in non-encounter region: ${this.world.regionId}`);
+      return;
+    }
     this.screen = "battle";
     this.hideWorld();
     this.battle = new BattleScreen(this.state, wild, this.bank, {
