@@ -5,7 +5,6 @@ import type { Question } from "./question-engine.ts";
 
 export interface ShopItem {
   readonly key: "potion" | "ball";
-  readonly icon: string;
   readonly zh: string;
   readonly en: string;
   readonly price: number;
@@ -13,8 +12,8 @@ export interface ShopItem {
 }
 
 export const SHOP_ITEMS: readonly ShopItem[] = [
-  { key: "potion", icon: "🧪", zh: "药水", en: "Potion", price: 120, note: "heals 10 HP / 恢复 10 点" },
-  { key: "ball", icon: "⚪", zh: "精灵球", en: "Ball", price: 80, note: "catch creatures / 捕捉宝可梦" },
+  { key: "potion", zh: "药水", en: "Potion", price: 120, note: "heals 10 HP / 恢复 10 点" },
+  { key: "ball", zh: "精灵球", en: "Ball", price: 80, note: "catch creatures / 捕捉宝可梦" },
 ];
 
 // Buying asks a change question: pay with a big note, work out the change.

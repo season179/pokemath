@@ -18,6 +18,7 @@ import {
 } from "../../shared/index";
 import { GameState } from "../state";
 import { colorFromHex, paintCreature } from "../creature-art";
+import { paintItemIcon, type ItemIconKind } from "../ui-icons";
 import {
   PALETTE,
   destroyChildren,
@@ -202,7 +203,14 @@ export class BattleScreen {
   }
 
   private usePotion(): void {
-    if (this.state.bag.potion <= 0 || this.state.active.hp >= this.state.active.maxHp) return;
+    if (this.state.bag.potion <= 0) {
+      this.say(["No potions left! Buy more at the shop."], () => this.showMenu());
+      return;
+    }
+    if (this.state.active.hp >= this.state.active.maxHp) {
+      this.say([`${this.state.active.name} already has full HP.`], () => this.showMenu());
+      return;
+    }
     this.state.bag.potion--;
     const healed = this.state.active.heal(POTION_HEAL);
     this.say([`Glug glug! ${this.state.active.name} healed ${healed} HP!`], () => this.wildAttack());
@@ -323,7 +331,13 @@ export class BattleScreen {
 
   private renderMenu(box: Node): void {
     makeLabel(box, `What will ${this.state.active.name} do?`, 0, 34, { fontSize: 21 });
-    const actions: Array<{ label: string; color: Color; action: () => void; disabled?: boolean }> = [];
+    const actions: Array<{
+      label: string;
+      color: Color;
+      action: () => void;
+      disabled?: boolean;
+      item?: ItemIconKind;
+    }> = [];
     if (this.state.benchedFighters().length > 0) {
       actions.push({ label: "Switch", color: new Color(141, 110, 99, 255), action: () => this.beginSwitch(false) });
     }
@@ -331,31 +345,44 @@ export class BattleScreen {
     // Grayed out when out of balls, but still tappable: throwBall()'s own
     // guard explains where to buy more — same message the C key gets.
     actions.push({
-      label: "Catch",
+      label: `Ball ×${this.state.bag.ball}`,
       color: new Color(171, 71, 188, 255),
       action: () => this.throwBall(),
       disabled: this.state.bag.ball <= 0,
+      item: "ball",
     });
-    if (this.state.bag.potion > 0 && this.state.active.hp < this.state.active.maxHp) {
-      actions.push({ label: "Potion", color: new Color(38, 166, 154, 255), action: () => this.usePotion() });
-    }
+    actions.push({
+      label: `Potion ×${this.state.bag.potion}`,
+      color: new Color(38, 166, 154, 255),
+      action: () => this.usePotion(),
+      disabled: this.state.bag.potion <= 0 || this.state.active.hp >= this.state.active.maxHp,
+      item: "potion",
+    });
     actions.push({ label: "Run", color: new Color(255, 138, 101, 255), action: () => this.runAway() });
 
     const w = 128;
     const gap = 8;
     const total = actions.length * w + (actions.length - 1) * gap;
     actions.forEach((action, i) => {
-      makeButton(box, {
+      const button = makeButton(box, {
         x: -total / 2 + w / 2 + i * (w + gap),
         y: -25,
         w,
         h: 50,
         label: action.label,
         color: action.color,
-        fontSize: 19,
+        fontSize: action.item ? 16 : 19,
         onTap: action.action,
         disabled: action.disabled,
       });
+      if (action.item) {
+        const label = button.getComponentInChildren(Label);
+        label?.node.setPosition(11, 0);
+        const icon = new Node(`${action.item}-icon`);
+        icon.parent = button;
+        icon.setPosition(-48, 0);
+        paintItemIcon(icon.addComponent(Graphics), action.item, 22);
+      }
     });
   }
 

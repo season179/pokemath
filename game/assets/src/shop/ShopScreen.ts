@@ -1,7 +1,7 @@
 // Shop screen: inventory, money, and the shopkeeper's change question.
 // Purchase arithmetic is pure shared domain; this class is view/input only.
 
-import { Color, EventKeyboard, KeyCode, Label, Node } from "cc";
+import { Color, EventKeyboard, Graphics, KeyCode, Label, Node } from "cc";
 import {
   QuestionRound,
   SHOP_ITEMS,
@@ -11,6 +11,7 @@ import {
 } from "../../shared/index";
 import { GameState } from "../state";
 import { QuestionView } from "../questions/QuestionView";
+import { paintItemIcon } from "../ui-icons";
 import {
   PALETTE,
   destroyChildren,
@@ -110,13 +111,18 @@ export class ShopScreen {
         fill: new Color(247, 243, 232, 255),
         radius: 12,
       });
-      makeLabel(row, item.icon, -330, 5, { fontSize: 38 });
-      makeLabel(row, `${item.en} ${item.zh} — RM ${fmtNum(item.price)}`, -265, 20, {
+      const icon = new Node(`${item.key}-icon`);
+      icon.parent = row;
+      icon.setPosition(-330, 3);
+      paintItemIcon(icon.addComponent(Graphics), item.key, 40);
+      makeLabel(row, `${item.en} ${item.zh} — RM ${fmtNum(item.price)}`, -290, 20, {
         fontSize: 21,
+        align: "left",
       });
-      makeLabel(row, `${item.note}   ·   you have ${this.state.bag[item.key]}`, -265, -18, {
+      makeLabel(row, `${item.note}   ·   you have ${this.state.bag[item.key]}`, -290, -18, {
         fontSize: 14,
         color: PALETTE.sub,
+        align: "left",
       });
       makeButton(row, {
         x: 305,
@@ -134,6 +140,7 @@ export class ShopScreen {
       makeLabel(card, this.notice.text, -350, -150, {
         fontSize: 20,
         color: this.notice.color,
+        align: "left",
       });
     }
 

@@ -13,7 +13,11 @@ import {
   Sprite,
   SpriteFrame,
   Texture2D,
+  UIOpacity,
   UITransform,
+  Vec3,
+  tween,
+  view,
 } from "cc";
 import {
   DIR_DELTA,
@@ -29,7 +33,8 @@ import {
   tileAt,
 } from "./map-data";
 import { GameState } from "../state";
-import { PALETTE, destroyChildren, makeLabel, makePanel } from "../ui";
+import { PALETTE, destroyChildren, makeLabel, makePanel, makeRect } from "../ui";
+import { paintBagIcon } from "../ui-icons";
 import { colorFromHex, paintCreature } from "../creature-art";
 import { loadPixelTexture, pixelFrame } from "../remote-art";
 
@@ -120,6 +125,8 @@ function addRawSprite(
 
 export interface WorldActions {
   onShop: () => void;
+  onParty: () => void;
+  onBag: () => void;
 }
 
 export class WorldScreen {
@@ -128,16 +135,23 @@ export class WorldScreen {
   private artGround = new Node("pixel-ground");
   private artScenery = new Node("pixel-scenery");
   private actors = new Node("actors");
+  private companionNode = new Node("active-pet-follower");
+  private companionG!: Graphics;
   private playerNode = new Node("player");
   private playerG!: Graphics;
   private playerSprite: Sprite | null = null;
   private playerFrames: Partial<Record<Direction, SpriteFrame>> = {};
   private fallbackLandmarks = new Node("fallback-landmarks");
   private hudLayer = new Node("huds");
-  private hudMoney!: Label;
+  private locationToast: Node | null = null;
 
   private px: number = PLAYER_SPAWN.x;
   private py: number = PLAYER_SPAWN.y;
+  private companionX: number = PLAYER_SPAWN.x;
+  private companionY: number = PLAYER_SPAWN.y - 1;
+  private companionTargetX: number = PLAYER_SPAWN.x;
+  private companionTargetY: number = PLAYER_SPAWN.y - 1;
+  private companionMoving = false;
   private dir: Direction = "down";
   private moving = false;
   private held = new Set<Direction>();
@@ -162,11 +176,14 @@ export class WorldScreen {
     this.artScenery.parent = this.mapNode;
     this.actors.parent = this.mapNode;
 
+    this.companionG = this.companionNode.addComponent(Graphics);
+    this.actors.addChild(this.companionNode);
     this.playerG = this.playerNode.addComponent(Graphics);
     this.actors.addChild(this.playerNode);
     this.root.addChild(this.hudLayer);
 
     this.snapPlayer();
+    this.resetCompanion();
     this.refreshHud();
     this.buildTownTitle();
     void this.loadTownArt();
@@ -208,6 +225,7 @@ export class WorldScreen {
         const nextX = this.px + dx;
         const nextY = this.py + dy;
         if (isWalkable(nextX, nextY)) {
+          this.beginCompanionMove(this.px, this.py);
           this.px = nextX;
           this.py = nextY;
           this.moving = true;
@@ -231,6 +249,8 @@ export class WorldScreen {
         this.onArrive();
       }
     }
+
+    if (this.companionMoving) this.updateCompanion(dt);
   }
 
   private firstHeld(): Direction | null {
@@ -251,6 +271,7 @@ export class WorldScreen {
     if (tile === "H") {
       this.state.healTeam();
       this.refreshHud();
+      this.celebrateCompanion();
       this.showNotice("Home sweet home — your whole team is fully rested.");
     } else if (tile === "S") {
       this.releaseAll();
@@ -282,18 +303,99 @@ export class WorldScreen {
   }
 
   private buildTownTitle() {
-    const panel = makePanel(this.root, 0, 286, 220, 42, {
+    this.locationToast?.destroy();
+    const size = view.getDesignResolutionSize();
+    const panel = makePanel(this.root, 0, size.height / 2 - 41, 220, 42, {
       fill: new Color(255, 253, 245, 232),
       stroke: PALETTE.panelStroke,
       lineWidth: 3,
     });
+    this.locationToast = panel;
     makeLabel(panel, "HARBOR TOWN  ·  港湾镇", 0, 0, { fontSize: 16 });
+
+    setTimeout(() => {
+      if (!panel.isValid) return;
+      const reducedMotion = typeof window !== "undefined"
+        && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (reducedMotion) {
+        panel.destroy();
+        if (this.locationToast === panel) this.locationToast = null;
+        return;
+      }
+      const opacity = panel.addComponent(UIOpacity);
+      tween(opacity)
+        .to(0.25, { opacity: 0 })
+        .call(() => {
+          if (panel.isValid) panel.destroy();
+          if (this.locationToast === panel) this.locationToast = null;
+        })
+        .start();
+    }, 1750);
   }
 
   private snapPlayer() {
     const [x, y] = gridToLocal(this.px, this.py);
     this.playerNode.setPosition(x + TILE / 2, y + TILE / 2, 0);
     this.drawPlayer();
+  }
+
+  private resetCompanion() {
+    const [dx, dy] = DIR_DELTA[this.dir];
+    const preferred = { x: this.px - dx, y: this.py - dy };
+    const candidates = [
+      preferred,
+      { x: this.px, y: this.py + 1 },
+      { x: this.px - 1, y: this.py },
+      { x: this.px + 1, y: this.py },
+      { x: this.px, y: this.py - 1 },
+    ];
+    const tile = candidates.find(({ x, y }) => isWalkable(x, y)) ?? { x: this.px, y: this.py };
+    this.companionX = tile.x;
+    this.companionY = tile.y;
+    this.companionTargetX = tile.x;
+    this.companionTargetY = tile.y;
+    this.companionMoving = false;
+    const [x, y] = gridToLocal(tile.x, tile.y);
+    this.companionNode.setPosition(x + TILE / 2, y + TILE / 2, 0);
+    this.drawCompanion();
+  }
+
+  private beginCompanionMove(targetX: number, targetY: number) {
+    this.companionTargetX = targetX;
+    this.companionTargetY = targetY;
+    this.companionMoving = this.companionX !== targetX || this.companionY !== targetY;
+  }
+
+  private updateCompanion(dt: number) {
+    const [tx, ty] = gridToLocal(this.companionTargetX, this.companionTargetY);
+    const pos = this.companionNode.position;
+    const step = SPEED * dt;
+    const nx = approach(pos.x, tx + TILE / 2, step);
+    const ny = approach(pos.y, ty + TILE / 2, step);
+    this.companionNode.setPosition(nx, ny, 0);
+    if (nx === tx + TILE / 2 && ny === ty + TILE / 2) {
+      this.companionX = this.companionTargetX;
+      this.companionY = this.companionTargetY;
+      this.companionMoving = false;
+    }
+  }
+
+  private drawCompanion() {
+    if (!this.companionG) return;
+    this.companionG.clear();
+    this.companionG.fillColor = new Color(0, 0, 0, 58);
+    this.companionG.ellipse(0, -15, 13, 5);
+    this.companionG.fill();
+    const creature = this.state.active;
+    paintCreature(this.companionG, hex(creature.color), 14, creature.boss);
+  }
+
+  private celebrateCompanion() {
+    this.companionNode.setScale(Vec3.ONE);
+    tween(this.companionNode)
+      .to(0.12, { scale: new Vec3(1.16, 1.16, 1) })
+      .to(0.16, { scale: new Vec3(1, 1, 1) })
+      .start();
   }
 
   private drawPlayer() {
@@ -496,33 +598,64 @@ export class WorldScreen {
   }
 
   private buildHuds() {
-    const teamW = 20 + this.state.team.length * 40;
-    const panel = makePanel(this.hudLayer, -460 + teamW / 2, 288, teamW, 66, {
-      fill: new Color(255, 253, 245, 230),
-      stroke: PALETTE.panelStroke,
-      lineWidth: 3,
-    });
-    this.state.team.forEach((creature, index) => {
-      const dot = new Node(`team-${index}`);
-      dot.parent = panel;
-      dot.setPosition(-teamW / 2 + 30 + index * 40, 8, 0);
-      const g = dot.addComponent(Graphics);
-      paintCreature(g, hex(creature.color), 13, creature.boss);
-      makeLabel(panel, `Lv.${creature.level}`, -teamW / 2 + 30 + index * 40, -22, { fontSize: 12 });
+    const size = view.getDesignResolutionSize();
+    const creature = this.state.active;
+    const card = makePanel(
+      this.hudLayer,
+      -size.width / 2 + 118,
+      size.height / 2 - 50,
+      196,
+      60,
+      {
+        fill: new Color(255, 253, 245, 230),
+        stroke: PALETTE.actionBlue,
+        lineWidth: 3,
+      },
+    );
+    const portrait = new Node("active-pet-portrait");
+    portrait.parent = card;
+    portrait.setPosition(-69, -1);
+    paintCreature(portrait.addComponent(Graphics), hex(creature.color), 16, creature.boss);
+
+    const name = makeLabel(card, creature.name, -43, 15, { fontSize: 17, align: "left" });
+    name.node.getComponent(UITransform)!.setContentSize(103, 22);
+    name.enableWrapText = false;
+    name.overflow = Label.Overflow.SHRINK;
+    makeLabel(card, `Lv.${creature.level}`, 81, 15, {
+      fontSize: 13,
+      color: PALETTE.sub,
+      align: "right",
     });
 
-    const wallet = makePanel(this.hudLayer, 355, 288, 210, 40, {
+    const fraction = Math.max(0, creature.hp / creature.maxHp);
+    makeLabel(card, `HP ${creature.hp}/${creature.maxHp}`, -43, -14, {
+      fontSize: 11,
+      color: PALETTE.sub,
+      align: "left",
+    });
+    makeRect(card, 48, -14, 60, 9, new Color(221, 221, 221, 255), 5);
+    if (fraction > 0) {
+      const color = fraction > 0.5 ? PALETTE.hpHigh : fraction > 0.25 ? PALETTE.hpMid : PALETTE.hpLow;
+      const width = 60 * fraction;
+      makeRect(card, 18 + width / 2, -14, width, 9, color, 5);
+    }
+    card.on(Node.EventType.TOUCH_END, this.actions.onParty);
+
+    const bag = makePanel(this.hudLayer, size.width / 2 - 47, size.height / 2 - 47, 54, 54, {
       fill: new Color(255, 253, 245, 230),
       stroke: PALETTE.panelStroke,
       lineWidth: 3,
     });
-    this.hudMoney = makeLabel(wallet, "", 0, 0, { fontSize: 17 });
-    this.hudMoney.string = `RM ${this.state.money}   🧪${this.state.bag.potion}  ⚪${this.state.bag.ball}`;
+    const bagIcon = new Node("bag-icon");
+    bagIcon.parent = bag;
+    paintBagIcon(bagIcon.addComponent(Graphics), 31);
+    bag.on(Node.EventType.TOUCH_END, this.actions.onBag);
   }
 
   refreshHud() {
     destroyChildren(this.hudLayer);
     this.buildHuds();
+    this.drawCompanion();
   }
 
   respawnHome() {
@@ -534,6 +667,7 @@ export class WorldScreen {
     this.state.activeIndex = 0;
     this.state.healTeam();
     this.snapPlayer();
+    this.resetCompanion();
     this.refreshHud();
   }
 }

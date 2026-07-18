@@ -1,5 +1,5 @@
 // GameApp: the shell. Owns the game state, routes input, and swaps screens
-// (world / battle / shop) under the single cc.Scene. Screens are plain TS
+// (world / overlays / battle / shop) under the single cc.Scene. Screens are plain TS
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
@@ -7,13 +7,15 @@ import { Creature, QuestionBank, SAMPLE_BANK, type SaveState } from "../shared/i
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
 import { BattleScreen } from "./battle/BattleScreen";
+import { BagScreen } from "./bag/BagScreen";
+import { PartyScreen } from "./party/PartyScreen";
 import { ShopScreen } from "./shop/ShopScreen";
 import { GameState } from "./state";
 import { Direction } from "./world/map-data";
 import { WorldScreen } from "./world/WorldScreen";
 import { PALETTE, makeButton, makeLabel } from "./ui";
 
-type Screen = "world" | "battle" | "shop";
+type Screen = "world" | "party" | "bag" | "battle" | "shop";
 
 const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
   [KeyCode.ARROW_UP]: "up",
@@ -31,6 +33,8 @@ export class GameApp {
   private bank = new QuestionBank(SAMPLE_BANK);
   private screen: Screen = "world";
   private world: WorldScreen;
+  private party: PartyScreen | null = null;
+  private bag: BagScreen | null = null;
   private battle: BattleScreen | null = null;
   private shop: ShopScreen | null = null;
   private dpad: Node | null = null;
@@ -46,6 +50,8 @@ export class GameApp {
     this.state = new GameState(boot);
     this.world = new WorldScreen(this.state, {
       onShop: () => this.startShop(),
+      onParty: () => this.startParty(),
+      onBag: () => this.startBag(),
     });
     this.canvasNode.addChild(this.world.root);
   }
@@ -88,6 +94,46 @@ export class GameApp {
     if (this.dpad) this.dpad.active = false;
     this.shop = new ShopScreen(this.state, () => this.endShop());
     this.canvasNode.addChild(this.shop.root);
+  }
+
+  private startParty(): void {
+    if (this.screen !== "world" || this.nameScreen) return;
+    this.screen = "party";
+    this.hideWorld();
+    this.party = new PartyScreen(this.state, {
+      onBack: () => this.endParty(),
+      onSwitch: () => {
+        this.world.refreshHud();
+        this.persistence.checkpoint(this.state.toSave());
+      },
+    });
+    this.canvasNode.addChild(this.party.root);
+  }
+
+  private endParty(): void {
+    this.party?.root.destroy();
+    this.party = null;
+    this.returnToWorld(false);
+  }
+
+  private startBag(): void {
+    if (this.screen !== "world" || this.nameScreen) return;
+    this.screen = "bag";
+    this.hideWorld();
+    this.bag = new BagScreen(this.state, () => this.endBag());
+    this.canvasNode.addChild(this.bag.root);
+  }
+
+  private endBag(): void {
+    this.bag?.root.destroy();
+    this.bag = null;
+    this.returnToWorld(false);
+  }
+
+  private hideWorld(): void {
+    this.world.releaseAll();
+    this.world.root.active = false;
+    if (this.dpad) this.dpad.active = false;
   }
 
   private endShop(): void {
@@ -152,6 +198,14 @@ export class GameApp {
 
   // --- keyboard ---
   private onKeyDown(e: EventKeyboard) {
+    if (this.screen === "party") {
+      this.party?.handleKeyDown(e);
+      return;
+    }
+    if (this.screen === "bag") {
+      this.bag?.handleKeyDown(e);
+      return;
+    }
     if (this.screen === "battle") {
       this.battle?.handleKeyDown(e);
       return;
@@ -162,7 +216,9 @@ export class GameApp {
     }
 
     const dir = KEY_DIRS[e.keyCode];
-    if (dir && this.screen === "world") this.world.pressDir(dir);
+    if (e.keyCode === KeyCode.KEY_P && this.screen === "world") this.startParty();
+    else if (e.keyCode === KeyCode.KEY_B && this.screen === "world") this.startBag();
+    else if (dir && this.screen === "world") this.world.pressDir(dir);
     else if ((e.keyCode === KeyCode.SPACE || e.keyCode === KeyCode.ENTER) && this.screen === "world") {
       this.world.tap();
     }

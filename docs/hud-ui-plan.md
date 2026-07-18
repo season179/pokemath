@@ -6,6 +6,12 @@
 
 **Implementation target:** Cocos Creator 3.8.8, 960×640 design resolution
 
+**Implementation status:** Complete on 2026-07-18. Phase 1 and Phase 2 were
+implemented and verified in the built game at 960×640 and 1024×768. The final
+gate passed `npm run sync`, 35 tests, TypeScript checking, the Cocos web-mobile
+build, pointer and keyboard interaction checks, and browser console/error
+inspection.
+
 ## Goal
 
 Make Harbor Town feel like a creature adventure rather than a status
@@ -64,6 +70,10 @@ resolution.
 | Bag button | `54×54` | `(433, 273)` | 20px from top and right; tap opens Bag |
 | Location toast | about `220×42` | `(0, 279)` | hold 1.5–2.0s, fade for about 250ms, destroy |
 
+Derive the edge anchors from `view.getDesignResolutionSize()` at runtime. The
+values above remain exact at 960×640 while the 20px safe area remains stable
+when Cocos expands the aligned canvas for a tablet viewport.
+
 The active-pet card contains:
 
 - a 44×44 portrait rendered with the existing creature visual language;
@@ -99,8 +109,8 @@ Add two small screens:
 - Show every owned pet with portrait, name, level, HP, and active state.
 - Allow a healthy pet to become active using `GameState.switchTo(index)`.
 - Keep fainted pets visible but disabled.
-- Paginate rather than assume a six-pet domain limit; the current save model
-  does not enforce a maximum team size.
+- Paginate rather than couple the screen layout to the current six-pet save
+  validation limit, so the UI remains safe if that domain rule changes.
 - Close with the on-screen Back button or `Escape`.
 - Checkpoint after changing the active pet.
 
@@ -141,7 +151,7 @@ Use the same item icon helper in Bag, Shop, and Battle. Avoid carrying an icon
 glyph in the pure shared-domain `ShopItem` model when `item.key` already
 identifies the item.
 
-## Phase 1: HUD and overlay screens
+## Phase 1: HUD and overlay screens — complete
 
 ### 1. Add reusable UI icon renderers
 
@@ -202,7 +212,7 @@ Update:
 
 Do not redesign the rest of Shop or Battle in this pass.
 
-## Phase 2: active-pet follower
+## Phase 2: active-pet follower — complete
 
 Start only after Phase 1 passes visual QA.
 
