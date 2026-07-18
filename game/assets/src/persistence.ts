@@ -25,6 +25,9 @@ export class Persistence {
   private version = 0;
   private saving = false;
   private pending: SaveState | null = null;
+  // Resolves when the current flush loop drains. signOut() awaits it so the
+  // last checkpoint reaches the server before the session ends.
+  private flushed: Promise<void> = Promise.resolve();
 
   /** Load the save, reconciling any dirty local cache. Throws only via redirect. */
   async boot(): Promise<BootResult> {
@@ -82,7 +85,39 @@ export class Persistence {
     localStorage.setItem(KEY_CACHE, JSON.stringify(save));
     localStorage.setItem(KEY_DIRTY, "1");
     this.pending = save;
-    if (!this.saving) void this.flush();
+    if (!this.saving) this.flushed = this.flush();
+  }
+
+  /**
+   * Deliberate sign-out so someone else can take a turn on this computer.
+   * Waits for any in-flight checkpoint push, ends the server session, then
+   * clears this browser's save cache: a leftover (possibly dirty) cache from
+   * player A must never reconcile into sibling B's account on the next boot.
+   * The cache is only cleared once the server confirms — a failed sign-out
+   * leaves the player in the game with their progress intact.
+   * Returns an error message to show, or navigates to /login on success.
+   */
+  async signOut(): Promise<string | null> {
+    await this.flushed;
+    let ok = false;
+    try {
+      // better-auth 415s a bodyless POST — it wants JSON even when empty.
+      const res = await fetch("/api/auth/sign-out", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      // 401 means the session is already gone — that IS signed out.
+      ok = res.ok || res.status === 401;
+    } catch {
+      ok = false;
+    }
+    if (!ok) return "Could not sign out — check the internet.  暂时无法退出，请检查网络。";
+    localStorage.removeItem(KEY_CACHE);
+    localStorage.removeItem(KEY_DIRTY);
+    this.redirectToLogin();
+    return null;
   }
 
   private async flush(): Promise<void> {
