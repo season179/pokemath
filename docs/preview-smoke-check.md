@@ -218,8 +218,12 @@ agent-browser --session "$SN" click canvas                     # focus #GameCanv
 tp() { local want="$1" got; got=$(agent-browser --session "$SN" eval "(function(){const want=\"$want\";const s=cc.director.getScene();let wr=null;function fr(n){if(n.name&&n.name.indexOf('world-')===0&&n.name!=='world-map'){wr=n;return true;}if(n.children)for(const c of n.children)if(fr(c))return true;return false;}fr(s);if(!wr)return'FAIL no-world';const ex=[];for(const ch of wr.children){if(ch.name==='map'||ch.name==='huds')continue;let t='';(function w(n){const l=n.getComponent&&n.getComponent('cc.Label');if(l&&l.string)t=l.string;if(n.children)for(const c of n.children)w(c);})(ch);if(t)ex.push(t);}const ok=ex.some(function(t){return t.indexOf(want)>=0;});return (ok?'PASS ':'FAIL ')+want+' :: '+ex.join(' | ');})()"); got=${got//\"/}; echo "  TOAST $got"; [[ "$got" == PASS* ]]; }
 
 # Click a Cocos canvas element (UI projection: page_x = worldX, page_y = 720 − worldY).
-tapnode()  { local p; p=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let t=null;(function w(n){if(n.name===\"$1\")t=n;if(n.children)for(const c of n.children)w(c);})(s);if(!t)return'';return Math.round(t.worldPosition.x)+' '+Math.round(720-t.worldPosition.y);})()"); p=${p//\"/}; set -- $p; agent-browser --session "$SN" mouse move "$1" "$2" >/dev/null; agent-browser --session "$SN" mouse down >/dev/null; agent-browser --session "$SN" mouse up >/dev/null; }
-taplabel() { local p; p=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let t=null;(function w(n){const l=n.getComponent&&n.getComponent('cc.Label');if(l&&l.string&&l.string.indexOf(\"$1\")>=0)t=n;if(n.children)for(const c of n.children)w(c);})(s);if(!t)return'';return Math.round(t.worldPosition.x)+' '+Math.round(720-t.worldPosition.y);})()"); p=${p//\"/}; set -- $p; agent-browser --session "$SN" mouse move "$1" "$2" >/dev/null; agent-browser --session "$SN" mouse down >/dev/null; agent-browser --session "$SN" mouse up >/dev/null; }
+# `read -r px py` (not `set -- $p`) so the split works in bash AND zsh — zsh does
+# not word-split unquoted variables, which would pass "x y" as ONE argument and
+# then fire the down/up click at a stray position. Both helpers abort with a
+# nonzero status when the node/label is not found, instead of clicking blind.
+tapnode()  { local p px py; p=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let t=null;(function w(n){if(n.name===\"$1\")t=n;if(n.children)for(const c of n.children)w(c);})(s);if(!t)return'';return Math.round(t.worldPosition.x)+' '+Math.round(720-t.worldPosition.y);})()"); p=${p//\"/}; read -r px py <<<"$p"; if [[ -z "$px" || -z "$py" ]]; then echo "  TAP no node '$1'"; return 1; fi; agent-browser --session "$SN" mouse move "$px" "$py" >/dev/null; agent-browser --session "$SN" mouse down >/dev/null; agent-browser --session "$SN" mouse up >/dev/null; }
+taplabel() { local p px py; p=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let t=null;(function w(n){const l=n.getComponent&&n.getComponent('cc.Label');if(l&&l.string&&l.string.indexOf(\"$1\")>=0)t=n;if(n.children)for(const c of n.children)w(c);})(s);if(!t)return'';return Math.round(t.worldPosition.x)+' '+Math.round(720-t.worldPosition.y);})()"); p=${p//\"/}; read -r px py <<<"$p"; if [[ -z "$px" || -z "$py" ]]; then echo "  TAP no label '$1'"; return 1; fi; agent-browser --session "$SN" mouse move "$px" "$py" >/dev/null; agent-browser --session "$SN" mouse down >/dev/null; agent-browser --session "$SN" mouse up >/dev/null; }
 ```
 
 Movement is one tile per discrete keypress (Arrow keys **or** WASD).
@@ -227,12 +231,16 @@ Coordinates are validated `tile (x, y)`, row 0 at the top; the mini-map
 (you = white dot, green dot = open exit, amber ring = sealed, blue dot =
 ferry captain) is the visual aid.
 
-> **Two operational rules.** (1) **Gate notices pause the world** — while a
+> **Three operational rules.** (1) **Gate notices pause the world** — while a
 > bilingual "opens later" notice is open, `WorldScreen.update()` ignores all
 > input, so dismiss it with `Space` before the next move. (2) **Capture
 > arrival evidence fast**: the bilingual arrival toast fades at 1750 ms and
 > is destroyed at ~2000 ms, so wait **< 1500 ms** after each travel before
-> screenshotting, and assert it with `tp`.
+> screenshotting, and assert it with `tp`. (3) **Tall grass can start a wild
+> battle** — since #8, stepping onto a `g` tile in Woolly Meadows rolls an
+> encounter (~20 % per step). The route below stays off tall grass, so a
+> clean run never battles; if a battle does start (route drift), flee with
+> **Escape**, then resume from the last checkpoint.
 
 ### 5a. Harbor → Meadow Dock (explicit ferry confirmation)
 
@@ -290,7 +298,7 @@ Assert `region: "meadow/woolly"` and toast `WOOLLY MEADOWS · 羊毛草原`.
 Prove the north gate is locked. From the Woolly arrival `(1, 10)`:
 
 ```bash
-mv ArrowUp 9; mv ArrowRight 15; mv ArrowUp 1; agent-browser --session "$SN" wait 450
+mv ArrowUp 8; mv ArrowRight 15; mv ArrowUp 2; agent-browser --session "$SN" wait 450   # via row 2: avoids the row-1 tall grass
 ck meadow/woolly || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/04-woolly-north-locked.png
 ```
