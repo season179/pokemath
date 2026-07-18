@@ -4,7 +4,6 @@
 import {
   Creature,
   MAX_TEAM_SIZE,
-  createNewGame,
   type BagState,
   type SaveState,
 } from "../shared/index";
@@ -21,10 +20,6 @@ export class GameState {
     this.activeIndex = Math.min(Math.max(0, save.team.activeIndex), this.team.length - 1);
     this.money = save.money;
     this.bag = { ...save.bag };
-  }
-
-  static newGame(): GameState {
-    return new GameState(createNewGame());
   }
 
   get active(): Creature {

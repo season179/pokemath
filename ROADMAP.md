@@ -60,7 +60,7 @@ workspace gymnastics for ~500 lines.
 - `shared/shop-rules.ts` — shop items + the shopkeeper's change question.
 - `shared/save-types.ts` — the shared state types (`SaveState`, team, money,
   bag) consumed by **both** Phase 1 (in-memory game state, save/load) and
-  Phase 2 (the API payload that D1 persists); `createNewGame()`.
+  Phase 2 (the API payload that D1 persists); `createNewGame(starter)`.
 - Tests: `node --test` with TS type-stripping (unflagged on Node ≥23.6;
   on Node 22 LTS add `--experimental-strip-types`) — no build step.
 - Constraint learned: imports must use explicit `.ts` extensions and no

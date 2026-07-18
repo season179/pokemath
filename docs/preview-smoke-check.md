@@ -142,7 +142,13 @@ curl -c /tmp/dev-cookies.txt \
 curl -b /tmp/dev-cookies.txt -X PUT http://localhost:8799/api/profile/name \
   -H 'content-type: application/json' -d '{"name":"Smoke01"}'
 
-# 3. Confirm the gate: 200 = authed, 302 → /login = cookie missing/invalid.
+# 3. Choose a starter (the game shows the starter screen while save is null;
+#    this check starts in the world, so mint the save here). Idempotent —
+#    an existing save is never overwritten.
+curl -b /tmp/dev-cookies.txt -X POST http://localhost:8799/api/save/new \
+  -H 'content-type: application/json' -d '{"starter":"multiplybara"}'
+
+# 4. Confirm the gate: 200 = authed, 302 → /login = cookie missing/invalid.
 curl -b /tmp/dev-cookies.txt -o /dev/null -w "%{http_code}\n" http://localhost:8799/
 ```
 

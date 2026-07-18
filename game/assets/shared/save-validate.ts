@@ -42,6 +42,12 @@ function isCreature(value: unknown): value is CreatureState {
   if (!isBoundedInt(value.level, 1, MAX_STAT)) return false;
   if (!isBoundedInt(value.xp, 0, MAX_STAT)) return false;
   if (typeof value.boss !== "boolean") return false;
+  // Optional (absent on pre-starter-selection saves). Any non-empty string
+  // passes — ids the client doesn't know just render as the fallback blob.
+  if (value.speciesId !== undefined) {
+    if (typeof value.speciesId !== "string") return false;
+    if (value.speciesId.length === 0 || value.speciesId.length > MAX_NAME_LENGTH) return false;
+  }
   return true;
 }
 

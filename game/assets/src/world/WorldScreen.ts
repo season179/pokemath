@@ -45,7 +45,8 @@ import { Creature, pickEncounter, rollEncounter } from "../../shared/index";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
 import { paintBagIcon, paintMapIcon } from "../ui-icons";
-import { colorFromHex, paintCreature } from "../creature-art";
+import { colorFromHex } from "../creature-art";
+import { makeCreaturePortrait } from "../creature-portrait";
 import { loadPixelTexture, pixelFrame } from "../remote-art";
 
 const SPEED = 240;
@@ -117,6 +118,7 @@ export class WorldScreen {
   private actors = new Node("actors");
   private companionNode = new Node("active-pet-follower");
   private companionG!: Graphics;
+  private companionPortrait: Node | null = null;
   private playerNode = new Node("player");
   private playerG!: Graphics;
   private playerSprite: Sprite | null = null;
@@ -482,8 +484,8 @@ export class WorldScreen {
     this.companionG.fillColor = new Color(0, 0, 0, 58);
     this.companionG.ellipse(0, -15, 13, 5);
     this.companionG.fill();
-    const creature = this.state.active;
-    paintCreature(this.companionG, hex(creature.color), 14, creature.boss);
+    this.companionPortrait?.destroy();
+    this.companionPortrait = makeCreaturePortrait(this.companionNode, this.state.active, 14);
   }
 
   private celebrateCompanion() {
@@ -972,10 +974,8 @@ export class WorldScreen {
         lineWidth: 3,
       },
     );
-    const portrait = new Node("active-pet-portrait");
-    portrait.parent = card;
+    const portrait = makeCreaturePortrait(card, creature, 16);
     portrait.setPosition(-69, -1);
-    paintCreature(portrait.addComponent(Graphics), hex(creature.color), 16, creature.boss);
 
     const name = makeLabel(card, creature.name, -43, 15, { fontSize: 17, align: "left" });
     name.node.getComponent(UITransform)!.setContentSize(103, 22);
