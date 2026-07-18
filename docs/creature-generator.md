@@ -80,6 +80,22 @@ Temporary stage crops and Codex logs are discarded after the raw source and
 manifest are safely archived. If generation fails, the error reports the
 preserved workspace path for diagnosis.
 
+These local files are staging artifacts, not the published source of truth.
+After visual QA, publish and verify the creature through the private R2
+registry:
+
+```sh
+npm run publish-art -- <creature-id>
+npm run verify-art -- <creature-id>
+```
+
+Publishing uploads immutable, content-addressed production sprites to
+`pokemath-art`, uploads provenance and the tracked spec to the unbound
+`pokemath-art-source` bucket, verifies every upload by downloading it, and then
+updates and verifies the private creature catalog last. Use
+`npm run pull-art -- <id>` to restore both production sprites and any retained
+raw source archive from R2.
+
 If a failed Codex image worker saved `raw.png`, process that preserved workspace
 into a separate empty production directory without generating another image:
 

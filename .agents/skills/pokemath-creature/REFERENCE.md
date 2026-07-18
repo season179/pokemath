@@ -61,6 +61,21 @@ The raw model output and reproducibility manifest are retained outside the
 production directory so the two-file sprite contract stays exact. Both the
 production directory and source archive must be empty before generation.
 
+## Published R2 contract
+
+```text
+pokemath-art/art/creatures/<id>/<release-sha256>/asset.bin
+pokemath-art/art/creatures/<id>/<release-sha256>/asset2.bin
+pokemath-art-source/creatures/<id>/<release-sha256>/asset.bin
+pokemath-art-source/creatures/<id>/<release-sha256>/manifest.json
+pokemath-art-source/creatures/<id>/<release-sha256>/spec.json
+pokemath-art-source/catalog/creatures.json
+```
+
+The production bucket is bound read-only by convention to the game Worker. The
+source bucket is never bound or publicly routed. Publication writes and verifies
+all immutable objects before updating the private catalog last.
+
 ## Quality gates
 
 - Exact requested stage count and reading order.

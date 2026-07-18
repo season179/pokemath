@@ -14,3 +14,10 @@ export function artKeyFromPath(pathname: string): string | null {
   if (!key.startsWith("art/") || key.includes("..")) return null;
   return key;
 }
+
+export function artContentType(key: string): string | null {
+  if (/^art\/creatures\/[a-z0-9-]+\/[a-f0-9]{64}\/asset2?\.bin$/.test(key)) {
+    return "image/png";
+  }
+  return null;
+}

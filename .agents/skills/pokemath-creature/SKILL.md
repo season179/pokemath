@@ -54,8 +54,15 @@ suggests another count.
    per stage, and a useful alt palette.
 8. Confirm `raw.png` and `manifest.json` were retained under
    `art-samples/PokeMath Original/Creature Sources/<id>/`.
-9. Report links to both production PNGs, both retained source files, and the
-   editable JSON spec.
+9. Publish and remotely verify the reviewed creature:
+
+   ```sh
+   npm run publish-art -- <id>
+   npm run verify-art -- <id>
+   ```
+
+10. Report the immutable R2 production URLs, source completeness, local files,
+    and editable JSON spec.
 
 ## Hard rules
 
@@ -67,6 +74,10 @@ suggests another count.
 - Never overwrite an existing creature directory or silently delete user files.
 - Successful runs must retain exactly `raw.png` and `manifest.json` in a
   separate source archive directory; never put them in the production directory.
+- R2 is authoritative after publication. Publish only the selected validated
+  creature; never recursively upload the local `art-samples/` staging tree.
+- Production keys are immutable and content-addressed. Provenance and the
+  authoritative catalog live in the private, unbound source bucket.
 - Temporary stage crops and logs are discarded only after the source archive is
   written successfully. Failed workspaces are preserved for diagnosis.
 - One targeted regeneration is acceptable after failed visual QA. Ask before

@@ -14,7 +14,7 @@
   },
   "routes": [{ "pattern": "game.pokemath.fun", "custom_domain": true }],
   // Licensed art lives in R2, never in this public repo. See docs/art-assets.md.
-  // Upload: `npm run sync-art` (from repo root).
+  // Publish reviewed creatures: `npm run publish-art -- <id>` (from repo root).
   "r2_buckets": [{ "binding": "ART", "bucket_name": "pokemath-art" }],
   "d1_databases": [
     {

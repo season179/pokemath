@@ -132,7 +132,8 @@ Commit Cocos `.meta` files—they carry stable asset UUIDs. Do not commit genera
 the repository `.gitignore` excludes them.
 
 Downloaded or unlicensed visual references belong in the ignored
-`art-samples/` directory and must not be pushed.
+`art-samples/` directory and must not be pushed. Published game art is
+authoritative in private R2; see [`docs/art-assets.md`](docs/art-assets.md).
 
 ## History
 

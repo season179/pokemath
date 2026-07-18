@@ -10,7 +10,7 @@
 //
 // `Env` comes from worker-configuration.d.ts (regenerate: `npm run cf-types`).
 
-import { artKeyFromPath } from "./art-path.ts";
+import { artContentType, artKeyFromPath } from "./art-path.ts";
 import { buildAuth } from "./auth.ts";
 import { handleApi, json } from "./api.ts";
 import { LOGIN_HTML } from "./login-page.ts";
@@ -69,6 +69,8 @@ async function serveArt(url: URL, env: Env): Promise<Response> {
 
   const headers = new Headers();
   obj.writeHttpMetadata(headers);
+  const contentType = artContentType(key);
+  if (contentType) headers.set("content-type", contentType);
   headers.set("etag", obj.httpEtag);
   headers.set("cache-control", "public, max-age=31536000, immutable");
   return new Response(obj.body, { headers });

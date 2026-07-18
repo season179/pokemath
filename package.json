@@ -6,15 +6,19 @@
     "test": "node --test",
     "demo": "node shared/examples/quickstart.ts",
     "generate:creature": "node tools/generate-creature.mjs",
+    "setup-art": "node tools/art-registry.mjs setup",
+    "publish-art": "node tools/art-registry.mjs publish",
+    "pull-art": "node tools/art-registry.mjs pull",
+    "verify-art": "node tools/art-registry.mjs verify",
     "sync": "node tools/sync-shared.mjs",
-    "sync-art": "node tools/sync-art.mjs",
     "typecheck": "tsc --noEmit -p game/tsconfig.check.json && tsc --noEmit -p worker/tsconfig.json",
     "cf-types": "cd worker && npx wrangler types",
     "deploy": "cd worker && npx wrangler deploy"
   },
   "devDependencies": {
     "better-sqlite3": "^12.11.1",
-    "typescript": "5.5"
+    "typescript": "5.5",
+    "wrangler": "4.112.0"
   },
   "dependencies": {
     "better-auth": "^1.6.23",
