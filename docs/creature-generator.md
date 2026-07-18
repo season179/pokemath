@@ -102,7 +102,9 @@ divides the actual canvas proportionally.
 
 `gpt-image-2` does not output transparent backgrounds, so the prompt requests a
 flat chroma-key colour. The post-processor flood-fills matching pixels from the
-canvas edges, preserving isolated same-coloured details inside a creature.
+canvas edges, then retains the largest 8-connected opaque component in each
+stage. Detached shadows, ground fragments, and debris therefore cannot distort
+the shared scale or bottom alignment.
 
 ## Subscription and model selection
 

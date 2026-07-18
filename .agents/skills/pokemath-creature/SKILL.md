@@ -50,7 +50,8 @@ suggests another count.
    ```
 
 7. Inspect both PNGs with `view_image`. Confirm readable progression, same
-   identity and facing direction, clean transparency, and a useful alt palette.
+   identity and facing direction, clean transparency, one connected component
+   per stage, and a useful alt palette.
 8. Confirm `raw.png` and `manifest.json` were retained under
    `art-samples/PokeMath Original/Creature Sources/<id>/`.
 9. Report links to both production PNGs, both retained source files, and the
@@ -61,6 +62,8 @@ suggests another count.
 - Generate all stages together; never make stages independently.
 - The production directory must contain exactly `<id>.png` and `<id>_alt.png`.
 - Normal and alt must be `48 × stages` by `48`, with identical alpha masks.
+- Compute bounds from the main connected creature component; detached debris
+  must not affect scale, centering, or the shared baseline.
 - Never overwrite an existing creature directory or silently delete user files.
 - Successful runs must retain exactly `raw.png` and `manifest.json` in a
   separate source archive directory; never put them in the production directory.

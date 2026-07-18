@@ -353,6 +353,73 @@ function colourDistanceSquared(red, green, blue, key) {
   );
 }
 
+function retainLargestOpaqueComponent(data, info) {
+  const { width, height, channels } = info;
+  assert.equal(channels, 4);
+  const pixelCount = width * height;
+  const labels = new Int32Array(pixelCount);
+  const queue = new Int32Array(pixelCount);
+  const components = [];
+
+  for (let start = 0; start < pixelCount; start += 1) {
+    if (data[start * channels + 3] === 0 || labels[start] !== 0) continue;
+    const label = components.length + 1;
+    let head = 0;
+    let tail = 0;
+    let size = 0;
+    const bounds = { minX: width, minY: height, maxX: -1, maxY: -1 };
+    labels[start] = label;
+    queue[tail] = start;
+    tail += 1;
+
+    while (head < tail) {
+      const index = queue[head];
+      head += 1;
+      const x = index % width;
+      const y = Math.floor(index / width);
+      size += 1;
+      bounds.minX = Math.min(bounds.minX, x);
+      bounds.minY = Math.min(bounds.minY, y);
+      bounds.maxX = Math.max(bounds.maxX, x);
+      bounds.maxY = Math.max(bounds.maxY, y);
+
+      for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
+        for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
+          if (deltaX === 0 && deltaY === 0) continue;
+          const nextX = x + deltaX;
+          const nextY = y + deltaY;
+          if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height) continue;
+          const next = nextY * width + nextX;
+          if (data[next * channels + 3] === 0 || labels[next] !== 0) continue;
+          labels[next] = label;
+          queue[tail] = next;
+          tail += 1;
+        }
+      }
+    }
+    components.push({ label, size, bounds });
+  }
+
+  if (components.length === 0) {
+    throw new Error("no sprite content remained after chroma-key removal");
+  }
+
+  const main = components.reduce((largest, component) => (
+    component.size > largest.size ? component : largest
+  ));
+  for (let index = 0; index < pixelCount; index += 1) {
+    if (labels[index] !== 0 && labels[index] !== main.label) {
+      data[index * channels + 3] = 0;
+    }
+  }
+  return {
+    left: main.bounds.minX,
+    top: main.bounds.minY,
+    width: main.bounds.maxX - main.bounds.minX + 1,
+    height: main.bounds.maxY - main.bounds.minY + 1,
+  };
+}
+
 async function removeConnectedChroma(input, chromaKey, tolerance) {
   const key = parseHexColor(chromaKey);
   const { data, info } = await sharp(input)
@@ -406,34 +473,14 @@ async function removeConnectedChroma(input, chromaKey, tolerance) {
     if (y + 1 < height) enqueue(index + width);
   }
 
-  let minX = width;
-  let minY = height;
-  let maxX = -1;
-  let maxY = -1;
   for (let index = 0; index < pixelCount; index += 1) {
-    const offset = index * 4;
-    if (visited[index]) data[offset + 3] = 0;
-    if (data[offset + 3] === 0) continue;
-    const x = index % width;
-    const y = Math.floor(index / width);
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x);
-    maxY = Math.max(maxY, y);
+    if (visited[index]) data[index * 4 + 3] = 0;
   }
-
-  if (maxX < minX || maxY < minY) {
-    throw new Error("no sprite content remained after chroma-key removal");
-  }
+  const bounds = retainLargestOpaqueComponent(data, info);
 
   return {
     image: await sharp(data, { raw: info }).png().toBuffer(),
-    bounds: {
-      left: minX,
-      top: minY,
-      width: maxX - minX + 1,
-      height: maxY - minY + 1,
-    },
+    bounds,
   };
 }
 

@@ -67,5 +67,6 @@ production directory and source archive must be empty before generation.
 - Same creature identity, face, motif, palette family, and facing direction.
 - Gradual complexity increase without species replacement.
 - Shared scale and bottom-center anchor.
+- No detached debris influencing bounds or baseline alignment.
 - No scenery, labels, shadows, borders, or chroma-key remnants.
 - Normal and alt are visibly different but structurally identical.

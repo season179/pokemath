@@ -26,6 +26,44 @@ async function decode(path) {
   return sharp(path).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 }
 
+function countStageComponents(image, stage, frameSize = 48) {
+  const occupied = new Uint8Array(frameSize * frameSize);
+  const visited = new Uint8Array(occupied.length);
+  for (let y = 0; y < frameSize; y += 1) {
+    for (let x = 0; x < frameSize; x += 1) {
+      const imageOffset = (y * image.info.width + stage * frameSize + x) * 4;
+      occupied[y * frameSize + x] = image.data[imageOffset + 3] > 0 ? 1 : 0;
+    }
+  }
+
+  let components = 0;
+  for (let start = 0; start < occupied.length; start += 1) {
+    if (!occupied[start] || visited[start]) continue;
+    components += 1;
+    const queue = [start];
+    visited[start] = 1;
+    while (queue.length > 0) {
+      const index = queue.pop();
+      const x = index % frameSize;
+      const y = Math.floor(index / frameSize);
+      for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
+        for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
+          if (deltaX === 0 && deltaY === 0) continue;
+          const nextX = x + deltaX;
+          const nextY = y + deltaY;
+          if (nextX < 0 || nextX >= frameSize || nextY < 0 || nextY >= frameSize) continue;
+          const next = nextY * frameSize + nextX;
+          if (occupied[next] && !visited[next]) {
+            visited[next] = 1;
+            queue.push(next);
+          }
+        }
+      }
+    }
+  }
+  return components;
+}
+
 async function main() {
   const args = parseArguments(process.argv.slice(2));
   const directory = resolve(args.directory);
@@ -61,6 +99,14 @@ async function main() {
     ) changedRgb += 1;
   }
   assert.ok(opaquePerStage.every((count) => count > 0), "every stage must contain visible pixels");
+  const componentsPerStage = Array.from(
+    { length: args.stages },
+    (_, stage) => countStageComponents(normal, stage),
+  );
+  assert.ok(
+    componentsPerStage.every((count) => count === 1),
+    `every stage must contain one connected creature component; got ${componentsPerStage.join(", ")}`,
+  );
   assert.ok(changedRgb > 0, "alternate palette must differ from normal");
 
   console.log(JSON.stringify({
@@ -68,6 +114,7 @@ async function main() {
     files: expected,
     dimensions: `${expectedWidth}x48`,
     opaquePerStage,
+    componentsPerStage,
     changedRgb,
   }, null, 2));
 }

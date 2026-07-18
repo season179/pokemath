@@ -69,6 +69,69 @@ function makeRawCanvas(
   }).png().toBuffer();
 }
 
+async function addDetachedArtifact(input, sourceSize) {
+  const { data, info } = await sharp(input)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const left = Math.floor(sourceSize.width / 2) - 10;
+  for (let y = sourceSize.height - 12; y < sourceSize.height - 8; y += 1) {
+    for (let x = left; x < left + 20; x += 1) {
+      const offset = (y * sourceSize.width + x) * 4;
+      data[offset] = 90;
+      data[offset + 1] = 70;
+      data[offset + 2] = 50;
+      data[offset + 3] = 255;
+    }
+  }
+  return sharp(data, { raw: info }).png().toBuffer();
+}
+
+async function opaqueComponents(input) {
+  const { data, info } = await sharp(input)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const occupied = new Uint8Array(info.width * info.height);
+  const visited = new Uint8Array(occupied.length);
+  for (let index = 0; index < occupied.length; index += 1) {
+    occupied[index] = data[index * 4 + 3] > 0 ? 1 : 0;
+  }
+  const components = [];
+  for (let start = 0; start < occupied.length; start += 1) {
+    if (!occupied[start] || visited[start]) continue;
+    const queue = [start];
+    visited[start] = 1;
+    const bounds = { minX: info.width, minY: info.height, maxX: -1, maxY: -1 };
+    let size = 0;
+    while (queue.length > 0) {
+      const index = queue.pop();
+      const x = index % info.width;
+      const y = Math.floor(index / info.width);
+      size += 1;
+      bounds.minX = Math.min(bounds.minX, x);
+      bounds.minY = Math.min(bounds.minY, y);
+      bounds.maxX = Math.max(bounds.maxX, x);
+      bounds.maxY = Math.max(bounds.maxY, y);
+      for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
+        for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
+          if (deltaX === 0 && deltaY === 0) continue;
+          const nextX = x + deltaX;
+          const nextY = y + deltaY;
+          if (nextX < 0 || nextX >= info.width || nextY < 0 || nextY >= info.height) continue;
+          const next = nextY * info.width + nextX;
+          if (occupied[next] && !visited[next]) {
+            visited[next] = 1;
+            queue.push(next);
+          }
+        }
+      }
+    }
+    components.push({ size, bounds });
+  }
+  return components.sort((left, right) => right.size - left.size);
+}
+
 test("configuration accepts one through four stages", () => {
   for (const stages of [1, 2, 3, 4]) {
     const config = normalizeCreatureConfig(validConfig({ stages }));
@@ -198,6 +261,16 @@ test("normalization removes connected chroma and creates a horizontal 48px strip
       assert.ok(opaquePixels > 0);
     }
   }
+});
+
+test("normalization discards detached debris before baseline alignment", async () => {
+  const config = normalizeCreatureConfig(validConfig({ stages: 1 }));
+  const sourceSize = STAGE_LAYOUTS[1];
+  const raw = await addDetachedArtifact(await makeRawCanvas(1), sourceSize);
+  const normalized = await normalizeCreatureImage(raw, config);
+  const components = await opaqueComponents(normalized.frames[0]);
+  assert.equal(components.length, 1);
+  assert.equal(components[0].bounds.maxY, 46);
 });
 
 test("normalization accepts the canvas size returned by Codex", async () => {
