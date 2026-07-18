@@ -1,5 +1,4 @@
 .DS_Store
-.lavish/
 node_modules/
 dist/
 build/

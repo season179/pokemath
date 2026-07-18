@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="garden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokeMath XP &amp; Leveling Research</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+  <style>
+    :root {
+      --pm-ink: #333333;
+      --pm-panel: #fffdf5;
+      --pm-stroke: #3b4a6b;
+      --pm-sub: #666677;
+      --pm-good: #2e7d32;
+      --pm-blue: #42a5f5;
+      --pm-gold: #ffb74d;
+    }
+    html { scroll-behavior: smooth; }
+    body { color: var(--pm-ink); }
+    code { overflow-wrap: anywhere; }
+    .pm-card { min-width: 0; background: var(--pm-panel); border-color: color-mix(in srgb, var(--pm-stroke) 25%, transparent); }
+    .formula { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .xp-track { background: #eeeeee; }
+    .xp-fill { background: var(--pm-blue); transition: width 180ms ease; }
+    .island-grid > * { min-width: 0; }
+    .pm-success { background: #e8f5e9; color: #1b5e20; border: 1px solid #81c784; }
+    .pm-warning { background: #fff3e0; color: #6d3b00; border: 1px solid #ffb74d; }
+    .pm-info { background: #e3f2fd; color: #0d4770; border: 1px solid #64b5f6; }
+    .pm-calculator { background: #315177; color: #ffffff; }
+    th, td { vertical-align: top; }
+  </style>
+</head>
+<body class="min-h-screen bg-base-200">
+  <main class="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6 lg:py-12">
+
+    <header class="space-y-5">
+      <div class="flex flex-wrap gap-2">
+        <span class="badge badge-primary">Research · 18 Jul 2026</span>
+        <span class="badge badge-outline">6 islands</span>
+        <span class="badge badge-outline">180 player levels</span>
+        <span class="badge badge-outline">30 levels per Standard</span>
+      </div>
+      <div class="max-w-4xl space-y-3">
+        <h1 class="text-4xl font-black tracking-tight sm:text-5xl">PokeMath’s progression economy</h1>
+        <p class="text-lg text-base-content/75 sm:text-xl">
+          The mechanism is broader than “leveling”: it is the rule that turns mathematical
+          challenge into monster level, XP reward, anti-farming pressure, and a predictable pace.
+        </p>
+      </div>
+      <div class="alert pm-success max-w-5xl">
+        <div>
+          <div class="font-bold">Recommendation: Pokémon’s idea, Fire Emblem’s clarity, PokeMath’s own numbers.</div>
+          <div class="text-sm opacity-80">Each Standard spans 30 levels—180 across the six-year journey. A same-level normal monster takes about 10 wins early, rising gradually to about 28 near level 180. Meadow alone represents roughly 345 fair battles, not five quick level-ups.</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="space-y-4" id="research">
+      <div>
+        <h2 class="text-2xl font-bold">What established games already solved</h2>
+        <p class="mt-1 text-sm opacity-70">Borrow the durable patterns, not their historical complexity.</p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <article class="card card-border pm-card">
+          <div class="card-body gap-3">
+            <div class="flex items-center justify-between gap-3"><h3 class="card-title">Pokémon</h3><span class="badge badge-info badge-soft">borrow</span></div>
+            <p class="text-sm opacity-80">Enemy species and level determine its base yield. In the scaled generations, the winner’s level relative to the defeated Pokémon also changes the award.</p>
+            <p class="text-sm font-semibold">Use: enemy challenge + relative-level scaling.</p>
+            <p class="text-xs opacity-60">Avoid copying the opaque 2.5-power formula or six species growth groups.</p>
+          </div>
+        </article>
+        <article class="card card-border pm-card">
+          <div class="card-body gap-3">
+            <div class="flex items-center justify-between gap-3"><h3 class="card-title">Fire Emblem</h3><span class="badge badge-success badge-soft">strong fit</span></div>
+            <p class="text-sm opacity-80">XP explicitly follows enemy level minus player level. Many entries add boss bonuses, caps, and a minimum reward.</p>
+            <p class="text-sm font-semibold">Use: a readable level-gap table, guardian multiplier, 1-XP floor.</p>
+            <p class="text-xs opacity-60">This is easier to tune and explain than one large nonlinear equation.</p>
+          </div>
+        </article>
+        <article class="card card-border pm-card">
+          <div class="card-body gap-3">
+            <div class="flex items-center justify-between gap-3"><h3 class="card-title">RuneScape</h3><span class="badge badge-warning badge-soft">counterexample</span></div>
+            <p class="text-sm opacity-80">Its next-level requirement grows by roughly 10%; after the early game, required XP roughly doubles every seven levels.</p>
+            <p class="text-sm font-semibold">Reject: an exponential grind for a child’s learning path.</p>
+            <p class="text-xs opacity-60">PokeMath should measure practice, not endurance.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="space-y-4" id="current-target">
+      <h2 class="text-2xl font-bold">Current placeholder → target economy</h2>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-zebra">
+          <thead><tr><th>Decision</th><th>Current repo</th><th>Recommended target</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="font-semibold">Progress owner</td><td>Each creature owns level and XP</td><td><strong>Player</strong> owns permanent level and XP</td><td>Matches the world-map direction; new pets are usable immediately.</td></tr>
+            <tr><td class="font-semibold">XP to level</td><td>Flat <code>20</code> forever</td><td><code>round10((20 + 2L) × (10 + L÷10))</code></td><td>Target battles rise deliberately from 10 to 28 across six years.</td></tr>
+            <tr><td class="font-semibold">Monster base XP</td><td>Equal to monster max HP</td><td><code>20 + 2 × monsterLevel</code></td><td>HP is combat workload, not mathematical challenge.</td></tr>
+            <tr><td class="font-semibold">Difficulty</td><td>Implicit in operation/HP</td><td>Separate <code>questionRank: 1..5</code> multiplier</td><td>Harder questions pay more without collapsing a whole school year into five monster levels.</td></tr>
+            <tr><td class="font-semibold">Level gap</td><td>None</td><td>±10% per level; 10+ below = exactly 1 XP</td><td>Dense 30-level islands need a wider useful encounter range.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-5" id="model">
+      <div>
+        <h2 class="text-2xl font-bold">The proposed model</h2>
+        <p class="mt-1 max-w-4xl text-sm opacity-75">Three small rules. Each has one job, so future tuning does not create accidental side effects.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <article class="card card-border pm-card">
+          <div class="card-body">
+            <span class="badge badge-primary badge-sm">1 · place progression</span>
+            <h3 class="card-title mt-2">Route → monster level</h3>
+            <div class="rounded-box bg-base-200 p-3 font-mono text-sm formula">monsterLevel = (standard − 1) × 30 + routeTier</div>
+            <p class="text-sm opacity-75"><code>routeTier</code> is 1–30. Each island’s landmarks and topic arcs distribute those tiers across a full school year.</p>
+          </div>
+        </article>
+        <article class="card card-border pm-card">
+          <div class="card-body">
+            <span class="badge badge-primary badge-sm">2 · price the challenge</span>
+            <h3 class="card-title mt-2">Monster + question → base XP</h3>
+            <div class="rounded-box bg-base-200 p-3 font-mono text-sm formula">baseXP = 20 + 2 × monsterLevel</div>
+            <p class="text-sm opacity-75">Then multiply by question rank: <strong>80%, 90%, 100%, 120%, or 150%</strong>. Rank comes from TP, item format, reasoning steps, and calibrated answer data—not merely the operation symbol.</p>
+          </div>
+        </article>
+        <article class="card card-border pm-card">
+          <div class="card-body">
+            <span class="badge badge-primary badge-sm">3 · compare fairly</span>
+            <h3 class="card-title mt-2">Final kill reward</h3>
+            <div class="rounded-box bg-base-200 p-3 font-mono text-sm formula">round(baseXP × question × gap × effort)</div>
+            <p class="text-sm opacity-75">If the monster is 10+ levels below the player, override the result to exactly <strong>1 XP</strong>. Apply this override last, including for guardians.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="alert pm-warning">
+        <div><strong>Keep the dimensions separate.</strong> Monster level represents where the encounter sits in the year-long journey. Question rank represents cognitive challenge. HP and <code>effort</code> compensate for battle workload. This separation makes all three independently tunable.</div>
+      </div>
+    </section>
+
+    <section class="space-y-4" id="world-levels">
+      <div>
+        <h2 class="text-2xl font-bold">One hundred eighty levels fit the six-year world</h2>
+        <p class="mt-1 text-sm opacity-70">Thirty levels per Standard gives roughly one meaningful level per school week while leaving room for holidays, guardians, collection, and revision.</p>
+      </div>
+      <div class="grid island-grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="card card-border pm-card"><div class="card-body p-4"><div class="flex justify-between gap-2"><strong>Meadow Isle</strong><span class="badge">Lv 1–30</span></div><span class="text-sm opacity-65">Standard 1 · ~345 battles · ~1,035 answers</span></div></div>
+        <div class="card card-border pm-card"><div class="card-body p-4"><div class="flex justify-between gap-2"><strong>Tallgrass Forest</strong><span class="badge">Lv 31–60</span></div><span class="text-sm opacity-65">Standard 2 · multiplication/division year</span></div></div>
+        <div class="card card-border pm-card"><div class="card-body p-4"><div class="flex justify-between gap-2"><strong>Tidepool Coast</strong><span class="badge">Lv 61–90</span></div><span class="text-sm opacity-65">Standard 3 · multi-step year</span></div></div>
+        <div class="card card-border pm-card"><div class="card-body p-4"><div class="flex justify-between gap-2"><strong>Ruined Desert</strong><span class="badge">Lv 91–120</span></div><span class="text-sm opacity-65">Standard 4 · pre-algebra/geometry year</span></div></div>
+        <div class="card card-border pm-card"><div class="card-body p-4"><div class="flex justify-between gap-2"><strong>Merchant City</strong><span class="badge">Lv 121–150</span></div><span class="text-sm opacity-65">Standard 5 · finance/data year</span></div></div>
+        <div class="card card-border pm-card"><div class="card-body p-4"><div class="flex justify-between gap-2"><strong>Skyreach Volcano</strong><span class="badge badge-primary">Lv 151–180</span></div><span class="text-sm opacity-65">Standard 6 · endgame year</span></div></div>
+      </div>
+      <div class="alert pm-info"><div><strong>XP cannot guarantee “one calendar year.”</strong> A determined child can always binge finite content. The honest target is enough progression for a year of normal use: 8–12 battles per week makes Meadow last about 29–43 school weeks. Eight landmark/topic arcs, mini-guardians, collection, evolution, and mastery milestones must provide the long-term structure; inflating XP alone would only create grind.</div></div>
+    </section>
+
+    <section class="space-y-4" id="gap-table">
+      <div>
+        <h2 class="text-2xl font-bold">Level-gap modifier</h2>
+        <p class="mt-1 text-sm opacity-70"><code>difference = monsterLevel − playerLevel</code>; dense 30-level islands use a wider useful range.</p>
+      </div>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-zebra table-sm">
+          <thead><tr><th>Difference</th><th>−10 or less</th><th>−9</th><th>−8</th><th>−7</th><th>−6</th><th>−5</th><th>−4</th><th>−3</th><th>−2</th><th>−1</th><th>0</th><th>+1</th><th>+2</th><th>+3</th><th>+4</th><th>+5+</th></tr></thead>
+          <tbody><tr><td class="font-semibold">Award</td><td><span class="badge badge-ghost">1 XP</span></td><td>10%</td><td>20%</td><td>30%</td><td>40%</td><td>50%</td><td>60%</td><td>70%</td><td>80%</td><td>90%</td><td><strong>100%</strong></td><td>110%</td><td>120%</td><td>130%</td><td>140%</td><td>150%</td></tr></tbody>
+        </table>
+      </div>
+      <p class="text-sm opacity-70">The upward bonus is capped at 150%. Sailing ahead may be rewarding if the child can survive, but monster level alone must not jump several levels at once. Harder question rank adds a separate, visible reward.</p>
+    </section>
+
+    <section class="space-y-5" id="calculator">
+      <div>
+        <h2 class="text-2xl font-bold">Try the economy</h2>
+        <p class="mt-1 text-sm opacity-70">Adjust the encounter; the calculator uses the exact proposed formulas.</p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <div class="card card-border pm-card">
+          <div class="card-body gap-4">
+            <label class="fieldset"><span class="fieldset-legend">Player level</span><input id="playerLevel" class="range range-primary" type="range" min="1" max="180" value="10"><div class="flex justify-between text-xs opacity-55"><span>1</span><strong id="playerLevelValue">10</strong><span>180</span></div></label>
+            <label class="fieldset"><span class="fieldset-legend">Monster level</span><input id="monsterLevel" class="range range-secondary" type="range" min="1" max="180" value="10"><div class="flex justify-between text-xs opacity-55"><span>1</span><strong id="monsterLevelValue">10</strong><span>180</span></div></label>
+            <label class="fieldset"><span class="fieldset-legend">Question rank</span><select id="questionRank" class="select select-bordered w-full"><option value="0.8">Rank 1 · recognition · ×0.80</option><option value="0.9">Rank 2 · routine · ×0.90</option><option value="1" selected>Rank 3 · application · ×1.00</option><option value="1.2">Rank 4 · non-routine · ×1.20</option><option value="1.5">Rank 5 · stretch · ×1.50</option></select></label>
+            <label class="fieldset"><span class="fieldset-legend">Encounter effort</span><select id="effort" class="select select-bordered w-full"><option value="1">Normal · ×1.00</option><option value="1.25">Elite / longer battle · ×1.25</option><option value="1.5">Guardian · ×1.50</option></select></label>
+          </div>
+        </div>
+        <div class="card pm-calculator">
+          <div class="card-body gap-4">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div><div class="text-xs opacity-70">Base XP</div><div id="baseXp" class="text-2xl font-black">40</div></div>
+              <div><div class="text-xs opacity-70">Gap rule</div><div id="gapLabel" class="text-2xl font-black">100%</div></div>
+              <div><div class="text-xs opacity-70">Final XP</div><div id="finalXp" class="text-3xl font-black">40</div></div>
+              <div><div class="text-xs opacity-70">To level</div><div id="toLevel" class="text-2xl font-black">440</div></div>
+            </div>
+            <div>
+              <div class="mb-1 flex justify-between gap-3 text-sm"><span>One kill fills</span><strong id="barPercent">9%</strong></div>
+              <div class="xp-track h-4 overflow-hidden rounded-full"><div id="xpFill" class="xp-fill h-full rounded-full" style="width:9%"></div></div>
+            </div>
+            <p id="battleEstimate" class="text-sm opacity-80">About 11 similar wins for the next level.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4" id="level-table">
+      <div>
+        <h2 class="text-2xl font-bold">Exact XP needed for every level</h2>
+        <p class="mt-1 text-sm opacity-70">Filter the 180-level table by Standard. Requirements are rounded to clean multiples of 10; total XP remains monotonic.</p>
+      </div>
+      <label class="fieldset max-w-sm"><span class="fieldset-legend">Show level band</span><select id="levelBandFilter" class="select select-bordered w-full"><option value="1">Standard 1 · Lv 1–30</option><option value="2">Standard 2 · Lv 31–60</option><option value="3">Standard 3 · Lv 61–90</option><option value="4">Standard 4 · Lv 91–120</option><option value="5">Standard 5 · Lv 121–150</option><option value="6">Standard 6 · Lv 151–180</option><option value="all">All 180 levels</option></select></label>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-zebra table-sm" id="fullLevelTable">
+          <thead><tr><th>Current level</th><th>XP to next</th><th>Total XP on reaching this level</th><th>World band</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-4" id="pacing">
+      <h2 class="text-2xl font-bold">What this feels like</h2>
+      <div class="stats stats-vertical w-full border border-base-content/10 bg-base-100 shadow-sm lg:stats-horizontal">
+        <div class="stat"><div class="stat-title">Same-level pacing</div><div class="stat-value text-primary">10 → 28</div><div class="stat-desc">normal wins from level 1 to 180</div></div>
+        <div class="stat"><div class="stat-title">Typical battle</div><div class="stat-value">≈3</div><div class="stat-desc">correct answers at current combat tuning</div></div>
+        <div class="stat"><div class="stat-title">Meadow Isle</div><div class="stat-value">≈345</div><div class="stat-desc">same-level battles across Lv 1–30</div></div>
+        <div class="stat"><div class="stat-title">Level 1 → 180</div><div class="stat-value">775,860</div><div class="stat-desc">total XP; roughly 10,440 correct turns</div></div>
+      </div>
+      <div class="alert pm-info"><div><strong>Normal-use model:</strong> 2–3 battles on four days each week gives 8–12 battles/week. Meadow’s ~345 fair battles then span about 29–43 weeks. This is a pacing hypothesis to test, not a time gate.</div></div>
+    </section>
+
+    <section class="space-y-4" id="examples">
+      <h2 class="text-2xl font-bold">Sanity-check examples</h2>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-zebra">
+          <thead><tr><th>Encounter</th><th>Calculation</th><th>Award</th><th>Intended feeling</th></tr></thead>
+          <tbody>
+            <tr><td>Lv 1 vs Lv 1 · rank-3 normal</td><td><code>22 × 100% × 100%</code></td><td><strong>22 XP</strong> / 220</td><td>Fair; 10 wins to level.</td></tr>
+            <tr><td>Lv 10 vs Lv 1 · rank-3 normal</td><td><code>22 × 10%</code></td><td><strong>2 XP</strong> / 440</td><td>Nearly gray, but still inside the 10-level useful range.</td></tr>
+            <tr><td>Lv 30 vs Lv 20 · guardian</td><td>Gray override applied last</td><td><strong>1 XP</strong> / 1,040</td><td>Old Meadow routes cannot replace current routes.</td></tr>
+            <tr><td>Lv 40 vs Lv 45 · rank-5 normal</td><td><code>110 × 150% gap × 150% question</code></td><td><strong>248 XP</strong> / 1,400</td><td>A genuinely harder question and stronger foe accelerate mastery.</td></tr>
+            <tr><td>Lv 90 vs Lv 90 · rank-5 guardian</td><td><code>200 × 150% question × 1.5 effort</code></td><td><strong>450 XP</strong> / 3,800</td><td>Meaningful guardian reward, still far below a whole level.</td></tr>
+            <tr><td>Lv 180 vs any Meadow monster</td><td>Gray override applied last</td><td><strong>1 XP</strong></td><td>Exactly matches the old-island anti-farming goal.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-4" id="guardrails">
+      <h2 class="text-2xl font-bold">Guardrails before implementation</h2>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="card card-border pm-card"><div class="card-body"><h3 class="card-title">Ship deterministic first</h3><p class="text-sm opacity-75">Do not make rewards depend on answer speed, time played, streaks, or an opaque adaptive model. The same encounter should pay the same XP.</p></div></div>
+        <div class="card card-border pm-card"><div class="card-body"><h3 class="card-title">Calibrate challenge separately</h3><p class="text-sm opacity-75">Log question rank, first-attempt correctness, hint use, and abandonment. Re-rank bad questions; do not keep changing the XP formula to compensate for mislabeled content.</p></div></div>
+        <div class="card card-border pm-card"><div class="card-body"><h3 class="card-title">Reward learning on gentle defeat</h3><p class="text-sm opacity-75">Keep kill XP tied to victory, but preserve mastery/attempt data for every correct answer. A child who loses after several correct answers did not learn “nothing.”</p></div></div>
+        <div class="card card-border pm-card"><div class="card-body"><h3 class="card-title">Tune with observed battles</h3><p class="text-sm opacity-75">First playtest target: 10 fair wins at level 1, 13 by the Meadow guardian, and 28 near level 180; 70–85% first-attempt correctness on on-level content; and no more than one-quarter level from one guardian.</p></div></div>
+      </div>
+    </section>
+
+    <section class="space-y-3" id="sources">
+      <h2 class="text-2xl font-bold">Sources &amp; evidence</h2>
+      <ul class="list-disc space-y-2 pl-5 text-sm opacity-75">
+        <li><a class="link link-primary" href="https://bulbapedia.bulbagarden.net/wiki/Experience" target="_blank" rel="noreferrer">Bulbapedia — Experience</a>: enemy species/level yield, scaled relative-level XP in Generations V, VII, VIII, and IX, and cubic level curves.</li>
+        <li><a class="link link-primary" href="https://fireemblemwiki.org/wiki/Experience" target="_blank" rel="noreferrer">Fire Emblem Wiki — Experience</a>: extensive level-difference formulas, boss bonuses, minimums, and caps across the series.</li>
+        <li><a class="link link-primary" href="https://oldschool.runescape.wiki/w/Experience" target="_blank" rel="noreferrer">Old School RuneScape Wiki — Experience</a>: approximately 10% growth per next level and the long-tail “seven levels roughly doubles XP” curve.</li>
+        <li><code>shared/creature.ts</code>, <code>shared/battle-rules.ts</code>, and <code>docs/world-map-design.md</code>: verified PokeMath’s present placeholder and intended six-island/global-progression direction.</li>
+      </ul>
+      <p class="text-xs opacity-55">The exact PokeMath constants are a design recommendation, not facts copied from another game. They are chosen to make the desired pacing algebraically stable and easy to playtest.</p>
+    </section>
+
+  </main>
+
+  <script>
+    const playerInput = document.getElementById('playerLevel');
+    const monsterInput = document.getElementById('monsterLevel');
+    const questionInput = document.getElementById('questionRank');
+    const effortInput = document.getElementById('effort');
+    const levelBandFilter = document.getElementById('levelBandFilter');
+
+    function gapMultiplier(difference) {
+      if (difference <= -10) return null;
+      return Math.min(1.5, Math.max(0.1, 1 + difference * 0.1));
+    }
+
+    function roundToTen(value) { return Math.round(value / 10) * 10; }
+    function baseXp(level) { return 20 + 2 * level; }
+    function xpToNext(level) {
+      return level >= 180 ? 0 : roundToTen(baseXp(level) * (10 + level / 10));
+    }
+    function totalXpAt(level) {
+      let total = 0;
+      for (let current = 1; current < level; current++) total += xpToNext(current);
+      return total;
+    }
+
+    function updateCalculator() {
+      const player = Number(playerInput.value);
+      const monster = Number(monsterInput.value);
+      const question = Number(questionInput.value);
+      const effort = Number(effortInput.value);
+      const difference = monster - player;
+      const gap = gapMultiplier(difference);
+      const base = baseXp(monster);
+      const final = gap === null ? 1 : Math.max(1, Math.round(base * question * gap * effort));
+      const needed = xpToNext(player);
+      const percent = needed === 0 ? 0 : Math.min(100, Math.round(final / needed * 100));
+      const wins = needed === 0 ? 0 : Math.ceil(needed / final);
+
+      document.getElementById('playerLevelValue').textContent = player;
+      document.getElementById('monsterLevelValue').textContent = monster;
+      document.getElementById('baseXp').textContent = base;
+      document.getElementById('gapLabel').textContent = gap === null ? '1 XP' : `${Math.round(gap * 100)}%`;
+      document.getElementById('finalXp').textContent = final;
+      document.getElementById('toLevel').textContent = player >= 180 ? 'MAX' : needed.toLocaleString();
+      document.getElementById('barPercent').textContent = player >= 180 ? 'Max level' : `${percent}%`;
+      document.getElementById('xpFill').style.width = `${percent}%`;
+      document.getElementById('battleEstimate').textContent = player >= 180 ? 'Level 180 is the current cap.' : `About ${wins} similar ${wins === 1 ? 'win' : 'wins'} for the next level.`;
+    }
+
+    function worldBand(level) {
+      const bands = ['Meadow Isle', 'Tallgrass Forest', 'Tidepool Coast', 'Ruined Desert', 'Merchant City', 'Skyreach Volcano'];
+      return bands[Math.min(5, Math.floor((level - 1) / 30))];
+    }
+
+    const tbody = document.querySelector('#fullLevelTable tbody');
+    function renderLevelTable() {
+      tbody.innerHTML = '';
+      const selection = levelBandFilter.value;
+      const start = selection === 'all' ? 1 : (Number(selection) - 1) * 30 + 1;
+      const end = selection === 'all' ? 180 : Number(selection) * 30;
+      for (let level = start; level <= end; level++) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td class="font-semibold">${level}</td><td>${level === 180 ? '<span class="badge badge-primary">MAX</span>' : xpToNext(level).toLocaleString()}</td><td>${totalXpAt(level).toLocaleString()}</td><td>${worldBand(level)}</td>`;
+        tbody.appendChild(row);
+      }
+    }
+
+    [playerInput, monsterInput, questionInput, effortInput].forEach(input => input.addEventListener('input', updateCalculator));
+    levelBandFilter.addEventListener('input', renderLevelTable);
+    updateCalculator();
+    renderLevelTable();
+  </script>
+</body>
+</html>

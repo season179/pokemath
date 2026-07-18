@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="garden">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meadow Isle — Development Plan</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  .mi-card { min-width: 0; }
+  .mi-map-cell { min-width: 0; }
+  code { word-break: break-word; }
+</style>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen">
+<div class="max-w-5xl mx-auto px-4 py-8 space-y-10">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <header id="goal" class="space-y-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="badge badge-primary">Std 1 · SJKC 一年级</span>
+      <span class="badge badge-outline">numbers ≤ 100</span>
+      <span class="badge badge-outline">+ − only</span>
+      <span class="badge badge-outline">money ≤ RM10</span>
+      <span class="badge badge-outline">single-step</span>
+      <span class="badge badge-outline">1 icon = 1 value</span>
+    </div>
+    <h1 class="text-4xl font-bold">Meadow Isle — Development Plan</h1>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="badge badge-success">FINAL · 2026-07-17 · reviewed with Buddy</span>
+      <span class="badge badge-outline">design authority: docs/islands/meadow-isle.md</span>
+    </div>
+    <p class="text-lg opacity-80 max-w-3xl">
+      Turn the first creature island from a design doc into a playable, curriculum-true
+      Standard-1 experience: walkable island, catchable creatures, and a question engine
+      that asks like a real SJKC worksheet — counting sheep, reading clocks, counting coins.
+    </p>
+    <p class="text-sm opacity-60">
+      Design authority: <code>docs/islands/meadow-isle.md</code> ·
+      Curriculum: <code>docs/curriculum/standard-1-sjkc-math.md</code> +
+      <code>standard-1-question-style.md</code> · World: <code>docs/world-map-design.md</code>
+    </p>
+  </header>
+
+  <!-- ══════════════ CURRENT STATE ══════════════ -->
+  <section id="current-state" class="space-y-4">
+    <h2 class="text-2xl font-bold">Where we stand <span class="text-sm font-normal opacity-60">(verified against the repo, 2026-07-17)</span></h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">✅ World rendering</h3>
+        <p class="text-sm opacity-75"><code>game/assets/src/world/</code> — tile-map format (<code>MAP: string[]</code>, 48px tiles, collision, dock tiles) proven by Harbor Town. Meadow Isle reuses the same format.</p>
+      </div></div>
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">✅ Battle + shop loops</h3>
+        <p class="text-sm opacity-75"><code>BattleScreen.ts</code>, <code>QuestionView.ts</code>, <code>shared/battle-rules.ts</code>, <code>shared/shop-rules.ts</code> — turn-based battle and a shop exist.</p>
+      </div></div>
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">✅ Art pipeline</h3>
+        <p class="text-sm opacity-75"><code>remote-art.ts</code> already serves the licensed Pocket Creature Tamer pack from private R2 (<code>/art/v1/…</code>). The 12-family Meadow roster can render as real sprites — no new infra.</p>
+      </div></div>
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">⚠️ Question engine is Year-4 shaped</h3>
+        <p class="text-sm opacity-75"><code>shared/question-engine.ts</code> = numeric answer + <code>makeChoices()</code> near-misses. Std 1 needs visual formats, non-numeric answers, TP levels, profile gating. <strong>This is the long pole.</strong></p>
+      </div></div>
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">⚠️ Stats live on the creature</h3>
+        <p class="text-sm opacity-75"><code>shared/creature.ts</code> stores HP/attack/level/XP per creature. World-map direction says the <em>player</em> owns stats. A migration is owed; timing is Decision D2 below.</p>
+      </div></div>
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body p-4 gap-1">
+        <h3 class="card-title text-sm">✅ Curriculum ground truth</h3>
+        <p class="text-sm opacity-75">Two research docs pin scope + formats with real-paper evidence and a validated schema (§E). The generator prompt is mostly written already.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ ISLAND MAP ══════════════ -->
+  <section id="island-map" class="space-y-4">
+    <h2 class="text-2xl font-bold">What we're building</h2>
+    <p class="opacity-75 text-sm">Each landmark anchors one Std-1 topic; counting &amp; <code>+ −</code> appear everywhere. Cognitive demand (TP level) rises with distance from the dock — formats stay free to roam. <strong>Shape: a big explorable ring road built as a region graph</strong> — named-gateway chunks, never resized, with expansion-pocket gateways reserved for future rest stops &amp; mini-games.</p>
+    <div class="rounded-box bg-success/10 border border-success/30 p-4">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div class="mi-map-cell card bg-base-100 card-border sm:col-start-3"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🕰️ Ticktock Knoll</div><div class="text-xs opacity-70">Time · 整点半点一刻</div><div class="badge badge-xs badge-outline">TP1–4</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">⛵ Dock</div><div class="text-xs opacity-70">arrival · ferry fare</div><div class="badge badge-xs badge-outline">—</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🛤️ Dockside Path</div><div class="text-xs opacity-70">counting ≤10 · 数字↔文字</div><div class="badge badge-xs badge-outline">TP1</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🐑 Woolly Meadows</div><div class="text-xs opacity-70">≤100 · ten-frame pens · bonds</div><div class="badge badge-xs badge-outline">TP1–2</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🍎 Appledore Orchard</div><div class="text-xs opacity-70">看图列式 + − · fruit stand RM</div><div class="badge badge-xs badge-outline">TP2–3</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🎪 Festival Green</div><div class="text-xs opacity-70">pictographs · 最多/最少</div><div class="badge badge-xs badge-outline">TP2–3</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border sm:col-start-2"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🌷 Pattern Gardens</div><div class="text-xs opacity-70">2D shapes · ○△ patterns</div><div class="badge badge-xs badge-outline">TP2–3</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-border"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🌾 Barn &amp; Mill</div><div class="text-xs opacity-70">3D solids · non-standard measure · abacus</div><div class="badge badge-xs badge-outline">TP2–4</div>
+        </div></div>
+        <div class="mi-map-cell card bg-base-100 card-dash border border-dashed sm:col-start-2 opacity-80"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🌸 Hidden Grove*</div><div class="text-xs opacity-70">fractions · estimate · round · tally · 前后</div><div class="badge badge-xs badge-warning">extra only</div>
+        </div></div>
+        <div class="mi-map-cell card bg-primary text-primary-content sm:col-span-2"><div class="card-body p-3 gap-0.5">
+          <div class="font-semibold text-sm">🗿 The Hundred Stones ★ Guardian</div><div class="text-xs opacity-80">10×10 grid · mixed topics · Cloud-Maned Horse (Uniques/03)</div><div class="badge badge-xs badge-outline border-primary-content text-primary-content">TP3–4 · TP5 dash</div>
+        </div></div>
+      </div>
+      <p class="text-xs opacity-60 mt-2">* Hidden Grove exists only under the <code>original_dskp_extra</code> profile flag.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════ MILESTONES ══════════════ -->
+  <section id="milestones" class="space-y-4">
+    <h2 class="text-2xl font-bold">Milestones <span class="text-sm font-normal opacity-60">— each ends playable</span></h2>
+    <ul class="timeline timeline-vertical">
+      <li>
+        <div class="timeline-start timeline-box mi-card">
+          <div class="font-bold">M1 — Sail there &amp; walk it</div>
+          <div class="text-sm opacity-75 mt-1">Harbor-master NPC at the existing dock (<code>D</code> tiles) sails you out. Meadow Isle is a <strong>region graph, not one big rectangle</strong>: each area is its own <code>MAP: string[]</code> chunk with stable local coordinates, connected by named gateways in a ring — <strong>never resized after shipping</strong>. An expansion pocket is a gateway pointing at a not-yet-existing region; future rest stops / mini-games attach as new chunks on the inner or outer ring without moving any existing geography, NPC, or save coordinate. Regions are still bigger than one screen; camera follows the player, clamped to the current region; region banners on crossing ("Woolly Meadows 羊毛草原"). Location persistence (<code>regionId + local x/y</code>, with a load-time walkable check and fallback to the region's safe gateway) lands with the save-v2 PR before M2 — M1 stays session-only like today, so the island is never blocked on the migration. Placeholder creature art, signpost shortcuts to the dock, exit ferry home.</div>
+          <div class="text-xs opacity-60 mt-2">Touches: new <code>world/regions/</code> registry (one stable file per region + named gateway definitions), <code>GameApp.ts</code> routing, <code>state.ts</code></div>
+          <div class="badge badge-success badge-sm mt-2">Playable: walk the whole island</div>
+        </div>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg></div>
+        <hr class="bg-primary"/>
+      </li>
+      <li>
+        <hr class="bg-primary"/>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg></div>
+        <div class="timeline-end timeline-box mi-card">
+          <div class="font-bold">M2 — Real creatures, real encounters</div>
+          <div class="text-sm opacity-75 mt-1">12-family roster into species data keyed by pack ID; slice the 144×48 strips into 48×48 stage frames via the existing R2 loader; per-area encounter tables + rarity; <code>_alt</code> as special-colour rares.</div>
+          <div class="rounded-box bg-warning/10 border border-warning/40 p-3 mt-2 text-sm">
+            <div class="font-semibold">Two gates before encounters may ship</div>
+            <ul class="list-disc list-inside opacity-80 mt-1 space-y-1">
+              <li><strong>Curriculum-compliant placeholder bank.</strong> Today's <code>SAMPLE_BANK</code> is Year-4 content (<code>40 × 320</code>, RM55,000) — it must not be heard on Meadow Isle even as a placeholder. M2 includes a hand-authored ~20-item legacy-numeric bank that obeys every island law (≤100, <code>+ −</code> only, ≤RM10, single-step), verified by the same mechanical checks M4 will automate.</li>
+              <li><strong>Full-team capture rule.</strong> The team (max 6) is the whole collection for now — so when it's full, capture is <strong>blocked with a gentle message</strong> ("Your team is full! Make a friend at home first.") rather than pushing a 7th creature into an invalid save. Acceptance test: a capture attempt at 6/6 leaves the save valid and unchanged. Box storage / releasing is a later-island feature.</li>
+              <li><strong>Creature identity in save v2.</strong> Real sprites/evolution/variants need <code>speciesId</code> (pack ID), <code>stage</code>, and <code>variant</code> on each creature. Lands with the D2 migration PR (below), which maps legacy creatures to <code>legacy/&lt;name&gt;</code> species, stage 1, normal variant.</li>
+            </ul>
+          </div>
+          <div class="text-xs opacity-60 mt-2">Touches: <code>shared/creature.ts</code> (SPECIES), <code>remote-art.ts</code> (frame slicing), encounter config per area, placeholder bank</div>
+          <div class="badge badge-success badge-sm mt-2">Playable: wild battles with real sprites across the island</div>
+        </div>
+        <hr class="bg-primary"/>
+      </li>
+      <li>
+        <hr class="bg-primary"/>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-warning"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
+        <div class="timeline-start timeline-box mi-card border-warning">
+          <div class="font-bold">M3 — Std-1 question schema <span class="badge badge-warning badge-sm align-middle">long pole</span></div>
+          <div class="text-sm opacity-75 mt-1">Extend <code>question-engine.ts</code> to the §E schema: <code>format_type</code>, <code>tp_level</code>, <code>item_format</code>, <code>presentation</code>, <code>answer_form</code> (numeral · circle · ordering · match · chinese-word …), <code>distractor_strategy</code>, bilingual <code>{numeral, zh_word}</code>. Numeric answers become <em>one</em> answer form, not the only one. Domain tests first.</div>
+          <div class="rounded-box bg-info/10 border border-info/40 p-3 mt-2 text-sm">
+            <div class="font-semibold">Compatibility strategy (keeps battle &amp; shop playable through M2–M5)</div>
+            <ul class="list-disc list-inside opacity-80 mt-1 space-y-1">
+              <li><strong>Versioned schema, no in-place rewrite.</strong> Legacy <code>Question</code> (numeric, snake_case bank format) stays byte-for-byte untouched: <strong>absent <code>schema</code> (or <code>schema: 1</code>) means legacy</strong>; only new items carry the <code>schema: 2</code> discriminator. Banks may mix both, and the existing <code>SAMPLE_BANK</code> needs zero edits.</li>
+              <li><strong>Adapters in <code>shared/</code>.</strong> <code>asLegacyTurn(v2)</code> degrades any V2 item whose <code>answer_form</code> is <code>numeral</code> to the existing <code>QuestionTurn</code>/<code>makeChoices()</code> path; <code>toV2(q)</code> upgrades authored v1 items. <code>QuestionRound</code> becomes a union wrapper — legacy rounds keep <code>choices: number[]</code> + <code>judge(number)</code>; new forms carry their own graders.</li>
+              <li><strong><code>QuestionView</code> switches on <code>answer_form</code></strong>, one sub-renderer per form, defaulting to today's numeric panel. Battle/shop code compiles and plays unchanged against v1 the whole time.</li>
+              <li><strong>Rollback switch.</strong> The V2 path is gated by the save's <code>profile</code> + bank <code>schema</code> field — a bad V2 batch is disabled server-side, v1 never redeploys.</li>
+            </ul>
+          </div>
+          <div class="text-xs opacity-60 mt-2">Touches: <code>shared/question-engine.ts</code>, <code>shared/question-bank.ts</code>, <code>shared/tests/</code>, <code>save-types.ts</code> (profile flag)</div>
+          <div class="badge badge-success badge-sm mt-2">Playable: engine unit-tests every §A format <em>and</em> the legacy suite passes unmodified</div>
+        </div>
+        <hr/>
+      </li>
+      <li>
+        <hr/>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
+        <div class="timeline-end timeline-box mi-card">
+          <div class="font-bold">M4 — Generator pipeline</div>
+          <div class="text-sm opacity-75 mt-1">LLM generation constrained by the two curriculum docs (hard constraints as system rules; per-topic format weights; distractor strategies). <strong>Validation gate</strong>: schema check + constraint rejection (≤100, +− only, RM10, single-step) + adversarial verify pass, mirroring how the research corpus itself was verified. Approved items → D1. See Decision D1 (batch vs serve-time).</div>
+          <div class="text-xs opacity-60 mt-2">Touches: <code>tools/</code> (generator + validator), <code>worker/</code> (bank API), D1 schema</div>
+          <div class="badge badge-success badge-sm mt-2">Playable: island encounters serve validated Std-1 items</div>
+        </div>
+        <hr/>
+      </li>
+      <li>
+        <hr/>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
+        <div class="timeline-start timeline-box mi-card">
+          <div class="font-bold">M5 — Landmarks &amp; figures</div>
+          <div class="text-sm opacity-75 mt-1">The figure renderers + interactions that make questions visible: ten-frame sheep pens, settable clock-tower face, fruit stand (reuse shop UI, ≤RM10 catalog), festival pictograph board, marble balance, shape flowerbeds. Ship per <code>presentation</code> type, most-referenced first (ten-frame, clock, coins, objects → then balance, pictograph, abacus, calendar).</div>
+          <div class="text-xs opacity-60 mt-2">Touches: <code>QuestionView.ts</code> figure components, landmark NPC scripts, <code>shop-rules.ts</code> catalog</div>
+          <div class="badge badge-success badge-sm mt-2">Playable: questions render as world objects, not prose</div>
+        </div>
+        <hr/>
+      </li>
+      <li>
+        <hr/>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
+        <div class="timeline-end timeline-box mi-card">
+          <div class="font-bold">M6 — Guardian, badge, evolution</div>
+          <div class="text-sm opacity-75 mt-1">Cloud-Maned Horse (<code>Uniques/03</code>) at the Hundred Stones: a multi-topic slate (count, +− sentence, clock read, money change, pictograph read), TP3–4 with one TP5 twist — <strong>fixed authored slate</strong> (D4). Victory → <strong>Meadow Badge</strong> in save data; the badge evolves the player's starter, located by <code>starterCreatureId</code> — no FOMO rule. (No box storage on Meadow Isle yet, so in practice: the team; the rule extends automatically when storage lands.) Gentle defeat back to the dock, nothing lost.</div>
+          <div class="text-xs opacity-60 mt-2">Touches: boss config in battle, <code>save-types.ts</code> (badges), evolution table in <code>creature.ts</code></div>
+          <div class="badge badge-success badge-sm mt-2">Playable: Meadow Isle is completable end-to-end</div>
+        </div>
+        <hr/>
+      </li>
+      <li>
+        <hr/>
+        <div class="timeline-middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg></div>
+        <div class="timeline-start timeline-box mi-card">
+          <div class="font-bold">M7 — Progression tuning</div>
+          <div class="text-sm opacity-75 mt-1">Level-relative XP falloff (island below your level → 0–1 XP), island stat curve so Tallgrass reads "lethal" at level 1 and Meadow reads "breeze" at level 10, catch rates, alt-colour rates. Numbers validated by playtesting with the target audience (two kids, ages 7 &amp; 10, conveniently on file).</div>
+          <div class="text-xs opacity-60 mt-2">Touches: <code>battle-rules.ts</code>, encounter/XP config; depends on Decision D2</div>
+          <div class="badge badge-success badge-sm mt-2">Playable: the stat curve <em>is</em> the gate</div>
+        </div>
+      </li>
+    </ul>
+    <p class="text-sm opacity-60">M1→M2→M3 is the critical path. M4 depends on M3's schema. M5 can overlap M4. M6 needs M4+M5. M7 is last because tuning needs everything real.</p>
+  </section>
+
+  <!-- ══════════════ ENGINE GAP TABLE ══════════════ -->
+  <section id="engine-gap" class="space-y-4">
+    <h2 class="text-2xl font-bold">The real work: question-engine gap</h2>
+    <p class="text-sm opacity-75">Why M3–M5 dominate the plan. Today's engine satisfies roughly topics 4.1–4.3 in <code>a + b = ?</code> form only.</p>
+    <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+      <table class="table table-zebra">
+        <thead><tr><th>Capability</th><th>Today (<code>question-engine.ts</code>)</th><th>Std-1 requirement (§E schema)</th><th>Milestone</th></tr></thead>
+        <tbody>
+          <tr><td class="font-semibold">Answer</td><td>numeric only</td><td>numeral · chinese-word · circle · ordering · match · color · tick · number-sentence · drawing</td><td><span class="badge badge-sm">M3</span></td></tr>
+          <tr><td class="font-semibold">Distractors</td><td><code>makeChoices()</code> numeric near-miss</td><td>12 verified child-error strategies (off-by-one, wrong-operation, clock-hand-swap, no-carry-concat…)</td><td><span class="badge badge-sm">M3</span></td></tr>
+          <tr><td class="font-semibold">Figures</td><td>none (prose only)</td><td>ten-frame · number-bond · number-line · clock · abacus · coins · shapes · pictograph · objects · balance · calendar · grid · table</td><td><span class="badge badge-sm">M5</span></td></tr>
+          <tr><td class="font-semibold">Difficulty</td><td>implicit level</td><td>explicit <code>tp_level</code> 1–6 (PBD bands; skew TP1–4)</td><td><span class="badge badge-sm">M3</span></td></tr>
+          <tr><td class="font-semibold">Constraints</td><td>none enforced</td><td>hard reject: &gt;100, ×/÷, &gt;RM10, multi-step, mixed coin+note exchange</td><td><span class="badge badge-sm">M4</span></td></tr>
+          <tr><td class="font-semibold">Profiles</td><td>none</td><td><code>dpk3_2026_core</code> default · <code>original_dskp_extra</code> gate · <code>sjkc_representation</code> always on</td><td><span class="badge badge-sm">M3</span></td></tr>
+          <tr><td class="font-semibold">Bilingual</td><td>zh + en prose</td><td>+ numeral↔中文数字 as an answer form (<code>18</code> / <code>十八</code>)</td><td><span class="badge badge-sm">M3</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════ CREATURE ROSTER ══════════════ -->
+  <section id="roster" class="space-y-4">
+    <h2 class="text-2xl font-bold">Roster to wire in (M2)</h2>
+    <p class="text-sm opacity-75">Pack IDs canonical; names provisional until bilingual naming pass. Wild encounters = stage-1 forms; later stages arrive via evolution.</p>
+    <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+      <table class="table">
+        <thead><tr><th>Pack ID</th><th>Line (all stages)</th><th>Rarity</th><th>Habitat</th></tr></thead>
+        <tbody>
+          <tr><td><code>3EVO/05</code></td><td>larva → cocoon → great moth</td><td><span class="badge badge-sm badge-ghost">common</span></td><td>Dockside, Pattern Gardens</td></tr>
+          <tr><td><code>3EVO/06</code></td><td>fluffball → winged lambkin → meadow fae</td><td><span class="badge badge-sm badge-ghost">common</span></td><td>Woolly Meadows (the flocks)</td></tr>
+          <tr><td><code>2EVO/10</code></td><td>pufftail mouse → roly-poly mouse</td><td><span class="badge badge-sm badge-ghost">common</span></td><td>everywhere, Barn</td></tr>
+          <tr><td><code>3EVO/21</code></td><td>chick → gamefowl → plumed strider</td><td><span class="badge badge-sm badge-ghost">common</span></td><td>Orchard, Barn</td></tr>
+          <tr><td><code>3EVO/13</code></td><td>ball-tail hare</td><td><span class="badge badge-sm badge-info">uncommon</span></td><td>Woolly Meadows, Gardens</td></tr>
+          <tr><td><code>3EVO/02</code></td><td>sprout kitten → leaf cat → orchard lynx</td><td><span class="badge badge-sm badge-info">uncommon</span></td><td>Orchard</td></tr>
+          <tr><td><code>3EVO/08</code></td><td>pink squirrel kit → blossom fox</td><td><span class="badge badge-sm badge-info">uncommon</span></td><td>Orchard, Ticktock base</td></tr>
+          <tr><td><code>2EVO/04</code></td><td>round chick → owl</td><td><span class="badge badge-sm badge-info">uncommon</span></td><td>Ticktock Knoll</td></tr>
+          <tr><td><code>2EVO/06</code></td><td>farm pup → hound</td><td><span class="badge badge-sm badge-info">uncommon</span></td><td>Barn</td></tr>
+          <tr><td><code>2EVO/03</code></td><td>woolly ram → bull</td><td><span class="badge badge-sm badge-warning">rare</span></td><td>Hundred Stones edge</td></tr>
+          <tr><td><code>3EVO/01</code></td><td>petal sprite → blossom fae</td><td><span class="badge badge-sm badge-warning">rare</span></td><td>Festival Green (dusk)</td></tr>
+          <tr><td><code>Uniques/03</code></td><td><strong>Cloud-Maned Horse — guardian</strong></td><td><span class="badge badge-sm badge-primary">guardian</span></td><td>The Hundred Stones</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════ DECISIONS ══════════════ -->
+  <section id="decisions" class="space-y-4">
+    <h2 class="text-2xl font-bold">Decisions needed from you</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
+        <h3 class="card-title">D1 · Question generation timing</h3>
+        <div class="text-sm space-y-2">
+          <div class="rounded-box bg-success/10 border border-success/40 p-3">
+            <div class="font-semibold">A · Offline batch → validate → D1 <span class="badge badge-success badge-sm">recommended</span></div>
+            <p class="opacity-75 mt-1">Generate in bulk via <code>tools/</code>, gate hard, ship approved items. Zero latency, cost-controlled, kid-safe by construction. Matches ROADMAP's "validation gate" instinct.</p>
+          </div>
+          <div class="rounded-box bg-base-200 p-3">
+            <div class="font-semibold">B · Generate at serve time</div>
+            <p class="opacity-75 mt-1">Infinite variety, but latency in a kid's battle, per-request cost, and validation must run inline on theWorker hot path.</p>
+          </div>
+          <div class="rounded-box bg-base-200 p-3">
+            <div class="font-semibold">C · Hybrid</div>
+            <p class="opacity-75 mt-1">Batch seed + background top-up when a topic×TP cell runs low. Best long-term; more moving parts now.</p>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
+        <h3 class="card-title">D2 · Stats migration timing</h3>
+        <div class="text-sm space-y-2">
+          <div class="rounded-box bg-success/10 border border-success/40 p-3">
+            <div class="font-semibold">A · Migrate to player-owned stats <em>before</em> M2 <span class="badge badge-success badge-sm">recommended</span></div>
+            <p class="opacity-75 mt-1">World-map direction already chose this; doing it now means encounters, catching, and M7 tuning are built once on the final model. Small change today: <code>creature.ts</code> + <code>battle-rules.ts</code> + save migration (plan below).</p>
+          </div>
+          <div class="rounded-box bg-info/10 border border-info/40 p-3">
+            <div class="font-semibold">Save migration plan (v1 → v2) — prerequisite for option A</div>
+            <p class="opacity-75 mt-1 text-xs">Honest starting point: <code>validateSaveState</code> today <em>rejects</em> anything but <code>version === 1</code>, and <code>SaveState</code> has no player stats, badges, or curriculum profile. "Versioning exists" means a version <em>field</em>, not a migrator.</p>
+            <ul class="list-disc list-inside opacity-80 mt-2 space-y-1 text-xs">
+              <li><strong>Upgrader, not rewriter.</strong> New <code>migrateSave(raw)</code> in <code>shared/</code>: accepts only well-formed v1 (<code>version: 1</code> <strong>required</strong> — absent stays invalid, exactly as today), then validates-as-v1 → migrates → validates-as-v2. One-way, tested per version pair.</li>
+              <li><strong>Strict decode, no pass-through.</strong> <code>validateSaveState</code> is a trust boundary: decode <em>only known v1 fields</em> and construct a fresh v2 object from them — arbitrary unknown fields are dropped at the boundary, never carried into the new schema. Every known v1 field has a defined home: team (names, colors, boss flags), money, bag, savedAt carry over verbatim; per-creature stat fields become derived-from-player going forward (world-map model) and are retained read-only for one version, then removed in v3.</li>
+              <li><strong>Creature identity added in v2.</strong> Each creature gains <code>speciesId</code>, <code>stage</code>, <code>variant</code>, plus a stable per-instance <code>creatureId</code>; the save gains <code>starterCreatureId</code> (set to the v1 team's first creature — the professor's starter). Legacy creatures map to reserved legacy species (<code>legacy/addlepuff</code>, <code>legacy/subtractopus</code>, …) at stage 1, variant <code>normal</code> — they stay playable forever but never appear in island encounter tables. <strong>Box storage is out of scope for Meadow Isle</strong>: the team (max 6) is the whole collection until a later milestone adds storage; <code>creatureId</code> makes that migration safe when it lands.</li>
+              <li><strong>Location added in v2.</strong> <code>location: { regionId, x, y }</code> — v1 saves migrate to the Harbor Town spawn. On every load the saved tile is validated walkable; if a layout edit made it solid, spawn falls back to that region's named safe gateway.</li>
+              <li><strong>Concrete XP conversion.</strong> New player XP is <em>derived</em> so no child ever loses ground: <code>playerXp := max over team of ((level − 1) × XP_PER_LEVEL + xp)</code> (matching <code>creature.ts</code>'s current per-creature accumulation; <code>XP_PER_LEVEL = 20</code>).</li>
+              <li><strong>Rollout order.</strong> Worker deploys the accept-and-migrate reader <em>first</em>; the game client ships v2 writes only after. D1 stores saves as JSON payloads keyed per account, so migration happens at the read/write boundary — no DB schema change.</li>
+              <li><strong>Acceptance tests.</strong> Fixture v1 saves (fresh <code>createNewGame()</code> + a mid-game example) must migrate, re-validate, round-trip, and boot into a playable battle. A corrupted or future-version save still fails cleanly.</li>
+            </ul>
+          </div>
+          <div class="rounded-box bg-base-200 p-3">
+            <div class="font-semibold">B · Ship Meadow on creature-owned stats, migrate later</div>
+            <p class="opacity-75 mt-1">Faster M1–M2, but every tuning number in M7 gets computed twice, and catching "instantly usable pets" can't work as designed until the migration lands.</p>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
+        <h3 class="card-title">D3 · Answer-form scope for first playable</h3>
+        <div class="text-sm space-y-2">
+          <div class="rounded-box bg-success/10 border border-success/40 p-3">
+            <div class="font-semibold">A · numeral + circle (objective) + ordering first <span class="badge badge-success badge-sm">recommended</span></div>
+            <p class="opacity-75 mt-1">Covers most of §A's high-frequency formats (count-write, compare, order-sequence, fill-blank, true-false) with UI we already half-have. match/color/tick follow in M5; <code>drawing</code>/<code>trace-write</code> are cut from the island entirely (see Risks).</p>
+          </div>
+          <div class="rounded-box bg-base-200 p-3">
+            <div class="font-semibold">B · All 10 answer forms at once</div>
+            <p class="opacity-75 mt-1">Tracing/drawing and colouring need bespoke touch UI; bundling them delays everything behind the hardest 20%.</p>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="card card-border bg-base-100 mi-card"><div class="card-body gap-2">
+        <h3 class="card-title">D4 · Guardian question slate</h3>
+        <div class="text-sm space-y-2">
+          <div class="rounded-box bg-success/10 border border-success/40 p-3">
+            <div class="font-semibold">A · Fixed authored slate v1 <span class="badge badge-success badge-sm">recommended</span></div>
+            <p class="opacity-75 mt-1">The guardian is a set piece — one hand-checked question per topic (count, +−, clock, money, pictograph). Deterministic, reviewable, no generator dependency for the island's one critical battle.</p>
+          </div>
+          <div class="rounded-box bg-base-200 p-3">
+            <div class="font-semibold">B · Mastery-weighted sampling</div>
+            <p class="opacity-75 mt-1">Targets each child's weakest topics — great pedagogy, but needs per-topic mastery tracking that doesn't exist yet. A later-island upgrade.</p>
+          </div>
+        </div>
+      </div></div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════ RISKS ══════════════ -->
+  <section id="risks" class="space-y-4">
+    <h2 class="text-2xl font-bold">Risks</h2>
+    <div class="space-y-3">
+      <div class="rounded-box bg-base-100 border border-base-content/10 p-3 text-sm space-y-2">
+        <div><span class="badge badge-warning badge-sm mr-2 align-middle">High</span><strong>Generator leaks out-of-level content.</strong> The research docs' own verify pass dropped real exam items for being multi-step — prompt wording alone won't hold the line.</div>
+        <div class="rounded-box bg-success/10 border border-success/30 p-2">
+          <span class="badge badge-success badge-xs mr-1">Recommended</span>
+          <strong>Three-layer gate in M4, all in <code>tools/validate-question.ts</code>:</strong>
+          (1) <em>mechanical</em> — parse the expression, hard-reject <code>× ÷</code>, any operand/result &gt; 100, multi-step chains; money parser rejects &gt; RM10 and mixed coin+note exchange; validator independently re-derives the stated answer and rejects mismatches;
+          (2) <em>adversarial</em> — a second LLM call runs the corpus' own checklist (authentic / on-level / correctly-answered) and rejects, never edits;
+          (3) <em>human sample</em> — you review the first 200 items 100%, then a 5% random sample per batch.
+        </div>
+      </div>
+      <div class="rounded-box bg-base-100 border border-base-content/10 p-3 text-sm space-y-2">
+        <div><span class="badge badge-warning badge-sm mr-2 align-middle">Medium</span><strong>Figure-render scope creep.</strong> 13 presentation types are each bespoke UI.</div>
+        <div class="rounded-box bg-success/10 border border-success/30 p-2">
+          <span class="badge badge-success badge-xs mr-1">Recommended</span>
+          <strong>One <code>FigureView</code> kit, config not custom UI.</strong> Every figure is a small declarative spec (rows of icons, labels, highlights) rendered by shared primitives — ten-frame, clock, coins, objects, pictograph are the same grid-with-slots renderer with different skins. Ship the 4 highest-frequency types (ten-frame, clock, coins, objects) in M5; any landmark whose figure hasn't landed falls back to "prose + world sprites" by rule, not by schedule slip. <code>drawing</code>/<code>trace-write</code> answer forms are cut from Meadow Isle entirely — "set the clock hands" becomes tap-to-set (an objective interaction), no freehand input.
+        </div>
+      </div>
+      <div class="rounded-box bg-base-100 border border-base-content/10 p-3 text-sm space-y-2">
+        <div><span class="badge badge-ghost badge-sm mr-2 align-middle">Low</span><strong>Bilingual volume.</strong> Every string needs zh + en gloss, and creature names are still placeholders.</div>
+        <div class="rounded-box bg-success/10 border border-success/30 p-2">
+          <span class="badge badge-success badge-xs mr-1">Recommended</span>
+          <strong>Glossary-first.</strong> Create <code>shared/strings.ts</code> + <code>docs/i18n-glossary.md</code> in M2 holding the frozen curriculum terminology (数值, 数位, 整点, 一刻…) so generator prompts and UI reuse identical wording. Creature names: one LLM naming pass (zh-first, kid-pronounceable) reviewed by you in a single sitting — 12 families, one batch, done. English gloss stays secondary exactly as QuestionView already renders it.
+        </div>
+      </div>
+      <div class="rounded-box bg-base-100 border border-base-content/10 p-3 text-sm space-y-2">
+        <div><span class="badge badge-warning badge-sm mr-2 align-middle">Medium</span><strong>Save migration.</strong> <code>validateSaveState</code> currently rejects everything except <code>version === 1</code> and there is no migrator — D2 without one silently invalidates existing saves.</div>
+        <div class="rounded-box bg-success/10 border border-success/30 p-2">
+          <span class="badge badge-success badge-xs mr-1">Recommended</span>
+          <strong>Land the D2 migration plan as its own PR before any stats work:</strong> <code>migrateSave()</code> upgrader (v1 → migrate → validate-as-v2), preservation rules (nothing dropped; player XP derived from strongest creature), Worker deploys the migrating reader before the client ships v2 writes, and fixture saves (fresh + mid-game) pinned in <code>shared/tests/</code> as permanent regression tests.
+        </div>
+      </div>
+      <div class="rounded-box bg-base-100 border border-base-content/10 p-3 text-sm space-y-2">
+        <div><span class="badge badge-warning badge-sm mr-2 align-middle">Medium</span><strong>M3 regression bar.</strong> The versioned engine must not break the legacy numeric path that battle &amp; shop still run on.</div>
+        <div class="rounded-box bg-success/10 border border-success/30 p-2">
+          <span class="badge badge-success badge-xs mr-1">Recommended</span>
+          <strong>Golden-file equivalence test.</strong> Snapshot today's engine output for every <code>SAMPLE_BANK</code> question (turns, choices, judge results) into a fixture; M3's engine must reproduce it byte-for-byte through the legacy path. Add it to the existing test run so any PR that changes v1 behaviour fails immediately. New V2 forms stay additive behind the profile flag; if the bar can't be met, M3 slips rather than v1 breaking.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ OPEN QUESTIONS ══════════════ -->
+  <section id="open-questions" class="space-y-3 pb-8">
+    <h2 class="text-2xl font-bold">Open questions parked for later</h2>
+    <ul class="list-disc list-inside text-sm opacity-80 space-y-1">
+      <li>Do landmark interactions (moving sheep between pens, setting clock hands) become first-class <code>activity</code> answer forms, or stay flavour around standard forms?</li>
+      <li>Alt-colour (<code>_alt</code>) encounter rate — purely cosmetic, or tied to something?</li>
+      <li>Audio/voice for pre-readers — deferred by Season (2026-07-17): the island takes shape first; the zh-first UI should not assume reading fluency forever.</li>
+    </ul>
+  </section>
+
+</div>
+</body>
+</html>

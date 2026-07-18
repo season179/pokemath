@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="garden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokeMath Progression UX Integration</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+  <style>
+    :root {
+      --ink:#24334f; --muted:#667085; --paper:#fffdf5; --cream:#fff5d9;
+      --line:#3b4a6b; --blue:#2584d8; --blue-dark:#145a9c; --gold:#f5a623;
+      --green:#56b967; --grass:#78c66b; --sky:#9edbf7; --danger:#d95252;
+      --shadow:0 12px 32px rgba(36,51,79,.16);
+    }
+    html { scroll-behavior:smooth; }
+    body { color:var(--ink); background:#edf4ee; }
+    .doc-card { background:var(--paper); border:1px solid rgba(59,74,107,.2); box-shadow:0 3px 14px rgba(36,51,79,.05); }
+    .callout { border-left:5px solid var(--blue); background:#eaf5ff; }
+    .success { border-left-color:#389a4a; background:#ebf8ed; }
+    .warning { border-left-color:var(--gold); background:#fff4dc; }
+    .mock-shell { background:#1d2a3e; border:8px solid #1d2a3e; border-radius:24px; box-shadow:var(--shadow); overflow:hidden; }
+    .game { position:relative; aspect-ratio:3/2; min-height:300px; overflow:hidden; color:#263248; font-family:ui-rounded,"Avenir Next Rounded","Nunito",system-ui,sans-serif; }
+    .world { background:linear-gradient(#9fdef1 0 34%,#7ccb71 34% 100%); }
+    .world:before { content:""; position:absolute; left:-8%; right:-8%; top:30%; height:28%; background:#4f9d56; clip-path:polygon(0 40%,8% 25%,16% 48%,25% 12%,34% 45%,42% 24%,52% 54%,62% 18%,72% 40%,82% 8%,92% 38%,100% 23%,100% 100%,0 100%); }
+    .world:after { content:""; position:absolute; width:22%; height:48%; right:21%; top:34%; border-radius:18px 18px 0 0; background:#d8b36c; transform:perspective(180px) rotateX(6deg); box-shadow:inset 0 0 0 5px rgba(86,68,42,.2); }
+    .pond { position:absolute; z-index:1; left:8%; top:48%; width:26%; height:25%; border:5px solid #e9db9d; border-radius:50%; background:#55bfe5; transform:rotate(-5deg); }
+    .tree { position:absolute; z-index:2; width:9%; height:18%; background:#6f4d2e; border-radius:8px; }
+    .tree:before { content:""; position:absolute; width:180%; height:100%; left:-40%; top:-58%; background:#328749; border:4px solid #26713b; border-radius:48% 54% 44% 56%; }
+    .tree.t1 { right:7%; top:45%; } .tree.t2 { left:42%; top:59%; transform:scale(.8); }
+    .avatar { position:absolute; z-index:4; width:8%; aspect-ratio:.75; left:52%; top:51%; }
+    .avatar:before { content:""; position:absolute; width:70%; aspect-ratio:1; left:15%; background:#f6bd91; border:4px solid #34425d; border-radius:50%; }
+    .avatar:after { content:""; position:absolute; width:100%; height:58%; bottom:0; background:#e64f5c; border:4px solid #34425d; border-radius:45% 45% 18% 18%; }
+    .hud-card { position:absolute; z-index:8; background:rgba(255,253,245,.96); border:4px solid var(--line); border-radius:16px; box-shadow:0 5px 0 rgba(38,50,72,.22); }
+    .pet-hud { left:2.2%; top:3%; width:32%; min-height:17%; padding:2.2% 2%; display:flex; gap:5%; align-items:center; }
+    .portrait { width:26%; aspect-ratio:1; border-radius:50%; border:3px solid var(--line); background:radial-gradient(circle at 55% 35%,#fff 0 9%,transparent 10%),radial-gradient(circle at 38% 43%,#2c3650 0 5%,transparent 6%),linear-gradient(150deg,#ffe16e,#f19939); position:relative; }
+    .portrait:after { content:""; position:absolute; width:46%; height:20%; left:27%; top:54%; border-bottom:4px solid #68432c; border-radius:50%; }
+    .pet-data { flex:1; min-width:0; } .pet-name { font-weight:900; font-size:clamp(.7rem,1.8vw,1.1rem); }
+    .tiny { font-size:clamp(.48rem,1.1vw,.72rem); font-weight:800; letter-spacing:.04em; }
+    .bar { height:12px; border:2px solid var(--line); border-radius:999px; background:#e8edf2; overflow:hidden; }
+    .bar > i { display:block; height:100%; background:var(--green); }
+    .bag { right:2.2%; top:3%; width:13%; min-height:13%; display:grid; place-content:center; font-weight:900; font-size:clamp(.55rem,1.4vw,.9rem); }
+    .bag:before { content:"🎒"; display:block; font-size:clamp(1rem,2.4vw,1.7rem); text-align:center; }
+    .player-progress { right:2.2%; bottom:3.5%; width:30%; min-height:17%; padding:2% 2.2%; background:#f4fbff; }
+    .player-row { display:flex; justify-content:space-between; gap:8px; align-items:baseline; font-weight:950; font-size:clamp(.62rem,1.6vw,1rem); }
+    .xp-bar { height:13px; margin-top:2%; border:2px solid var(--blue-dark); border-radius:999px; background:#e6eef5; overflow:hidden; }
+    .xp-bar i { display:block; height:100%; background:linear-gradient(90deg,#35b6ff,var(--blue)); }
+    .xp-meta { display:flex; justify-content:space-between; margin-top:1%; color:#34506e; }
+    .dpad { position:absolute; z-index:8; left:3%; bottom:4%; width:17%; aspect-ratio:1; opacity:.78; }
+    .dpad:before,.dpad:after { content:""; position:absolute; background:#22354d; border:3px solid #f9fbff; border-radius:9px; }
+    .dpad:before { width:36%; height:100%; left:32%; } .dpad:after { width:100%; height:36%; top:32%; }
+    .battle { background:linear-gradient(#9edbf7 0 57%,#78c66b 57% 100%); }
+    .battle:before,.battle:after { content:""; position:absolute; border-radius:50%; background:#579f52; }
+    .battle:before { width:44%; height:10%; left:4%; top:40%; } .battle:after { width:44%; height:12%; right:3%; top:68%; }
+    .enemy { position:absolute; z-index:2; left:15%; top:20%; width:18%; aspect-ratio:1; background:#8758ac; border:5px solid #3c3158; border-radius:50% 48% 42% 55%; transform:rotate(-8deg); }
+    .enemy:before,.enemy:after { content:""; position:absolute; width:30%; height:45%; top:-25%; background:#8758ac; border:5px solid #3c3158; border-radius:70% 70% 20% 20%; }
+    .enemy:before { left:5%; transform:rotate(-20deg); } .enemy:after { right:5%; transform:rotate(20deg); }
+    .ally { position:absolute; z-index:2; right:15%; top:48%; width:20%; aspect-ratio:1; background:#f7b544; border:5px solid #6d4a2e; border-radius:48% 52% 44% 50%; }
+    .faint { opacity:.35; filter:grayscale(.8); transform:translateY(18px) rotate(-8deg); }
+    .reward-drawer { position:absolute; z-index:9; left:2%; right:2%; bottom:2%; min-height:36%; background:#fffdf7; border:5px solid var(--line); border-radius:20px; box-shadow:0 -10px 30px rgba(36,51,79,.24); padding:2.4% 3%; display:grid; grid-template-columns:1fr 1.25fr auto; gap:3%; align-items:center; }
+    .victory-kicker { color:#2e7d32; font-weight:950; letter-spacing:.09em; font-size:clamp(.5rem,1.2vw,.78rem); }
+    .xp-big { color:var(--blue-dark); font-weight:1000; font-size:clamp(1.3rem,4vw,2.8rem); line-height:.95; }
+    .money { margin-top:7%; color:#7a4f00; font-weight:900; font-size:clamp(.55rem,1.4vw,.92rem); }
+    .bonus-row { display:flex; flex-wrap:wrap; gap:4px; margin-top:4%; }
+    .chip { padding:2px 7px; border-radius:999px; background:#e7f3ff; border:1px solid #5d98c8; color:#174d78; font-size:clamp(.42rem,1vw,.65rem); font-weight:850; }
+    .continue { border:3px solid #8b5a0a; background:#ffcb58; color:#4e350c; border-radius:14px; font-weight:1000; padding:12px 14px; box-shadow:0 4px 0 #8b5a0a; font-size:clamp(.52rem,1.25vw,.82rem); }
+    .result-title { font-weight:950; font-size:clamp(.65rem,1.5vw,1rem); }
+    .delta { display:flex; justify-content:space-between; color:#34506e; margin-top:2%; }
+    .dim { filter:brightness(.55) saturate(.7); }
+    .level-card { position:absolute; z-index:10; width:64%; left:18%; top:10%; min-height:76%; padding:4% 5%; background:linear-gradient(180deg,#fffdf3,#fff1c9); border:6px solid var(--line); border-radius:24px; box-shadow:0 18px 45px rgba(18,28,46,.42); text-align:center; }
+    .burst { color:#a45f00; font-weight:1000; letter-spacing:.1em; font-size:clamp(.6rem,1.5vw,1rem); }
+    .level-title { color:#174d78; font-size:clamp(1.6rem,4.7vw,3.2rem); line-height:1; font-weight:1000; margin-top:1%; }
+    .level-jump { display:flex; justify-content:center; align-items:center; gap:5%; margin:4% 0; font-size:clamp(1.1rem,3vw,2rem); font-weight:1000; }
+    .level-jump b { display:grid; place-content:center; width:27%; aspect-ratio:1.3; border-radius:18px; background:white; border:4px solid var(--line); }
+    .level-jump span { color:var(--gold); font-size:140%; }
+    .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; max-width:75%; margin:0 auto 4%; }
+    .stat { background:#edf8ee; border:2px solid #62a76d; border-radius:10px; padding:6px; font-weight:900; font-size:clamp(.48rem,1.2vw,.78rem); }
+    .flow { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:start; gap:12px; }
+    .flow-step { position:relative; min-width:0; }
+    .flow-step:not(:last-child):after { content:"→"; position:absolute; right:-13px; top:28px; color:#7d8797; font-size:22px; font-weight:900; }
+    .step-num { width:40px; height:40px; display:grid; place-content:center; border-radius:50%; background:var(--ink); color:white; font-weight:950; margin-bottom:8px; }
+    .table th { color:#40506d; }
+    .file { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#154f7d; font-size:.82em; }
+    @media(max-width:800px){ .flow{grid-template-columns:1fr}.flow-step{padding-left:54px}.flow-step .step-num{position:absolute;left:0}.flow-step:not(:last-child):after{content:"↓";left:15px;right:auto;top:52px}.reward-drawer{grid-template-columns:.7fr 1.3fr}.continue{grid-column:1/-1;padding:8px}.game{min-height:260px}.stats{max-width:95%} }
+    @media(prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important;animation:none!important} }
+  </style>
+</head>
+<body>
+  <main class="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:py-12">
+    <header class="space-y-5">
+      <div class="flex flex-wrap gap-2">
+        <span class="badge badge-primary">UX research · 18 Jul 2026</span>
+        <span class="badge badge-outline">Cocos Creator</span>
+        <span class="badge badge-outline">Player-owned progression</span>
+      </div>
+      <div class="max-w-5xl space-y-3">
+        <h1 class="text-4xl font-black tracking-tight sm:text-6xl">Make every battle move the journey forward</h1>
+        <p class="max-w-4xl text-lg text-base-content/70 sm:text-xl">XP should feel visible, earned, and understandable—without turning every ordinary monster into a long results ceremony.</p>
+      </div>
+      <div class="callout success max-w-5xl rounded-box p-5">
+        <strong>The recommendation:</strong> give the player a compact persistent XP bar, then reuse that same visual in a tap-to-continue victory drawer. Only promote to a centered overlay when the player actually levels up. The pet keeps HP; the player owns XP.
+      </div>
+    </header>
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-bold">The three moments</h2>
+        <p class="mt-1 text-sm opacity-70">Designed around the game’s existing 960×640 layout, PokeMath palette, pet card, Bag button, and message box.</p>
+      </div>
+      <div class="grid gap-8 xl:grid-cols-3">
+        <article class="space-y-3">
+          <div class="mock-shell"><div class="game world">
+            <div class="pond"></div><div class="tree t1"></div><div class="tree t2"></div><div class="avatar"></div>
+            <div class="hud-card pet-hud"><div class="portrait"></div><div class="pet-data"><div class="pet-name">Sparky</div><div class="tiny">HP 18 / 18</div><div class="bar"><i style="width:100%"></i></div></div></div>
+            <div class="hud-card bag">BAG</div><div class="dpad"></div>
+            <div class="hud-card player-progress"><div class="player-row"><span>WINNI</span><span>Lv. 12</span></div><div class="xp-bar"><i style="width:59%"></i></div><div class="xp-meta tiny"><span>284 / 484 XP</span><span>200 to go</span></div></div>
+          </div></div>
+          <div><h3 class="font-bold">1 · In the world</h3><p class="text-sm opacity-75">Turn the existing tiny bottom-right player name into a small progress card. It stays secondary to the pet’s top-left HP card and leaves the map readable.</p></div>
+        </article>
+        <article class="space-y-3">
+          <div class="mock-shell"><div class="game battle">
+            <div class="enemy faint"></div><div class="ally"></div>
+            <div class="reward-drawer">
+              <div><div class="victory-kicker">BATTLE WON</div><div class="xp-big">+86 XP</div><div class="money">+ RM 140</div></div>
+              <div><div class="result-title">Player Lv. 12</div><div class="xp-bar"><i style="width:76%"></i></div><div class="delta tiny"><span>284 → 370</span><span>484 XP</span></div><div class="bonus-row"><span class="chip">Challenge ×1.5</span><span class="chip">Stronger foe ×1.2</span></div></div>
+              <button class="continue">CONTINUE</button>
+            </div>
+          </div></div>
+          <div><h3 class="font-bold">2 · After a normal battle</h3><p class="text-sm opacity-75">Keep the battlefield. Transform the familiar bottom message area into a reward drawer: exact gain, animated bar, money, and only the bonuses that changed the answer.</p></div>
+        </article>
+        <article class="space-y-3">
+          <div class="mock-shell"><div class="game battle">
+            <div class="enemy dim"></div><div class="ally dim"></div>
+            <div class="level-card"><div class="burst">★ GREAT WORK ★</div><div class="level-title">LEVEL UP!</div><div class="level-jump"><b>12</b><span>→</span><b>13</b></div><div class="stats"><div class="stat">MAX HP +3</div><div class="stat">POWER +1</div></div><button class="continue">KEEP GOING</button></div>
+          </div></div>
+          <div><h3 class="font-bold">3 · When a level is crossed</h3><p class="text-sm opacity-75">This is the earned celebration. Dim the battle behind one focused card, show only real changes, and wait for the child to continue.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="doc-card rounded-box p-5 sm:p-7 space-y-5">
+      <div><h2 class="text-2xl font-bold">One reward sequence, paced by importance</h2><p class="mt-1 text-sm opacity-70">Ordinary victories remain quick; meaningful transitions receive room to breathe.</p></div>
+      <div class="flow">
+        <div class="flow-step"><div class="step-num">1</div><strong>Monster faints</strong><p class="mt-1 text-sm opacity-65">A short 300–500ms victory beat. No long unskippable flourish.</p></div>
+        <div class="flow-step"><div class="step-num">2</div><strong>Reward arrives</strong><p class="mt-1 text-sm opacity-65"><code>+86 XP</code> and money appear immediately.</p></div>
+        <div class="flow-step"><div class="step-num">3</div><strong>Bar moves</strong><p class="mt-1 text-sm opacity-65">Animate from the exact before value to the exact after value.</p></div>
+        <div class="flow-step"><div class="step-num">4</div><strong>Explain why</strong><p class="mt-1 text-sm opacity-65">Show bonus chips only for non-default modifiers.</p></div>
+        <div class="flow-step"><div class="step-num">5</div><strong>Escalate if earned</strong><p class="mt-1 text-sm opacity-65">No level crossed: continue. Level crossed: open the level-up card.</p></div>
+      </div>
+      <div class="callout rounded-box p-4 text-sm"><strong>Input rule:</strong> the first tap during the count fast-forwards the animation; the next tap continues. Important results never disappear on a timer.</div>
+    </section>
+
+    <section class="space-y-4">
+      <div><h2 class="text-2xl font-bold">What each surface should say</h2><p class="mt-1 text-sm opacity-70">The UI answers “where am I?”, “what did I earn?”, and “why?” without exposing a formula.</p></div>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-zebra">
+          <thead><tr><th>Surface</th><th>Always show</th><th>Show when relevant</th><th>Do not show</th></tr></thead>
+          <tbody>
+            <tr><td class="font-bold">World HUD</td><td>Player name, level, bar, numeric progress</td><td>“200 XP to go”</td><td>Reward formula, money, modifier chips</td></tr>
+            <tr><td class="font-bold">Battle HUD</td><td>Pet HP and a clearly labelled <em>Player</em> level/XP strip</td><td>Guardian or review-battle marker</td><td>A pet-owned XP bar</td></tr>
+            <tr><td class="font-bold">Victory drawer</td><td>XP gained, money, before→after bar, Continue</td><td>Challenge, stronger-foe, guardian, or review chips</td><td>All ×1.0 factors or raw arithmetic</td></tr>
+            <tr><td class="font-bold">Level-up card</td><td>Old→new level and actual unlocked changes</td><td>Milestone, evolution, island unlock</td><td>Stats that did not change</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="callout warning rounded-box p-4 text-sm"><strong>Old monsters:</strong> use neutral language such as <em>Review battle · 1 XP</em>. “Too easy” punishes practice and reads like a scolding.</div>
+        <div class="callout warning rounded-box p-4 text-sm"><strong>Capturing:</strong> don’t award the full defeat XP when capture bypasses the math questions. Keep collection rewards separate or capture becomes the optimal way to avoid learning.</div>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div><h2 class="text-2xl font-bold">The code seam</h2><p class="mt-1 text-sm opacity-70">The current game already computes rewards in one place. The main change is ownership and presentation, not a rewrite of the battle loop.</p></div>
+      <div class="grid gap-4 lg:grid-cols-3">
+        <article class="doc-card rounded-box p-5"><span class="badge badge-primary badge-sm">Domain first</span><h3 class="mt-3 font-bold">Player progression</h3><p class="mt-2 text-sm opacity-75">Add <code>progression: { level, totalXp }</code> to game state and SaveState v2. Derive in-level progress from total XP so carryover cannot be lost.</p><p class="mt-3 file">shared/progression.ts<br>shared/save-types.ts<br>game/assets/src/state.ts</p></article>
+        <article class="doc-card rounded-box p-5"><span class="badge badge-secondary badge-sm">Battle snapshot</span><h3 class="mt-3 font-bold">Reward phases</h3><p class="mt-2 text-sm opacity-75">Extend the phase union with <code>reward</code> and <code>level-up</code>. Compute a breakdown and before/after snapshot once; render from that immutable result.</p><p class="mt-3 file">BattleScreen.ts<br>XpRewardBreakdown<br>XpSegment[]</p></article>
+        <article class="doc-card rounded-box p-5"><span class="badge badge-accent badge-sm">Reuse one visual</span><h3 class="mt-3 font-bold">PlayerXpBar</h3><p class="mt-2 text-sm opacity-75">A reusable Cocos node renders label, numbers, and fill in world HUD, battle HUD, and results. One component prevents the three values from drifting apart.</p><p class="mt-3 file">progression/PlayerXpBar.ts<br>WorldScreen.ts<br>GameApp.ts</p></article>
+      </div>
+      <div class="callout rounded-box p-5">
+        <div class="font-bold">Recommended save migration</div>
+        <p class="mt-1 text-sm opacity-75">Preserve the player’s current highest creature level, then map the old fractional progress (<code>oldXp / 20</code>) into the new level threshold. After migration, creature XP and level stop driving permanent progression. A silent reset would be simpler but wrong once children have saves.</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div><h2 class="text-2xl font-bold">Implementation slices</h2><p class="mt-1 text-sm opacity-70">Each slice is testable and useful on its own.</p></div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <article class="doc-card rounded-box p-5"><div class="text-xs font-black text-primary">SLICE 1</div><h3 class="mt-2 font-bold">Truth</h3><p class="mt-2 text-sm opacity-75">Player progression model, exact reward breakdown, save migration, carryover tests.</p></article>
+        <article class="doc-card rounded-box p-5"><div class="text-xs font-black text-primary">SLICE 2</div><h3 class="mt-2 font-bold">Persistent bar</h3><p class="mt-2 text-sm opacity-75">Reusable XP bar in the world and battle HUD. Remove pet ownership semantics.</p></article>
+        <article class="doc-card rounded-box p-5"><div class="text-xs font-black text-primary">SLICE 3</div><h3 class="mt-2 font-bold">Reward drawer</h3><p class="mt-2 text-sm opacity-75">Reward phase, count animation, modifier chips, fast-forward, Continue.</p></article>
+        <article class="doc-card rounded-box p-5"><div class="text-xs font-black text-primary">SLICE 4</div><h3 class="mt-2 font-bold">Celebration</h3><p class="mt-2 text-sm opacity-75">Level-up sequence, rollover segments, milestone copy, reduced-motion behavior.</p></article>
+      </div>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-sm">
+          <thead><tr><th>High-value test</th><th>Expected result</th></tr></thead>
+          <tbody>
+            <tr><td>Reward formula and rounding</td><td>Displayed total equals saved total exactly.</td></tr>
+            <tr><td>Threshold crossing</td><td>Bar fills, rolls over, and keeps excess XP.</td></tr>
+            <tr><td>Multiple levels</td><td><code>XpSegment[]</code> plays each threshold in order.</td></tr>
+            <tr><td>Review enemy</td><td>Always 1 XP, even with guardian/effort modifiers.</td></tr>
+            <tr><td>Capture path</td><td>No full kill XP is granted.</td></tr>
+            <tr><td>Save v1 → v2</td><td>Level and fractional progress are preserved.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div><h2 class="text-2xl font-bold">Accessibility is part of the mechanic</h2><p class="mt-1 text-sm opacity-70">A progress display fails if a child cannot perceive or read it.</p></div>
+      <div class="grid gap-4 md:grid-cols-3">
+        <article class="doc-card rounded-box p-5"><h3 class="font-bold">Never blue alone</h3><p class="mt-2 text-sm opacity-75">Pair fill with <code>284 / 484 XP</code>, a level label, and a distinct border. Color is reinforcement, not the only signal.</p></article>
+        <article class="doc-card rounded-box p-5"><h3 class="font-bold">Respect reduced motion</h3><p class="mt-2 text-sm opacity-75">Snap the count and bar to their final values. Keep the numbers and level-up card; remove scaling, panning, and confetti.</p></article>
+        <article class="doc-card rounded-box p-5"><h3 class="font-bold">Let the reader decide</h3><p class="mt-2 text-sm opacity-75">Text and rewards wait for player input. Optional count ticks and one level-up chime follow the game’s mute setting.</p></article>
+      </div>
+    </section>
+
+    <section class="doc-card rounded-box p-5 sm:p-7 space-y-4">
+      <div><h2 class="text-2xl font-bold">Research basis</h2><p class="mt-1 text-sm opacity-70">Current guidance plus established game patterns; the mockups use PokeMath’s own visual language rather than copying another game.</p></div>
+      <div class="grid gap-3 md:grid-cols-2">
+        <a class="link link-primary" href="https://www.nngroup.com/articles/visibility-system-status/">Nielsen Norman Group · Visibility of system status</a>
+        <a class="link link-primary" href="https://developer.apple.com/design/human-interface-guidelines/progress-indicators">Apple HIG · Progress indicators</a>
+        <a class="link link-primary" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-motion">MDN · prefers-reduced-motion</a>
+        <a class="link link-primary" href="https://gameaccessibilityguidelines.com/ensure-no-essential-information-is-conveyed-by-a-fixed-colour-alone/">Game Accessibility Guidelines · Color is not enough</a>
+        <a class="link link-primary" href="https://gameaccessibilityguidelines.com/allow-players-to-progress-through-text-prompts-at-their-own-pace/">Game Accessibility Guidelines · Player-paced text</a>
+        <a class="link link-primary" href="https://blog.duolingo.com/sticking-with-it-tips-for-staying-motivated/">Duolingo · Small goals and finish lines</a>
+        <a class="link link-primary" href="https://niantic.helpshift.com/hc/en/6-pokemon-go/faq/101-how-do-i-level-up-and-earn-medals/">Pokémon GO · Player-owned Trainer XP</a>
+        <a class="link link-primary" href="https://interfaceingame.com/screenshots/pokemon-lets-go-pikachu-level-up/">Interface In Game · Pokémon Let’s Go level-up result</a>
+      </div>
+      <p class="text-xs opacity-60">The durable pattern across these references: show a truthful determinate state, reveal the result of the action quickly, make important text player-paced, and celebrate meaningful thresholds more strongly than routine increments.</p>
+    </section>
+
+    <footer class="pb-6 text-sm opacity-60">PokeMath · Progression UX integration proposal · No production files changed</footer>
+  </main>
+</body>
+</html>

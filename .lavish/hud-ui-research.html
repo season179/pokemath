@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PokeMath HUD research</title>
+  <style>
+    :root {
+      --ink: #273044;
+      --sub: #626779;
+      --panel: #fffdf5;
+      --panel-2: #f5f1e5;
+      --line: #3b4a6b;
+      --blue: #42a5f5;
+      --blue-deep: #1976c9;
+      --green: #57a66b;
+      --red: #df5a61;
+      --gold: #e8ad38;
+      --page: #e9f1e8;
+      --shadow: 0 6px 0 rgba(39, 48, 68, 0.12);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,.28)),
+        var(--page);
+      font-family: ui-rounded, "Avenir Next", Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a { color: var(--blue-deep); }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(260px, .55fr);
+      gap: 20px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .hero-main,
+    .verdict {
+      border: 3px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: clamp(24px, 4vw, 48px); }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue-deep);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 16px;
+      font-size: clamp(36px, 6vw, 72px);
+      line-height: .98;
+      letter-spacing: -.035em;
+      text-wrap: balance;
+    }
+
+    .lede {
+      max-width: 68ch;
+      margin: 0;
+      color: var(--sub);
+      font-size: clamp(17px, 2vw, 22px);
+      text-wrap: pretty;
+    }
+
+    .verdict {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      background: var(--line);
+      color: white;
+    }
+
+    .verdict .tag {
+      align-self: flex-start;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #10243c;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .verdict strong {
+      display: block;
+      margin: 26px 0 16px;
+      font-size: 25px;
+      line-height: 1.16;
+      text-wrap: balance;
+    }
+
+    .verdict p { margin: 0; color: #dfe7f4; }
+
+    .section {
+      margin-top: 24px;
+      padding: clamp(22px, 3vw, 34px);
+      border: 3px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .section-head h2 {
+      margin-bottom: 0;
+      font-size: clamp(26px, 4vw, 42px);
+      line-height: 1.05;
+      letter-spacing: -.025em;
+      text-wrap: balance;
+    }
+
+    .section-head p {
+      max-width: 52ch;
+      margin-bottom: 2px;
+      color: var(--sub);
+      text-align: right;
+    }
+
+    .capture-wrap {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: #111;
+    }
+
+    .capture-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .pin {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 3px solid white;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      box-shadow: 0 2px 0 rgba(0,0,0,.28);
+    }
+
+    .pin.one { left: 15%; top: 4%; }
+    .pin.two { left: 48%; top: 4%; }
+    .pin.three { right: 14%; top: 4%; }
+
+    .issue-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .issue {
+      min-width: 0;
+      padding: 16px;
+      border: 2px solid #c9d0dc;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .issue-num {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      font-weight: 900;
+    }
+
+    .issue h3 { margin-bottom: 6px; font-size: 17px; }
+    .issue p { margin-bottom: 0; color: var(--sub); font-size: 14px; }
+
+    .evidence-table-wrap {
+      overflow-x: auto;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 15px 16px;
+      border-bottom: 1px solid #d8dde6;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--line);
+      color: white;
+      font-size: 13px;
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+    td:first-child { width: 19%; font-weight: 900; }
+    td { font-size: 14px; }
+
+    .source-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .source-links a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 11px;
+      border: 2px solid #b9c5d6;
+      border-radius: 999px;
+      background: white;
+      font-size: 13px;
+      font-weight: 750;
+      text-decoration: none;
+    }
+
+    .source-links a:hover { border-color: var(--blue-deep); }
+
+    .rules {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .rule {
+      padding: 18px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+    }
+
+    .rule strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--blue-deep);
+      font-size: 18px;
+    }
+
+    .rule p { margin: 0; color: var(--sub); font-size: 14px; }
+
+    .recommendation {
+      background: #f8fbff;
+    }
+
+    .mock-stage {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 3 / 2;
+      min-height: 430px;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 50% 55%, rgba(255,255,255,.48), transparent 34%),
+        linear-gradient(#9cd9b0 0 62%, #dccd91 62% 71%, #8eb4de 71%);
+      isolation: isolate;
+    }
+
+    .mock-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .2;
+      background-image:
+        linear-gradient(90deg, rgba(39,48,68,.2) 1px, transparent 1px),
+        linear-gradient(rgba(39,48,68,.2) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .safe-line {
+      position: absolute;
+      inset: 16px;
+      border: 1px dashed rgba(39,48,68,.45);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+    .pet-card {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      width: min(196px, calc(100% - 104px));
+      min-height: 60px;
+      padding: 7px 10px 7px 8px;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,253,245,.96);
+      box-shadow: 0 4px 0 rgba(39,48,68,.16);
+    }
+
+    .pet-face {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      background: #bfe5c8;
+    }
+
+    .pet-glyph {
+      position: relative;
+      width: 25px;
+      height: 22px;
+      border: 2px solid var(--line);
+      border-radius: 48% 48% 44% 44%;
+      background: #81c784;
+    }
+
+    .pet-glyph::before,
+    .pet-glyph::after {
+      content: "";
+      position: absolute;
+      top: -7px;
+      width: 8px;
+      height: 10px;
+      border: 2px solid var(--line);
+      background: #81c784;
+    }
+
+    .pet-glyph::before { left: 0; transform: rotate(-18deg); }
+    .pet-glyph::after { right: 0; transform: rotate(18deg); }
+
+    .bag-glyph {
+      position: relative;
+      width: 24px;
+      height: 25px;
+      border: 3px solid var(--line);
+      border-radius: 6px;
+      background: var(--gold);
+    }
+
+    .bag-glyph::before {
+      content: "";
+      position: absolute;
+      top: -9px;
+      left: 4px;
+      width: 10px;
+      height: 8px;
+      border: 3px solid var(--line);
+      border-bottom: 0;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .bag-glyph::after {
+      content: "";
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      left: 3px;
+      height: 7px;
+      border-top: 2px solid var(--line);
+      background: rgba(255,255,255,.25);
+    }
+
+    .pet-copy { min-width: 0; }
+    .pet-name { overflow: hidden; font-size: 14px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+    .pet-meta { color: var(--sub); font-size: 11px; }
+
+    .hp-track {
+      overflow: hidden;
+      height: 6px;
+      margin-top: 4px;
+      border-radius: 999px;
+      background: #d7dbe2;
+    }
+
+    .hp-fill { width: 76%; height: 100%; background: var(--green); }
+
+    .bag-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border: 3px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,253,245,.96);
+      box-shadow: 0 4px 0 rgba(39,48,68,.16);
+      font-size: 25px;
+    }
+
+    .town-toast {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      max-width: calc(100% - 310px);
+      padding: 8px 16px;
+      transform: translateX(-50%);
+      border: 3px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,253,245,.94);
+      font-size: 13px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .player {
+      position: absolute;
+      left: 51%;
+      top: 55%;
+      width: 20px;
+      height: 30px;
+      border: 3px solid var(--line);
+      border-radius: 8px 8px 6px 6px;
+      background: var(--red);
+    }
+
+    .follow-pet {
+      position: absolute;
+      left: 46%;
+      top: 61%;
+      width: 25px;
+      height: 21px;
+      border: 3px solid var(--line);
+      border-radius: 50% 50% 42% 42%;
+      background: #9bcf9e;
+    }
+
+    .follow-pet::before,
+    .follow-pet::after {
+      content: "";
+      position: absolute;
+      top: -8px;
+      width: 8px;
+      height: 12px;
+      border: 3px solid var(--line);
+      background: #9bcf9e;
+    }
+
+    .follow-pet::before { left: 0; transform: rotate(-18deg); }
+    .follow-pet::after { right: 0; transform: rotate(18deg); }
+
+    .mock-note {
+      position: absolute;
+      padding: 7px 9px;
+      border: 2px solid var(--line);
+      border-radius: 9px;
+      background: white;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 3px 0 rgba(39,48,68,.12);
+    }
+
+    .mock-note.pet { top: 94px; left: 22px; }
+    .mock-note.bag { top: 84px; right: 18px; }
+    .mock-note.world { left: 53%; bottom: 24%; }
+
+    .context-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .context-card {
+      padding: 17px;
+      border: 2px solid #c7d0dd;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .context-card h3 { margin-bottom: 7px; font-size: 18px; }
+    .context-card p { margin-bottom: 0; color: var(--sub); font-size: 14px; }
+    .context-card .where { color: var(--blue-deep); font-weight: 900; }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .phase {
+      padding: 20px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: white;
+    }
+
+    .phase.recommended { background: #eef8f0; }
+    .phase h3 { margin-bottom: 8px; font-size: 21px; }
+    .phase ul { margin: 0; padding-left: 20px; color: var(--sub); }
+    .phase li + li { margin-top: 6px; }
+
+    .specs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .spec {
+      padding: 13px;
+      border-radius: 10px;
+      background: var(--line);
+      color: white;
+    }
+
+    .spec strong { display: block; color: #9bd3ff; font-size: 13px; }
+    .spec span { font-size: 14px; }
+
+    .footnote {
+      margin: 18px 2px 0;
+      color: var(--sub);
+      font-size: 13px;
+    }
+
+    .approval-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 2px solid #2f7f49;
+      border-radius: 12px;
+      background: #eef8f0;
+      color: #245d37;
+      font-weight: 800;
+    }
+
+    .approval-banner code {
+      overflow-wrap: anywhere;
+      padding: 4px 7px;
+      border-radius: 6px;
+      background: white;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    @media (max-width: 820px) {
+      .hero,
+      .roadmap { grid-template-columns: 1fr; }
+      .issue-grid,
+      .rules,
+      .context-strip { grid-template-columns: 1fr; }
+      .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-head { display: block; }
+      .section-head p { margin-top: 9px; text-align: left; }
+      .mock-stage { min-height: 400px; aspect-ratio: auto; }
+      .town-toast { display: none; }
+      .mock-note.world { left: 49%; }
+    }
+
+    @media (max-width: 520px) {
+      .page { width: min(100% - 18px, 1180px); padding-top: 10px; }
+      .hero-main, .verdict, .section { border-width: 2px; }
+      .specs { grid-template-columns: 1fr; }
+      .capture-wrap { min-height: 250px; }
+      .capture-wrap img { width: auto; height: 250px; max-width: none; transform: translateX(-16%); }
+      .pin.two { left: 49%; }
+      .mock-note.world { bottom: 18%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-main">
+        <p class="eyebrow">PokeMath UI research · 18 July 2026</p>
+        <h1>Make the pet feel alive. Move the ledger out of the world.</h1>
+        <p class="lede">The current top corners behave like a dashboard, while the game world wants to feel like an adventure. Comparable creature games keep peaceful exploration quiet and reveal status only when it affects the next action.</p>
+      </div>
+      <aside class="verdict">
+        <span class="tag">Recommended direction</span>
+        <strong>One active companion cue at top left. One Bag button at top right. Money and item counts live inside Bag, Shop, and Battle.</strong>
+        <p>The strongest later upgrade is to let the active pet follow the player in-world, then reduce the companion card further.</p>
+      </aside>
+    </section>
+
+    <section class="section" id="current-hud">
+      <div class="section-head">
+        <h2>Why the current corners feel off</h2>
+        <p>The screenshot and source agree: three floating panels compete across the same top edge without sharing a hierarchy.</p>
+      </div>
+      <div class="capture-wrap">
+        <img src="pokemath-current-hud.png" alt="Current PokeMath Harbor Town HUD" />
+        <span class="pin one" aria-label="Issue 1">1</span>
+        <span class="pin two" aria-label="Issue 2">2</span>
+        <span class="pin three" aria-label="Issue 3">3</span>
+      </div>
+      <div class="issue-grid">
+        <article class="issue">
+          <span class="issue-num">1</span>
+          <h3>The party card is clipped and underspecified</h3>
+          <p>Its 66px height is centered at y=288, so the top reaches y=321 on a 640px design canvas. The icon and level show neither name, HP, active state, nor why the player should look here.</p>
+        </article>
+        <article class="issue">
+          <span class="issue-num">2</span>
+          <h3>The location label competes with persistent status</h3>
+          <p>Town identity, party identity, and resources all receive the same cream pill treatment. Nothing reads as primary, contextual, or temporary.</p>
+        </article>
+        <article class="issue">
+          <span class="issue-num">3</span>
+          <h3>The wallet is a text dump, not an interface</h3>
+          <p>RM, potion, and ball counts are flattened into one line using operating-system emoji. It clashes with the pixel art and consumes attention even when walking requires none of those values.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="benchmarks">
+      <div class="section-head">
+        <h2>What comparable games do</h2>
+        <p>The useful distinction is not franchise versus indie. It is peaceful exploration versus action where status changes every turn.</p>
+      </div>
+      <div class="evidence-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Exploration HUD</th>
+              <th>Party treatment</th>
+              <th>Money and inventory</th>
+              <th>Lesson for PokeMath</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pokémon: Let’s Go</td>
+              <td>Peaceful routes are almost entirely world-first. Location appears as a temporary banner, not a permanent card.</td>
+              <td>The partner is embodied in the world and receives the largest visual role in the main menu. Party is a separate, clearly labelled destination.</td>
+              <td>Bag uses individual item icons and counts. Money appears inside the Bag screen where it belongs.</td>
+              <td>PokeMath targets children too. Preserve the world view; make the pet a character before making it a statistic.</td>
+            </tr>
+            <tr>
+              <td>Pokémon Mystery Dungeon DX</td>
+              <td>Dungeons carry more HUD because movement and combat share the same space.</td>
+              <td>Active Pokémon gets portrait, level, and full HP; the follower is a smaller secondary row.</td>
+              <td>Only action-relevant information stays visible.</td>
+              <td>If PokeMath later adds dangerous roaming zones, a richer status stack is justified there, not in Harbor Town.</td>
+            </tr>
+            <tr>
+              <td>Temtem</td>
+              <td>Official overworld screenshots stay quiet, even in populated social areas. The scene, creatures, and nearby interaction markers lead.</td>
+              <td>Companions and other players exist in the world rather than as a permanent roster strip.</td>
+              <td>No persistent currency or inventory strip in the showcased overworld.</td>
+              <td>A creature-collection game can feel rich without displaying every owned resource while walking.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="source-links" aria-label="Research sources">
+        <a href="https://pokemonletsgo.pokemon.com/en-us/index.html" target="_blank" rel="noreferrer">Official Let’s Go site</a>
+        <a href="https://interfaceingame.com/screenshots/pokemon-lets-go-pikachu-location/" target="_blank" rel="noreferrer">Let’s Go: overworld</a>
+        <a href="https://interfaceingame.com/screenshots/pokemon-lets-go-pikachu-menu/" target="_blank" rel="noreferrer">Let’s Go: main menu</a>
+        <a href="https://interfaceingame.com/screenshots/pokemon-lets-go-pikachu-bag/" target="_blank" rel="noreferrer">Let’s Go: bag</a>
+        <a href="https://mysterydungeon.pokemon.com/en-us/gameplay/" target="_blank" rel="noreferrer">Official Mystery Dungeon gameplay</a>
+        <a href="https://interfaceingame.com/screenshots/pokemon-mystery-dungeon-rescue-team-dx-attack/" target="_blank" rel="noreferrer">Mystery Dungeon: action HUD</a>
+        <a href="https://crema.gg/games/temtem/" target="_blank" rel="noreferrer">Official Temtem gallery</a>
+      </div>
+      <div class="rules">
+        <article class="rule">
+          <strong>Context beats completeness</strong>
+          <p>Show a value when it helps the player choose the next action. Ownership alone is not a reason to pin it to the world.</p>
+        </article>
+        <article class="rule">
+          <strong>Identity before telemetry</strong>
+          <p>A larger pet portrait, name, and state communicate attachment. Six tiny level dots communicate bookkeeping.</p>
+        </article>
+        <article class="rule">
+          <strong>One visual language</strong>
+          <p>Use pixel-art bag, potion, and ball sprites. Avoid platform emoji, whose rendering and weight change by device.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section recommendation" id="recommended-hud">
+      <div class="section-head">
+        <h2>Recommended Harbor Town HUD</h2>
+        <p>This keeps touch access, pet attachment, and bilingual place identity without turning the world into a status dashboard.</p>
+      </div>
+      <div class="mock-stage" role="img" aria-label="Recommended PokeMath HUD wireframe">
+        <div class="safe-line" aria-hidden="true"></div>
+        <div class="pet-card">
+          <div class="pet-face" aria-hidden="true"><span class="pet-glyph"></span></div>
+          <div class="pet-copy">
+            <div class="pet-name">Multiplybara</div>
+            <div class="pet-meta">Lv. 1 · Active pet</div>
+            <div class="hp-track"><div class="hp-fill"></div></div>
+          </div>
+        </div>
+        <div class="town-toast">HARBOR TOWN · 港湾镇</div>
+        <div class="bag-button" aria-label="Open Bag"><span class="bag-glyph" aria-hidden="true"></span></div>
+        <div class="player" aria-hidden="true"></div>
+        <div class="follow-pet" aria-hidden="true"></div>
+        <div class="mock-note pet">Tap to open Party</div>
+        <div class="mock-note bag">No counts until opened</div>
+        <div class="mock-note world">Long term: pet follows player</div>
+      </div>
+
+      <div class="context-strip">
+        <article class="context-card">
+          <h3>World</h3>
+          <p><span class="where">Top left:</span> active pet only. <span class="where">Top right:</span> one Bag button. Town name fades after arrival. No money or item counts.</p>
+        </article>
+        <article class="context-card">
+          <h3>Bag and Shop</h3>
+          <p><span class="where">Bag:</span> RM in the header, then proper item sprites and counts. <span class="where">Shop:</span> wallet stays visible beside prices because every action changes money.</p>
+        </article>
+        <article class="context-card">
+          <h3>Battle</h3>
+          <p><span class="where">Pet status:</span> full name, level, and HP. <span class="where">Items:</span> reveal counts inside the item action tray, not before the player chooses Bag.</p>
+        </article>
+      </div>
+
+      <div class="specs" aria-label="Suggested HUD dimensions">
+        <div class="spec"><strong>Safe edge</strong><span>20px on a 960×640 canvas</span></div>
+        <div class="spec"><strong>Active card</strong><span>196×60px, top-left</span></div>
+        <div class="spec"><strong>Bag target</strong><span>54×54px, top-right</span></div>
+        <div class="spec"><strong>Town toast</strong><span>1.5–2.0s, then fade</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="sequence">
+      <div class="section-head">
+        <h2>Practical sequence</h2>
+        <p>The first pass is small and immediately fixes the imbalance. The second pass creates the Pokémon-like emotional payoff.</p>
+      </div>
+      <div class="approval-banner">
+        <span>Approved by Season · implementation plan saved</span>
+        <code>docs/hud-ui-plan.md</code>
+      </div>
+      <div class="roadmap">
+        <article class="phase recommended">
+          <h3>First pass: restructure the HUD</h3>
+          <ul>
+            <li>Replace the team dot strip with one active-pet card.</li>
+            <li>Replace the wallet line with a pixel-art Bag button.</li>
+            <li>Move RM, potion, and ball counts into the Bag and keep RM visible in Shop.</li>
+            <li>Move all top elements down to a consistent 20px safe inset.</li>
+            <li>Make the town title transient rather than persistent.</li>
+          </ul>
+        </article>
+        <article class="phase">
+          <h3>Second pass: make the pet part of the world</h3>
+          <ul>
+            <li>Render the active pet trailing behind the player.</li>
+            <li>Use a small reaction animation when healing, finding an item, or arriving home.</li>
+            <li>Shrink the pet card to a compact portrait or remove it entirely in safe towns.</li>
+            <li>Bring richer HP and party status back only in battle or dangerous exploration.</li>
+          </ul>
+        </article>
+      </div>
+      <p class="footnote">Research scope: live PokeMath build and source inspection, official Pokémon and Temtem material, and UI screenshot archives. This report proposes direction only; it does not modify game code.</p>
+    </section>
+  </main>
+</body>
+</html>
