@@ -16,10 +16,12 @@ in Git so future work can refer back to the decisions and mockups.
 
 ## Supporting references
 
-- `creatures-all-labeled.html` and `creature-assets/` provide the labelled
-  creature catalog.
 - `pokemath-*.png` files are current-state and approved visual references used
   by the HTML artifacts.
+
+Do not copy ignored reference material, including anything under
+`art-samples/`, into this tracked directory. Only project-owned or generated
+assets that are safe to version belong in `.lavish/`.
 
 ## Workflow
 
