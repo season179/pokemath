@@ -111,6 +111,8 @@ export const WOOLLY_FLUFFBALL: Species = {
   color: "#ede0c8",
   maxHp: 13,
   attack: 2,
+  // Pack family 3EVO/06: fluffball → winged lambkin → meadow fae.
+  art: { sheet: "creatures/3evo/06/06.png", x: 0, y: 0, w: 48, h: 48 },
 };
 
 export const WOOLLY_HARE: Species = {
@@ -119,6 +121,8 @@ export const WOOLLY_HARE: Species = {
   color: "#c19a6b",
   maxHp: 15,
   attack: 3,
+  // Pack family 3EVO/13: ball-tail hare (quadruped throughout).
+  art: { sheet: "creatures/3evo/13/13.png", x: 0, y: 0, w: 48, h: 48 },
 };
 
 export const WOOLLY_RAM: Species = {
@@ -127,6 +131,10 @@ export const WOOLLY_RAM: Species = {
   color: "#7d8fa9",
   maxHp: 18,
   attack: 4,
+  // Pack family 2EVO/03: woolly ram → bull. 2EVO strips are 144×48 with an
+  // empty leading cell — the two stages sit in the trailing 48px cells, so
+  // stage 1 is the middle cell, not x:0.
+  art: { sheet: "creatures/2evo/03_2/03.png", x: 48, y: 0, w: 48, h: 48 },
 };
 
 // Every species by semantic id — the encounter engine resolves wild picks

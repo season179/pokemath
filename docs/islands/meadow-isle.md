@@ -362,13 +362,21 @@ mainly as evolved player pets.
 | `2EVO/10` | pufftail mouse → roly-poly mouse | 2 | common | everywhere, Barn |
 | `3EVO/21` | chick → gamefowl → plumed strider | 3 | common | Orchard, Barn |
 | `3EVO/13` | ball-tail hare (quadruped throughout) | 3 | uncommon | Woolly Meadows, Gardens |
-| `3EVO/02` | sprout kitten → leaf cat → orchard lynx | 3 | uncommon | Orchard |
+| `3EVO/02` | sprout kitten → leaf cat → orchard lynx | 3 | starter | Sproutkit (provisional name) — starters don't spawn wild |
 | `3EVO/08` | pink squirrel kit → squirrel-fox → blossom fox | 3 | uncommon | Orchard, Ticktock base |
 | `2EVO/04` | round chick → owl | 2 | uncommon | Ticktock Knoll |
 | `2EVO/06` | farm pup → hound | 2 | uncommon | Barn |
 | `2EVO/03` | woolly ram → bull | 2 | **rare** | Hundred Stones edge |
 | `3EVO/01` | petal sprite → blossom fae | 3 | **rare** | Festival Green (dusk) |
 | `Uniques/03` | **Cloud-Maned Horse — guardian** | 1 | guardian | The Hundred Stones |
+
+**Bound art (2026-07-18, #46):** the Woolly Meadows preview roster — `3EVO/06`
+(Fluffball), `3EVO/13` (Balltail Hare), and `2EVO/03` (Woolly Ram) — is bound
+via `Species.art` in `shared/creature.ts`; all other rows remain art
+candidates until their habitat tables land (#9). The hare keeps `3EVO/13`:
+the locked starter trio (Cloudhorn, Lumentail, Sproutkit `3EVO/02`) no longer
+claims any wild family's sheet, so no sheet is double-booked. (2EVO strips
+are 144×48 with an empty leading cell — stage 1 is the middle 48px cell.)
 
 Reserved for later islands (seen in the pack, wrong biome here): the sea
 serpents (`3EVO/09`, `3EVO/10`) → Tidepool Coast; the sun-maned lion
