@@ -8,6 +8,7 @@ export const MEADOW_GARDENS: RegionDef = {
   id: "meadow/gardens",
   title: "PATTERN GARDENS  ·  图案花园",
   art: "meadow",
+  map: { group: "meadow", role: "monster", position: { x: 42, y: 34 } },
   rows: [
     "TTTTTTTTpTTTTTTTTTTTTTTTTTTTTT",
     "T.......p.N..................T",

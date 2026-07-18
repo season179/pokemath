@@ -18,5 +18,6 @@ export function guide(x: number, y: number, characterSheet: string): NpcDef {
     characterSheet,
     sailTo: "meadow/dock",
     sailArrive: "east",
+    sailKind: "shortcut",
   };
 }

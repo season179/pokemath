@@ -16,7 +16,7 @@
 //   default target: game/assets/shared
 
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -73,15 +73,24 @@ async function mirrorRegions(srcDir, destDir) {
     wanted.add(entry.name);
     const src = await readFile(join(srcDir, entry.name), "utf8");
     await writeFile(join(destDir, entry.name), src.replace(TS_SPECIFIER, "$1$2"));
-    console.log(`synced regions/${entry.name}`);
+    console.log(`synced ${relative(root, join(srcDir, entry.name))}`);
   }
   // Remove stale synced .ts files; .meta files always stay.
   for (const entry of await readdir(destDir, { withFileTypes: true })) {
     if (entry.isFile() && entry.name.endsWith(".ts") && !wanted.has(entry.name)) {
       await rm(join(destDir, entry.name));
-      console.log(`removed stale regions/${entry.name}`);
+      console.log(`removed stale ${relative(root, join(destDir, entry.name))}`);
     }
   }
 }
 
 await mirrorRegions(WORLD_SRC, WORLD_DEST);
+
+// Pure, Node-runnable world modules (no Cocos) live in their own directory so
+// the mirror can be deletion-safe just like regions/ — the dest dir holds
+// ONLY mirrored files, never Cocos-only code. Add a future pure world module
+// by dropping it in game/world/graph/; sync handles the rest.
+await mirrorRegions(
+  join(root, "game", "world", "graph"),
+  join(root, "game", "assets", "src", "world", "graph"),
+);

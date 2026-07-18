@@ -7,6 +7,7 @@ export const MEADOW_BARN: RegionDef = {
   id: "meadow/barn",
   title: "HARVEST BARN & MILL  ·  丰收谷仓与磨坊",
   art: "meadow",
+  map: { group: "meadow", role: "monster", position: { x: 62, y: 24 } },
   rows: [
     "TTTTTTTTTTTTTTpTTTTTTTTTTTTT",
     "T.............p............T",

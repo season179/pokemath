@@ -7,6 +7,7 @@ export const MEADOW_ORCHARD: RegionDef = {
   id: "meadow/orchard",
   title: "APPLEDORE ORCHARD  ·  苹果园",
   art: "meadow",
+  map: { group: "meadow", role: "monster", position: { x: 84, y: 70 } },
   rows: [
     "TTTTTTTTTTTTTTpTTTTTTTTTTTTTTT",
     "T.............p..............T",
