@@ -197,9 +197,9 @@ sentence) is something you can see.
   (missing addend), `word-single` (single-step orchard stories),
   `count-write` (count the picked apples).
 - **Creatures:** `3EVO/21` (chick → gamefowl → plumed strider — the line
-  ends as a riding bird, not a rooster), `3EVO/02` (sprout kitten → leaf
-  cat → orchard lynx, uncommon, naps in trees), `3EVO/08` (pink squirrel-fox,
-  uncommon).
+  ends as a riding bird, not a rooster), `3EVO/08` (pink squirrel-fox,
+  uncommon). (`3EVO/02`, the sprout kitten → leaf cat → orchard lynx line,
+  left this table when it became a starter — starters don't spawn wild.)
 
 ### 4. Pattern Gardens — shapes & patterns (TP2–TP3)
 

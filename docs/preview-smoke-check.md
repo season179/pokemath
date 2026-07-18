@@ -146,7 +146,7 @@ curl -b /tmp/dev-cookies.txt -X PUT http://localhost:8799/api/profile/name \
 #    this check starts in the world, so mint the save here). Idempotent —
 #    an existing save is never overwritten.
 curl -b /tmp/dev-cookies.txt -X POST http://localhost:8799/api/save/new \
-  -H 'content-type: application/json' -d '{"starter":"multiplybara"}'
+  -H 'content-type: application/json' -d '{"starter":"cloudhorn"}'
 
 # 4. Confirm the gate: 200 = authed, 302 → /login = cookie missing/invalid.
 curl -b /tmp/dev-cookies.txt -o /dev/null -w "%{http_code}\n" http://localhost:8799/

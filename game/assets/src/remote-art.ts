@@ -13,10 +13,12 @@ import {
 const ART_PATH = "/art/v1/pocket-creature-tamer";
 const textureCache = new Map<string, Promise<Texture2D>>();
 
-export function artUrl(relativePath: string): string {
+export function artUrl(path: string): string {
   // The deployed game and `wrangler dev --remote` serve art on the same
   // origin, avoiding credential and CORS differences between environments.
-  return `${ART_PATH}/${relativePath}`;
+  // Paths starting with "art/" are absolute R2 keys (original creatures);
+  // everything else is relative to the licensed pack root.
+  return path.startsWith("art/") ? `/${path}` : `${ART_PATH}/${path}`;
 }
 
 export function loadPixelTexture(relativePath: string): Promise<Texture2D> {

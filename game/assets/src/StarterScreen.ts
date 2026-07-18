@@ -11,9 +11,9 @@ import type { Persistence } from "./persistence";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect } from "./ui";
 
 const TAGLINES: Record<string, string> = {
-  addlepuff: "Loves addition!  最爱加法！",
-  subtractopus: "Subtraction star!  减法之星！",
-  multiplybara: "Times-table champ!  乘法高手！",
+  cloudhorn: "Soft as a cloud!  像云一样软！",
+  lumentail: "Counting lanterns!  灯笼会数数！",
+  sproutkit: "Grows as you learn!  越学越茂盛！",
 };
 
 export class StarterScreen {

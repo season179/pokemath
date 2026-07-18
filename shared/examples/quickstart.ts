@@ -19,7 +19,7 @@ import {
 } from "../index.ts";
 
 // A battle round: answer the wild creature's question to hit it.
-const save = createNewGame(STARTERS[0]); // the player picked Addlepuff
+const save = createNewGame(STARTERS[0]); // the player picked Cloudhorn
 const me = Creature.fromState(save.team.creatures[0]);
 const wild = Creature.fromSpecies(SPECIES[1]); // Digitell
 console.log(`A wild ${wild.name} appeared! (HP ${wild.hp}) vs your ${me.name}`);

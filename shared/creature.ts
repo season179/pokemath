@@ -16,9 +16,12 @@ export interface CreatureState {
   speciesId?: string;
 }
 
-// Licensed sprite cell: sheet path under the Worker's art route
-// (art/v1/pocket-creature-tamer/) plus the creature's cell rect in
-// top-left-origin pixels. Species without art render as placeholder blobs.
+// Licensed sprite cell: sheet path plus the creature's cell rect in
+// top-left-origin pixels. Paths starting with "art/" are absolute R2 keys
+// (original creatures use content-addressed art/creatures/<id>/<release>/
+// keys — see docs/art-assets.md); anything else is relative to the Worker's
+// pack route (art/v1/pocket-creature-tamer/). Species without art render as
+// placeholder blobs.
 export interface SpeciesArt {
   readonly sheet: string;
   readonly x: number;
@@ -40,33 +43,49 @@ export interface Species {
 
 // The first-start choice: exactly one of these becomes the player's first
 // pet (StarterScreen → POST /api/save/new). Peer stats — no trap picks for
-// a seven-year-old: totals stay comparable, flavors differ. Art cells are
-// the stage-1 frames of licensed Pocket Creature Tamer family sheets
-// (144×48 rows of three 48×48 evolution stages) — see docs/art-assets.md.
+// a seven-year-old: totals stay comparable, flavors differ. Trio locked
+// 2026-07-18: two PokeMath originals (4-stage strips, published via
+// tools/art-registry.mjs — the release hash pins immutable pixels) plus the
+// pack's 3EVO/02 line. Art cells are stage-1 48×48 frames; see
+// docs/art-assets.md.
 export const STARTERS: readonly Species[] = [
   {
-    id: "addlepuff",
-    name: "Addlepuff",
-    color: "#f48fb1",
-    maxHp: 20,
-    attack: 4,
-    art: { sheet: "creatures/3evo/08/08.png", x: 0, y: 0, w: 48, h: 48 },
-  },
-  {
-    id: "subtractopus",
-    name: "Subtractopus",
-    color: "#9575cd",
-    maxHp: 17,
-    attack: 5,
-    art: { sheet: "creatures/3evo/11/11.png", x: 0, y: 0, w: 48, h: 48 },
-  },
-  {
-    id: "multiplybara",
-    name: "Multiplybara",
-    color: "#81c784",
+    id: "cloudhorn",
+    name: "Cloudhorn",
+    color: "#aec6e8",
     maxHp: 22,
     attack: 4,
-    art: { sheet: "creatures/3evo/13/13.png", x: 0, y: 0, w: 48, h: 48 },
+    art: {
+      sheet: "art/creatures/cloudhorn/9d52f2fdd3d0b112247963565e5dbc6a823d2915e885f191f1e50c9c94be3bf2/asset.bin",
+      x: 0,
+      y: 0,
+      w: 48,
+      h: 48,
+    },
+  },
+  {
+    id: "lumentail",
+    name: "Lumentail",
+    color: "#8a7fd0",
+    maxHp: 17,
+    attack: 5,
+    art: {
+      sheet: "art/creatures/lumentail/b59aaa9b65fd4ca5ec5e2d3f843dbeb6d4f5bd2d06ddc2cac2c2c88e1f56dee9/asset.bin",
+      x: 0,
+      y: 0,
+      w: 48,
+      h: 48,
+    },
+  },
+  {
+    // Pack family 3EVO/02: sprout kitten → leaf cat → orchard lynx.
+    // Name is a PROVISIONAL placeholder — the bilingual naming pass is open.
+    id: "sproutkit",
+    name: "Sproutkit",
+    color: "#81c784",
+    maxHp: 20,
+    attack: 4,
+    art: { sheet: "creatures/3evo/02/02.png", x: 0, y: 0, w: 48, h: 48 },
   },
 ];
 
