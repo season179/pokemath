@@ -119,10 +119,7 @@ export class BattleScreen {
   private answerQuestion(round: QuestionRound, _picked: number, correct: boolean): void {
     const turn = round.turn;
     if (!correct) {
-      this.say(
-        [`Not quite… ${turn.expression} = ${fmtNum(turn.answer)}`, "The attack did no damage!"],
-        () => this.wildAttack(),
-      );
+      this.say([`Good try — ${turn.expression} = ${fmtNum(turn.answer)}.`], () => this.wildAttack());
       return;
     }
 
@@ -185,6 +182,15 @@ export class BattleScreen {
   }
 
   private throwBall(): void {
+    // A full team never consumes a ball or loses the creature (preview rule,
+    // issue #8). Storage for a seventh friend is the later M1.5 migration.
+    if (this.state.teamFull) {
+      this.say(
+        ["Your team is full — you already have 6 friends!", "Make room before catching another."],
+        () => this.showMenu(),
+      );
+      return;
+    }
     if (this.state.bag.ball <= 0) {
       this.say(["No balls left! Buy more at the shop."], () => this.showMenu());
       return;

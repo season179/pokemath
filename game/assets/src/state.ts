@@ -1,7 +1,13 @@
 // Game state: what the player HAS. Built from the shared domain's save
 // types so Phase 2's save/load drops straight in.
 
-import { Creature, createNewGame, type BagState, type SaveState } from "../shared/index";
+import {
+  Creature,
+  MAX_TEAM_SIZE,
+  createNewGame,
+  type BagState,
+  type SaveState,
+} from "../shared/index";
 
 export class GameState {
   team: Creature[];
@@ -23,6 +29,12 @@ export class GameState {
 
   get active(): Creature {
     return this.team[this.activeIndex];
+  }
+
+  // The active team caps at six (preview rule, issue #8). A full team must not
+  // consume a ball or lose a creature on a catch attempt.
+  get teamFull(): boolean {
+    return this.team.length >= MAX_TEAM_SIZE;
   }
 
   benchedFighters(): Creature[] {
