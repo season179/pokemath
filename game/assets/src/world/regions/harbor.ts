@@ -7,6 +7,7 @@ export const HARBOR: RegionDef = {
   id: "harbor",
   title: "HARBOR TOWN  ·  港湾镇",
   art: "harbor",
+  map: { group: "harbor", role: "hub", position: { x: 8, y: 52 } },
   rows: [
     "TTTTTTTTTTTTTTTTTTTT",
     "T.XXXX..XXXXX.XXXX.T",
@@ -53,6 +54,7 @@ export const HARBOR: RegionDef = {
       characterSheet: "characters/character_10/character10-sheet.png",
       sailTo: "meadow/dock",
       sailArrive: "ferry",
+      sailKind: "ferry",
     },
   ],
   gateways: [

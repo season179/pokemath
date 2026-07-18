@@ -7,6 +7,7 @@ export const MEADOW_WOOLLY: RegionDef = {
   id: "meadow/woolly",
   title: "WOOLLY MEADOWS  ·  羊毛草原",
   art: "meadow",
+  map: { group: "meadow", role: "monster", position: { x: 44, y: 74 } },
   rows: [
     "TTTTTTTTTTTTTTTTpTTTTTTTTTTTTTTT",
     "T...............p..............T",

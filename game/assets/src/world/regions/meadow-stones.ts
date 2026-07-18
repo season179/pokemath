@@ -8,6 +8,7 @@ export const MEADOW_STONES: RegionDef = {
   id: "meadow/stones",
   title: "THE HUNDRED STONES  ·  百石原",
   art: "meadow",
+  map: { group: "meadow", role: "guardian", position: { x: 62, y: 52 } },
   rows: [
     "TTTTTTTTTTTTTpTTTTTTTTTTTT",
     "T............p...........T",
