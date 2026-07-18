@@ -12,6 +12,22 @@ export interface QuestionStep {
   answer: number;
 }
 
+// A hand-authored distractor: a numeric value plus the misconception it
+// targets. The `strategy` is a human-review annotation drawn from the
+// curriculum question-style doc (off-by-one-count, wrong-operation,
+// digit-reversal, …); the engine never interprets it, it only records *why*
+// an author chose this wrong answer so a reviewer can audit it.
+export interface Distractor {
+  value: number;
+  strategy: string;
+}
+
+// How a numeric answer should be displayed. Omitting `answer_unit` preserves
+// the legacy money rendering (the original bank is all currency), so
+// SAMPLE_BANK renders byte-for-byte identically. New banks set it explicitly
+// so a count is never shown as currency.
+export type AnswerUnit = "none" | "RM" | "sen";
+
 export interface Question {
   id: number;
   question_zh: string;
@@ -21,6 +37,20 @@ export interface Question {
   answer: number;
   table?: Record<string, number>;
   steps?: QuestionStep[];
+  // --- additive metadata (optional; schema-v1 legacy banks omit these) ---
+  // Curriculum anchors so a bank can be filtered/adapted to schema v2 later.
+  // `topic` is a curriculum-doc section id (e.g. "4.1" whole numbers),
+  // `tp_level` is the PBD performance level 1..6, and `profile` is the
+  // curriculum-profile flag the item was authored for.
+  topic?: string;
+  tp_level?: number;
+  profile?: string;
+  // Hand-authored MCQ distractors. When present, QuestionRound serves these
+  // (shuffled) instead of the generic makeChoices() near-misses, so a bank
+  // can drive choices from real misconceptions.
+  distractors?: Distractor[];
+  // Display unit for the numeric answer/choices. See AnswerUnit.
+  answer_unit?: AnswerUnit;
 }
 
 export interface QuestionBankData {
@@ -112,6 +142,18 @@ export function makeChoices(answer: number, rng: () => number = Math.random): nu
   return shuffle([answer, ...distractors], rng);
 }
 
+// Format a numeric answer (or choice) for display, honouring its unit. Pure —
+// no DOM, no Cocos — so it is unit-testable and shared by every renderer.
+// Thousands are separated by a regular space (matching the game's fmtNum and
+// the Malaysian money style "RM55 000"). An omitted unit falls back to the
+// legacy money rendering ("RM 12 800").
+export function formatAnswer(value: number, unit?: AnswerUnit): string {
+  const digits = String(value).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  if (unit === "none") return digits;
+  if (unit === "sen") return `${digits} sen`;
+  return `RM ${digits}`; // "RM" and undefined (legacy) both prefix RM
+}
+
 // One answer round presented to the player: a turn plus its choices.
 // Scenes keep the round, render `choices`, and report `judge(picked)`.
 export class QuestionRound {
@@ -120,10 +162,22 @@ export class QuestionRound {
 
   constructor(turn: QuestionTurn, rng: () => number = Math.random) {
     this.turn = turn;
-    this.choices = makeChoices(turn.answer, rng);
+    this.choices = chooseOptions(turn, rng);
   }
 
   judge(picked: number): boolean {
     return picked === this.turn.answer;
   }
+}
+
+// Prefer hand-authored distractors when the question supplies them (so a
+// curriculum author can drive choices from real misconceptions); otherwise
+// fall back to the generic scaled near-miss generator. Authored options are
+// shuffled so the correct answer's position is not fixed by authoring order.
+function chooseOptions(turn: QuestionTurn, rng: () => number): number[] {
+  const authored = turn.question.distractors;
+  if (authored && authored.length > 0) {
+    return shuffle([turn.answer, ...authored.map((d) => d.value)], rng);
+  }
+  return makeChoices(turn.answer, rng);
 }
