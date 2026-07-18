@@ -613,7 +613,7 @@ export class WorldScreen {
 
   private async loadHarborArt() {
     try {
-      const [grass, path, beach, water, interiors, buildings, trees, flowers, player, ...npcSheets] =
+      const [grass, path, beach, water, interiors, buildings, trees, flowers, player] =
         await Promise.all([
           loadPixelTexture(ART.grass),
           loadPixelTexture(ART.path),
@@ -624,23 +624,22 @@ export class WorldScreen {
           loadPixelTexture(ART.trees),
           loadPixelTexture(ART.flowers),
           loadPixelTexture(ART.player),
-          ...this.def.npcs.map((npc) => loadPixelTexture(npc.characterSheet)),
         ]);
       if (!this.root.isValid) return;
 
       this.buildPixelGround({ grass, path, beach, water, interiors });
       this.buildHarborScenery(buildings, trees, flowers);
-      this.buildNpcSprites(npcSheets);
       this.buildPlayerSprite(player);
       this.fallbackLandmarks.active = false;
+      await this.attachNpcSprites();
     } catch (error) {
-      console.error("Harbor Town art failed to load; using fallback graphics", error);
+      console.error("Harbor Town world art failed to load; using fallback graphics", error);
     }
   }
 
   private async loadMeadowArt() {
     try {
-      const [grass, path, beach, water, interiors, trees, flowers, player, ...npcSheets] =
+      const [grass, path, beach, water, interiors, trees, flowers, player] =
         await Promise.all([
           loadPixelTexture(ART.grass),
           loadPixelTexture(ART.path),
@@ -650,17 +649,42 @@ export class WorldScreen {
           loadPixelTexture(ART.trees),
           loadPixelTexture(ART.flowers),
           loadPixelTexture(ART.player),
-          ...this.def.npcs.map((npc) => loadPixelTexture(npc.characterSheet)),
         ]);
       if (!this.root.isValid) return;
 
       this.buildPixelGround({ grass, path, beach, water, interiors });
       this.buildMeadowScenery(trees, flowers);
-      this.buildNpcSprites(npcSheets);
       this.buildPlayerSprite(player);
+      await this.attachNpcSprites();
     } catch (error) {
-      console.error(`${this.regionId} art failed to load; using fallback graphics`, error);
+      console.error(`${this.regionId} world art failed to load; using fallback graphics`, error);
     }
+  }
+
+  /**
+   * Load and attach NPC sprites independently of the core world art. NPC sheets
+   * are optional dressing: a single missing sheet must only degrade that one
+   * NPC (to a flat fallback actor), never reject the region's whole art load
+   * and force terrain, scenery, and the player back to flat fallback graphics.
+   *
+   * Route travel can destroy this screen while sheets are still loading, so
+   * the scene graph is only touched after re-checking this.root.isValid.
+   */
+  private async attachNpcSprites() {
+    const results = await Promise.allSettled(
+      this.def.npcs.map((npc) => loadPixelTexture(npc.characterSheet)),
+    );
+    if (!this.root.isValid) return; // travel may destroy this screen mid-load
+    const sheets = results.map((result, index) => {
+      if (result.status === "fulfilled") return result.value;
+      const npc = this.def.npcs[index];
+      console.warn(
+        `NPC sprite for ${npc.name} in ${this.regionId} did not load; using a flat fallback`,
+        result.reason,
+      );
+      return null;
+    });
+    this.buildNpcSprites(sheets);
   }
 
   private buildPixelGround(textures: {
@@ -842,14 +866,38 @@ export class WorldScreen {
     });
   }
 
-  private buildNpcSprites(sheets: Texture2D[]) {
+  private buildNpcSprites(sheets: (Texture2D | null)[]) {
     this.def.npcs.forEach((npc, index) => {
-      const texture = sheets[index];
-      if (!texture) return;
-      const frame = pixelFrame(texture, 0, 0, 32, 32);
       const [px, py] = this.gridToLocal(npc.x, npc.y);
-      addRawSprite(this.actors, `npc-${npc.name}`, frame, px + TILE / 2, py, 2, 0.5, 0);
+      const texture = sheets[index];
+      if (texture) {
+        const frame = pixelFrame(texture, 0, 0, 32, 32);
+        addRawSprite(this.actors, `npc-${npc.name}`, frame, px + TILE / 2, py, 2, 0.5, 0);
+        return;
+      }
+      this.paintNpcFallback(npc, px, py);
     });
+  }
+
+  // A spriteless stand-in for an NPC whose licensed sheet could not load. A
+  // single missing texture must degrade only that NPC to a recognisable flat
+  // actor — never blank the tile. The opaque pixel ground covers the fallback
+  // "N" figure drawn in the constructor, so without this the talk target
+  // would vanish even though the dialog still triggers on bump.
+  private paintNpcFallback(npc: NpcDef, px: number, py: number) {
+    const node = new Node(`npc-fallback-${npc.name}`);
+    node.parent = this.actors;
+    node.setPosition(px + TILE / 2, py, 0);
+    const g = node.addComponent(Graphics);
+    g.fillColor = new Color(0, 0, 0, 58);
+    g.ellipse(0, 4, 12, 5);
+    g.fill();
+    g.fillColor = hex("#d96b73");
+    g.roundRect(-8, 8, 16, 22, 5);
+    g.fill();
+    g.fillColor = hex("#f4d6bd");
+    g.circle(0, 35, 8);
+    g.fill();
   }
 
   private buildPlayerSprite(texture: Texture2D) {

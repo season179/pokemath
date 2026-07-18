@@ -29,7 +29,7 @@ export const MEADOW_STONES: RegionDef = {
     "TTTTTTTTTTTTTpTTTTTTTTTTTT",
   ],
   spawn: { x: 13, y: 1 },
-  npcs: [guide(11, 2, "characters/character_06/character06-sheet.png")],
+  npcs: [guide(11, 2, "characters/character_6/character06-sheet.png")],
   gateways: [
     {
       name: "north",

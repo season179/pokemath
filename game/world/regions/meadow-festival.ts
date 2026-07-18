@@ -30,7 +30,7 @@ export const MEADOW_FESTIVAL: RegionDef = {
     "TTTTTTTTTTTTTT.TTTTTTTTTTTTT",
   ],
   spawn: { x: 14, y: 1 },
-  npcs: [guide(2, 11, "characters/character_08/character08-sheet.png")],
+  npcs: [guide(2, 11, "characters/character_8/character08-sheet.png")],
   gateways: [
     {
       name: "north",

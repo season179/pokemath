@@ -34,7 +34,7 @@ export const MEADOW_WOOLLY: RegionDef = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 10 },
-  npcs: [guide(2, 11, "characters/character_05/character05-sheet.png")],
+  npcs: [guide(2, 11, "characters/character_5/character05-sheet.png")],
   gateways: [
     {
       name: "west",
