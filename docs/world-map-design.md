@@ -23,7 +23,7 @@ curriculum scope (`docs/curriculum/standard-N-sjkc-math.md`).
 
 | # | Island | Standard | Math skin |
 |---|---|---|---|
-| 1 | **Meadow Isle** | Std 1 | Counting country. ≤100, `+ −` only. Sheep to count, orchards, clock tower (time-telling NPC quests). Soft round creatures. |
+| 1 | **Meadow Isle** | Std 1 | Counting country. ≤100, `+ −` only. Sheep pens as ten-frames, orchards, clock tower, harvest festival. Soft round creatures. **Full design: [islands/meadow-isle.md](islands/meadow-isle.md).** |
 | 2 | **Tallgrass Forest** | Std 2 | First `× ÷`. Creatures appear in *groups* (3 packs of 4!) so multiplication is visible in encounters. Fraction items (half potions). |
 | 3 | **Tidepool Coast** | Std 3 | First multi-step. Pirate treasure maps = coordinates on a grid; symmetry in crab shells; pie-chart shells; "20% off" beach shop. |
 | 4 | **Ruined Desert** | Std 4 | Pre-algebra & geometry. Temple door puzzles (area/perimeter), solve-the-unknown glyphs, ratio potion mixing. First UASA-tier island — noticeably more serious. |
@@ -177,8 +177,15 @@ team, with switching changing only available moves.
 
 Each island reuses the existing tile-map format
 (`game/assets/src/world/map-data.ts` — `MAP: string[]` with tile chars). The
-"world map" is a dock-picker screen (or harbor-master dialog) plus 7 instances
-of MAP-style data with an exit tile back to Harbor Town.
+"world map" is a dock-picker screen (or harbor-master dialog) plus 7 islands
+built from MAP-style data, each with an exit back to Harbor Town.
+
+**Refinement (2026-07-17, Meadow Isle planning):** an island is a **graph of
+region maps**, each its own `MAP: string[]` chunk with stable local
+coordinates, connected by named gateways — never resized after shipping.
+Future areas (rest stops, mini-games) attach as new chunks at reserved
+gateway pockets without moving existing geography. Player location persists
+as `regionId + local x/y`.
 
 ## Open questions
 

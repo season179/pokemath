@@ -1,9 +1,11 @@
-// Harbor Town: a peaceful pixel-art hub with homes, NPCs, a shop, and the
-// island ferry dock. Licensed Pocket Creature Tamer art is streamed from R2;
-// simple Graphics fallbacks keep the town usable if art cannot load.
+// WorldScreen: walks one region of the world (Harbor Town or a Meadow Isle
+// area). Regions are pure data (world/regions/); this class is rendering and
+// input. Licensed Pocket Creature Tamer art is streamed from R2; simple
+// Graphics fallbacks keep every region usable if art cannot load.
 //
-// Coordinates: the map node is centered on the canvas. Grid (x, y) with
-// row 0 at the TOP maps to local pixels (x*TILE, (MAP_H-1-y)*TILE).
+// The camera follows the player, clamped to the current region's bounds.
+// Coordinates: grid (x, y) with row 0 at the TOP maps to map-local pixels
+// (x*TILE, (H-1-y)*TILE).
 
 import {
   Color,
@@ -22,16 +24,19 @@ import {
 import {
   DIR_DELTA,
   Direction,
-  HARBOR_NPCS,
-  MAP,
-  MAP_H,
-  MAP_W,
-  PLAYER_SPAWN,
+  NpcDef,
+  RegionDef,
   TILE,
+  camOffset,
+  gatewayAt,
+  gatewayNamed,
   isWalkable,
   npcAt,
+  region,
+  regionH,
+  regionW,
   tileAt,
-} from "./map-data";
+} from "./regions/index";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeLabel, makePanel, makeRect } from "../ui";
 import { paintBagIcon } from "../ui-icons";
@@ -53,51 +58,8 @@ const ART = {
   player: "characters/character_01/character01-sheet.png",
 } as const;
 
-function gridToLocal(x: number, y: number): [number, number] {
-  return [x * TILE, (MAP_H - 1 - y) * TILE];
-}
-
 function hex(value: string): Color {
   return colorFromHex(value);
-}
-
-function paintFallbackTile(g: Graphics, type: string, tx: number, ty: number) {
-  const px = tx * TILE;
-  const py = (MAP_H - 1 - ty) * TILE;
-
-  if (type === "w") {
-    g.fillColor = (tx + ty) % 2 === 0 ? hex("#7ea9d6") : hex("#749dcc");
-  } else if (type === "b") {
-    g.fillColor = hex("#eadca8");
-  } else if (type === "d" || type === "D") {
-    g.fillColor = (tx + ty) % 2 === 0 ? hex("#a66f55") : hex("#97634c");
-  } else if (type === "p" || type === "H" || type === "P" || type === "S" || type === "N") {
-    g.fillColor = hex("#eadfc9");
-  } else {
-    g.fillColor = (tx + ty) % 2 === 0 ? hex("#9fd3ae") : hex("#96cba6");
-  }
-  g.fillRect(px, py, TILE, TILE);
-
-  if (type === "w") {
-    g.strokeColor = new Color(220, 238, 250, 150);
-    g.lineWidth = 2;
-    g.moveTo(px + 6, py + 14);
-    g.bezierCurveTo(px + 15, py + 19, px + 28, py + 9, px + 42, py + 15);
-    g.stroke();
-  } else if (type === "T") {
-    g.fillColor = hex("#38785f");
-    g.circle(px + 24, py + 28, 18);
-    g.fill();
-    g.fillColor = hex("#6b4b3e");
-    g.fillRect(px + 20, py + 5, 8, 18);
-  } else if (type === "N") {
-    g.fillColor = hex("#d96b73");
-    g.roundRect(px + 16, py + 8, 16, 22, 5);
-    g.fill();
-    g.fillColor = hex("#f4d6bd");
-    g.circle(px + 24, py + 35, 8);
-    g.fill();
-  }
 }
 
 function addRawSprite(
@@ -127,10 +89,17 @@ export interface WorldActions {
   onShop: () => void;
   onParty: () => void;
   onBag: () => void;
+  /** Sail or walk into another region, arriving through the named gateway. */
+  onTravel: (regionId: string, gateway: string | null) => void;
 }
 
 export class WorldScreen {
-  readonly root = new Node("harbor-town");
+  readonly root: Node;
+  readonly regionId: string;
+  private def: RegionDef;
+  private w: number;
+  private h: number;
+
   private mapNode = new Node("map");
   private artGround = new Node("pixel-ground");
   private artScenery = new Node("pixel-scenery");
@@ -145,33 +114,52 @@ export class WorldScreen {
   private hudLayer = new Node("huds");
   private locationToast: Node | null = null;
 
-  private px: number = PLAYER_SPAWN.x;
-  private py: number = PLAYER_SPAWN.y;
-  private companionX: number = PLAYER_SPAWN.x;
-  private companionY: number = PLAYER_SPAWN.y - 1;
-  private companionTargetX: number = PLAYER_SPAWN.x;
-  private companionTargetY: number = PLAYER_SPAWN.y - 1;
+  private px: number;
+  private py: number;
+  private companionX: number;
+  private companionY: number;
+  private companionTargetX: number;
+  private companionTargetY: number;
   private companionMoving = false;
   private dir: Direction = "down";
   private moving = false;
   private held = new Set<Direction>();
   private buffered: Direction | null = null;
   private banner: Node | null = null;
+  private pendingSail: { to: string; arrive: string | null } | null = null;
 
-  constructor(private state: GameState, private actions: WorldActions) {
+  constructor(
+    private state: GameState,
+    private actions: WorldActions,
+    regionId = "harbor",
+    entryGateway: string | null = null,
+  ) {
+    this.regionId = regionId;
+    this.def = region(regionId);
+    this.w = regionW(this.def);
+    this.h = regionH(this.def);
+    this.root = new Node(`world-${regionId}`);
+
+    const arrival = (entryGateway && gatewayNamed(this.def, entryGateway)?.arriveAt) || this.def.spawn;
+    this.px = arrival.x;
+    this.py = arrival.y;
+    this.companionX = arrival.x;
+    this.companionY = arrival.y + 1;
+    this.companionTargetX = this.companionX;
+    this.companionTargetY = this.companionY;
+
     this.root.addChild(this.mapNode);
-    this.mapNode.setPosition((-MAP_W * TILE) / 2, (-MAP_H * TILE) / 2, 0);
 
     const tiles = new Node("fallback-tiles");
     tiles.parent = this.mapNode;
-    tiles.addComponent(UITransform).setContentSize(MAP_W * TILE, MAP_H * TILE);
+    tiles.addComponent(UITransform).setContentSize(this.w * TILE, this.h * TILE);
     const g = tiles.addComponent(Graphics);
-    for (let y = 0; y < MAP_H; y++) {
-      for (let x = 0; x < MAP_W; x++) paintFallbackTile(g, MAP[y][x], x, y);
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) this.paintFallbackTile(g, tileAt(this.def, x, y), x, y);
     }
 
     this.fallbackLandmarks.parent = this.mapNode;
-    this.paintFallbackLandmarks();
+    if (this.def.art === "harbor") this.paintFallbackLandmarks();
     this.artGround.parent = this.mapNode;
     this.artScenery.parent = this.mapNode;
     this.actors.parent = this.mapNode;
@@ -185,8 +173,10 @@ export class WorldScreen {
     this.snapPlayer();
     this.resetCompanion();
     this.refreshHud();
-    this.buildTownTitle();
-    void this.loadTownArt();
+    this.buildRegionTitle();
+    this.applyCamera();
+    if (this.def.art === "harbor") void this.loadHarborArt();
+    else void this.loadMeadowArt();
   }
 
   pressDir(direction: Direction) {
@@ -207,6 +197,11 @@ export class WorldScreen {
     if (this.banner) {
       this.banner.destroy();
       this.banner = null;
+      if (this.pendingSail) {
+        const sail = this.pendingSail;
+        this.pendingSail = null;
+        this.actions.onTravel(sail.to, sail.arrive);
+      }
       return;
     }
     this.interactAhead();
@@ -224,21 +219,21 @@ export class WorldScreen {
         const [dx, dy] = DIR_DELTA[direction];
         const nextX = this.px + dx;
         const nextY = this.py + dy;
-        if (isWalkable(nextX, nextY)) {
+        if (isWalkable(this.def, nextX, nextY)) {
           this.beginCompanionMove(this.px, this.py);
           this.px = nextX;
           this.py = nextY;
           this.moving = true;
         } else {
-          const npc = npcAt(nextX, nextY);
-          if (npc) this.showNpcDialog(npc.name, npc.message);
+          const npc = npcAt(this.def, nextX, nextY);
+          if (npc) this.showNpcDialog(npc);
           else this.drawPlayer();
         }
       }
     }
 
     if (this.moving) {
-      const [tx, ty] = gridToLocal(this.px, this.py);
+      const [tx, ty] = this.gridToLocal(this.px, this.py);
       const pos = this.playerNode.position;
       const step = SPEED * dt;
       const nx = approach(pos.x, tx + TILE / 2, step);
@@ -251,6 +246,21 @@ export class WorldScreen {
     }
 
     if (this.companionMoving) this.updateCompanion(dt);
+    this.applyCamera();
+  }
+
+  private applyCamera() {
+    const size = view.getVisibleSize();
+    const pos = this.playerNode.position;
+    this.mapNode.setPosition(
+      camOffset(pos.x, this.w * TILE, size.width),
+      camOffset(pos.y, this.h * TILE, size.height),
+      0,
+    );
+  }
+
+  private gridToLocal(x: number, y: number): [number, number] {
+    return [x * TILE, (this.h - 1 - y) * TILE];
   }
 
   private firstHeld(): Direction | null {
@@ -262,33 +272,46 @@ export class WorldScreen {
 
   private interactAhead() {
     const [dx, dy] = DIR_DELTA[this.dir];
-    const npc = npcAt(this.px + dx, this.py + dy);
-    if (npc) this.showNpcDialog(npc.name, npc.message);
+    const npc = npcAt(this.def, this.px + dx, this.py + dy);
+    if (npc) this.showNpcDialog(npc);
   }
 
   private onArrive() {
-    const tile = tileAt(this.px, this.py);
-    if (tile === "H") {
+    const gateway = gatewayAt(this.def, this.px, this.py);
+    if (gateway) {
+      if (gateway.to) {
+        this.releaseAll();
+        this.actions.onTravel(gateway.to, gateway.toGateway ?? null);
+      } else if (gateway.message) {
+        this.showNotice(gateway.message);
+      }
+      return;
+    }
+
+    const handler = this.def.handlers?.[tileAt(this.def, this.px, this.py)];
+    if (handler === "heal") {
       this.state.healTeam();
       this.refreshHud();
       this.celebrateCompanion();
       this.showNotice("Home sweet home — your whole team is fully rested.");
-    } else if (tile === "S") {
+    } else if (handler === "shop") {
       this.releaseAll();
       this.actions.onShop();
-    } else if (tile === "P") {
+    } else if (handler === "workshop") {
       this.showNotice("Professor Sum's workshop is still being prepared.");
-    } else if (tile === "D") {
-      this.showNotice("Next stop: Meadow Isle. The ferry route is coming soon!");
     }
   }
 
-  private showNpcDialog(name: string, message: string) {
-    this.showNotice(`${name}: ${message}`);
+  private showNpcDialog(npc: NpcDef) {
+    this.showNotice(`${npc.name}: ${npc.message}`);
+    if (npc.sailTo) {
+      this.pendingSail = { to: npc.sailTo, arrive: npc.sailArrive ?? null };
+    }
   }
 
   showNotice(text: string) {
     this.releaseAll();
+    this.pendingSail = null;
     this.banner?.destroy();
     const box = makePanel(this.root, 0, -238, 720, 78, {
       fill: PALETTE.panel,
@@ -302,16 +325,16 @@ export class WorldScreen {
     this.banner = box;
   }
 
-  private buildTownTitle() {
+  private buildRegionTitle() {
     this.locationToast?.destroy();
-    const size = view.getDesignResolutionSize();
-    const panel = makePanel(this.root, 0, size.height / 2 - 41, 220, 42, {
+    const size = view.getVisibleSize();
+    const panel = makePanel(this.root, 0, size.height / 2 - 41, 360, 42, {
       fill: new Color(255, 253, 245, 232),
       stroke: PALETTE.panelStroke,
       lineWidth: 3,
     });
     this.locationToast = panel;
-    makeLabel(panel, "HARBOR TOWN  ·  港湾镇", 0, 0, { fontSize: 16 });
+    makeLabel(panel, this.def.title, 0, 0, { fontSize: 16 });
 
     setTimeout(() => {
       if (!panel.isValid) return;
@@ -334,7 +357,7 @@ export class WorldScreen {
   }
 
   private snapPlayer() {
-    const [x, y] = gridToLocal(this.px, this.py);
+    const [x, y] = this.gridToLocal(this.px, this.py);
     this.playerNode.setPosition(x + TILE / 2, y + TILE / 2, 0);
     this.drawPlayer();
   }
@@ -349,13 +372,13 @@ export class WorldScreen {
       { x: this.px + 1, y: this.py },
       { x: this.px, y: this.py - 1 },
     ];
-    const tile = candidates.find(({ x, y }) => isWalkable(x, y)) ?? { x: this.px, y: this.py };
+    const tile = candidates.find(({ x, y }) => isWalkable(this.def, x, y)) ?? { x: this.px, y: this.py };
     this.companionX = tile.x;
     this.companionY = tile.y;
     this.companionTargetX = tile.x;
     this.companionTargetY = tile.y;
     this.companionMoving = false;
-    const [x, y] = gridToLocal(tile.x, tile.y);
+    const [x, y] = this.gridToLocal(tile.x, tile.y);
     this.companionNode.setPosition(x + TILE / 2, y + TILE / 2, 0);
     this.drawCompanion();
   }
@@ -367,7 +390,7 @@ export class WorldScreen {
   }
 
   private updateCompanion(dt: number) {
-    const [tx, ty] = gridToLocal(this.companionTargetX, this.companionTargetY);
+    const [tx, ty] = this.gridToLocal(this.companionTargetX, this.companionTargetY);
     const pos = this.companionNode.position;
     const step = SPEED * dt;
     const nx = approach(pos.x, tx + TILE / 2, step);
@@ -428,6 +451,85 @@ export class WorldScreen {
     if (frame) this.playerSprite.spriteFrame = frame;
   }
 
+  // --- fallback rendering (region-agnostic) ---
+
+  private paintFallbackTile(g: Graphics, type: string, tx: number, ty: number) {
+    const px = tx * TILE;
+    const py = (this.h - 1 - ty) * TILE;
+
+    if (type === "w") {
+      g.fillColor = (tx + ty) % 2 === 0 ? hex("#7ea9d6") : hex("#749dcc");
+    } else if (type === "b") {
+      g.fillColor = hex("#eadca8");
+    } else if (type === "d" || type === "D") {
+      g.fillColor = (tx + ty) % 2 === 0 ? hex("#a66f55") : hex("#97634c");
+    } else if (type === "p" || type === "H" || type === "P" || type === "S" || type === "N") {
+      g.fillColor = hex("#eadfc9");
+    } else {
+      g.fillColor = (tx + ty) % 2 === 0 ? hex("#9fd3ae") : hex("#96cba6");
+    }
+    g.fillRect(px, py, TILE, TILE);
+
+    if (type === "w") {
+      g.strokeColor = new Color(220, 238, 250, 150);
+      g.lineWidth = 2;
+      g.moveTo(px + 6, py + 14);
+      g.bezierCurveTo(px + 15, py + 19, px + 28, py + 9, px + 42, py + 15);
+      g.stroke();
+    } else if (type === "T") {
+      g.fillColor = hex("#38785f");
+      g.circle(px + 24, py + 28, 18);
+      g.fill();
+      g.fillColor = hex("#6b4b3e");
+      g.fillRect(px + 20, py + 5, 8, 18);
+    } else if (type === "X") {
+      // Fence / wall block (Meadow pens, barn, stalls).
+      g.fillColor = hex("#b08968");
+      g.fillRect(px + 4, py + 10, 6, 28);
+      g.fillRect(px + 38, py + 10, 6, 28);
+      g.fillRect(px, py + 16, TILE, 6);
+      g.fillRect(px, py + 30, TILE, 6);
+    } else if (type === "o") {
+      g.fillColor = hex("#9a9a94");
+      g.ellipse(px + 24, py + 22, 16, 12);
+      g.fill();
+      g.fillColor = hex("#b5b5ad");
+      g.ellipse(px + 20, py + 26, 8, 5);
+      g.fill();
+    } else if (type === "C") {
+      g.fillColor = hex("#6b4b3e");
+      g.fillRect(px + 21, py + 6, 6, 24);
+      g.fillColor = hex("#fffdf5");
+      g.circle(px + 24, py + 34, 10);
+      g.fill();
+      g.strokeColor = hex("#3b4a6b");
+      g.lineWidth = 2;
+      g.circle(px + 24, py + 34, 10);
+      g.stroke();
+      g.moveTo(px + 24, py + 34);
+      g.lineTo(px + 24, py + 40);
+      g.moveTo(px + 24, py + 34);
+      g.lineTo(px + 29, py + 34);
+      g.stroke();
+    } else if (type === "f") {
+      g.fillColor = hex("#e989a6");
+      g.circle(px + 14, py + 18, 5);
+      g.circle(px + 30, py + 30, 5);
+      g.fill();
+      g.fillColor = hex("#f7d54d");
+      g.circle(px + 32, py + 14, 4);
+      g.circle(px + 16, py + 32, 4);
+      g.fill();
+    } else if (type === "N") {
+      g.fillColor = hex("#d96b73");
+      g.roundRect(px + 16, py + 8, 16, 22, 5);
+      g.fill();
+      g.fillColor = hex("#f4d6bd");
+      g.circle(px + 24, py + 35, 8);
+      g.fill();
+    }
+  }
+
   private paintFallbackLandmarks() {
     const g = this.fallbackLandmarks.addComponent(Graphics);
     const house = (x: number, y: number, w: number, h: number, roof: string) => {
@@ -447,7 +549,9 @@ export class WorldScreen {
     house(662, 384, 250, 190, "#b96d78");
   }
 
-  private async loadTownArt() {
+  // --- pixel art ---
+
+  private async loadHarborArt() {
     try {
       const [grass, path, beach, water, interiors, buildings, trees, flowers, player, ...npcSheets] =
         await Promise.all([
@@ -460,17 +564,42 @@ export class WorldScreen {
           loadPixelTexture(ART.trees),
           loadPixelTexture(ART.flowers),
           loadPixelTexture(ART.player),
-          ...HARBOR_NPCS.map((npc) => loadPixelTexture(npc.characterSheet)),
+          ...this.def.npcs.map((npc) => loadPixelTexture(npc.characterSheet)),
         ]);
       if (!this.root.isValid) return;
 
       this.buildPixelGround({ grass, path, beach, water, interiors });
-      this.buildPixelScenery(buildings, trees, flowers);
+      this.buildHarborScenery(buildings, trees, flowers);
       this.buildNpcSprites(npcSheets);
       this.buildPlayerSprite(player);
       this.fallbackLandmarks.active = false;
     } catch (error) {
       console.error("Harbor Town art failed to load; using fallback graphics", error);
+    }
+  }
+
+  private async loadMeadowArt() {
+    try {
+      const [grass, path, beach, water, interiors, trees, flowers, player, ...npcSheets] =
+        await Promise.all([
+          loadPixelTexture(ART.grass),
+          loadPixelTexture(ART.path),
+          loadPixelTexture(ART.beach),
+          loadPixelTexture(ART.water),
+          loadPixelTexture(ART.interiors),
+          loadPixelTexture(ART.trees),
+          loadPixelTexture(ART.flowers),
+          loadPixelTexture(ART.player),
+          ...this.def.npcs.map((npc) => loadPixelTexture(npc.characterSheet)),
+        ]);
+      if (!this.root.isValid) return;
+
+      this.buildPixelGround({ grass, path, beach, water, interiors });
+      this.buildMeadowScenery(trees, flowers);
+      this.buildNpcSprites(npcSheets);
+      this.buildPlayerSprite(player);
+    } catch (error) {
+      console.error(`${this.regionId} art failed to load; using fallback graphics`, error);
     }
   }
 
@@ -490,9 +619,9 @@ export class WorldScreen {
       pixelFrame(textures.interiors, 16, 32, 16, 16),
     ];
 
-    for (let y = 0; y < MAP_H; y++) {
-      for (let x = 0; x < MAP_W; x++) {
-        const tile = MAP[y][x];
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        const tile = tileAt(this.def, x, y);
         const variations = tile === "w"
           ? water
           : tile === "b"
@@ -503,25 +632,111 @@ export class WorldScreen {
                 ? path
                 : grass;
         const frame = variations[(x * 7 + y * 11) % variations.length];
-        const [px, py] = gridToLocal(x, y);
+        const [px, py] = this.gridToLocal(x, y);
         addRawSprite(this.artGround, `ground-${x}-${y}`, frame, px + TILE / 2, py + TILE / 2, PIXEL_SCALE);
       }
     }
   }
 
-  private buildPixelScenery(buildings: Texture2D, trees: Texture2D, flowers: Texture2D) {
+  private buildMeadowScenery(trees: Texture2D, flowers: Texture2D) {
+    const treeFrames = [16, 48, 80, 112].map((x) => pixelFrame(trees, x, 16, 32, 48));
+    const flowerFrames = [
+      pixelFrame(flowers, 16, 16, 16, 16),
+      pixelFrame(flowers, 32, 16, 16, 16),
+      pixelFrame(flowers, 48, 16, 16, 16),
+    ];
+
+    let treeIndex = 0;
+    let flowerIndex = 0;
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        const tile = tileAt(this.def, x, y);
+        const [px, py] = this.gridToLocal(x, y);
+        if (tile === "T") {
+          addRawSprite(
+            this.artScenery,
+            `tree-${x}-${y}`,
+            treeFrames[treeIndex++ % treeFrames.length],
+            px + TILE / 2,
+            py,
+            2,
+            0.5,
+            0,
+          );
+        } else if (tile === "f") {
+          addRawSprite(
+            this.artScenery,
+            `flowers-${x}-${y}`,
+            flowerFrames[flowerIndex++ % flowerFrames.length],
+            px + TILE / 2,
+            py + TILE / 2,
+            PIXEL_SCALE,
+          );
+        }
+      }
+    }
+
+    // Fences, stones, and the clock post block movement, so they must stay
+    // visible after the opaque pixel ground covers their fallback tiles.
+    const props = new Node("meadow-props");
+    props.parent = this.artScenery;
+    props.addComponent(UITransform).setContentSize(this.w * TILE, this.h * TILE);
+    const g = props.addComponent(Graphics);
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        const tile = tileAt(this.def, x, y);
+        if (tile === "X" || tile === "o" || tile === "C") this.paintProp(g, tile, x, y);
+      }
+    }
+  }
+
+  private paintProp(g: Graphics, type: string, tx: number, ty: number) {
+    const px = tx * TILE;
+    const py = (this.h - 1 - ty) * TILE;
+    if (type === "X") {
+      g.fillColor = hex("#b08968");
+      g.fillRect(px + 4, py + 10, 6, 28);
+      g.fillRect(px + 38, py + 10, 6, 28);
+      g.fillRect(px, py + 16, TILE, 6);
+      g.fillRect(px, py + 30, TILE, 6);
+    } else if (type === "o") {
+      g.fillColor = hex("#9a9a94");
+      g.ellipse(px + 24, py + 22, 16, 12);
+      g.fill();
+      g.fillColor = hex("#b5b5ad");
+      g.ellipse(px + 20, py + 26, 8, 5);
+      g.fill();
+    } else {
+      g.fillColor = hex("#6b4b3e");
+      g.fillRect(px + 21, py + 6, 6, 24);
+      g.fillColor = hex("#fffdf5");
+      g.circle(px + 24, py + 34, 10);
+      g.fill();
+      g.strokeColor = hex("#3b4a6b");
+      g.lineWidth = 2;
+      g.circle(px + 24, py + 34, 10);
+      g.stroke();
+      g.moveTo(px + 24, py + 34);
+      g.lineTo(px + 24, py + 40);
+      g.moveTo(px + 24, py + 34);
+      g.lineTo(px + 29, py + 34);
+      g.stroke();
+    }
+  }
+
+  private buildHarborScenery(buildings: Texture2D, trees: Texture2D, flowers: Texture2D) {
     // trees.png packs 4 color variants per row in 32px-wide cells (16px of
     // transparent padding on each edge of the 160px sheet). Slicing 40px cells
     // at x=0 sheared each tree across its neighbour; these are the real cells.
     const treeFrames = [16, 48, 80, 112].map((x) => pixelFrame(trees, x, 16, 32, 48));
     const treePositions: Array<[number, number]> = [];
-    for (let x = 0; x < MAP_W; x += 2) treePositions.push([x, 0]);
+    for (let x = 0; x < this.w; x += 2) treePositions.push([x, 0]);
     treePositions.push(
       [0, 2], [19, 2], [0, 5], [19, 5], [0, 8], [19, 8],
       [6, 2], [1, 5], [18, 5], [2, 8], [7, 8], [13, 8], [17, 8],
     );
     treePositions.forEach(([x, y], index) => {
-      const [px, py] = gridToLocal(x, y);
+      const [px, py] = this.gridToLocal(x, y);
       addRawSprite(
         this.artScenery,
         `tree-${x}-${y}`,
@@ -541,7 +756,7 @@ export class WorldScreen {
       { name: "workshop", frame: pixelFrame(buildings, 224, 16, 128, 112), x: 552 },
       { name: "shop", frame: pixelFrame(buildings, 16, 128, 96, 96), x: 760 },
     ];
-    const [, buildingBottom] = gridToLocal(0, 4);
+    const [, buildingBottom] = this.gridToLocal(0, 4);
     for (const spec of buildingSpecs) {
       addRawSprite(this.artScenery, spec.name, spec.frame, spec.x, buildingBottom, 2, 0.5, 0);
     }
@@ -555,7 +770,7 @@ export class WorldScreen {
       [1, 7], [2, 7], [7, 5], [8, 5], [13, 5], [14, 7], [17, 7], [18, 7],
     ];
     flowerPositions.forEach(([x, y], index) => {
-      const [px, py] = gridToLocal(x, y);
+      const [px, py] = this.gridToLocal(x, y);
       addRawSprite(
         this.artScenery,
         `flowers-${x}-${y}`,
@@ -568,11 +783,11 @@ export class WorldScreen {
   }
 
   private buildNpcSprites(sheets: Texture2D[]) {
-    HARBOR_NPCS.forEach((npc, index) => {
+    this.def.npcs.forEach((npc, index) => {
       const texture = sheets[index];
       if (!texture) return;
       const frame = pixelFrame(texture, 0, 0, 32, 32);
-      const [px, py] = gridToLocal(npc.x, npc.y);
+      const [px, py] = this.gridToLocal(npc.x, npc.y);
       addRawSprite(this.actors, `npc-${npc.name}`, frame, px + TILE / 2, py, 2, 0.5, 0);
     });
   }
@@ -597,8 +812,10 @@ export class WorldScreen {
     this.updatePlayerFrame();
   }
 
+  // --- HUD ---
+
   private buildHuds() {
-    const size = view.getDesignResolutionSize();
+    const size = view.getVisibleSize();
     const creature = this.state.active;
     const card = makePanel(
       this.hudLayer,
@@ -660,15 +877,17 @@ export class WorldScreen {
 
   refreshLayout() {
     this.refreshHud();
+    this.applyCamera();
     if (this.locationToast?.isValid) {
-      const size = view.getDesignResolutionSize();
+      const size = view.getVisibleSize();
       this.locationToast.setPosition(0, size.height / 2 - 41);
     }
   }
 
   respawnHome() {
-    this.px = PLAYER_SPAWN.x;
-    this.py = PLAYER_SPAWN.y;
+    const spawn = this.def.spawn;
+    this.px = spawn.x;
+    this.py = spawn.y;
     this.dir = "down";
     this.moving = false;
     this.releaseAll();
@@ -677,6 +896,7 @@ export class WorldScreen {
     this.snapPlayer();
     this.resetCompanion();
     this.refreshHud();
+    this.applyCamera();
   }
 }
 

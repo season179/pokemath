@@ -11,8 +11,8 @@ import { BagScreen } from "./bag/BagScreen";
 import { PartyScreen } from "./party/PartyScreen";
 import { ShopScreen } from "./shop/ShopScreen";
 import { GameState } from "./state";
-import { Direction } from "./world/map-data";
-import { WorldScreen } from "./world/WorldScreen";
+import { Direction } from "./world/regions/index";
+import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { PALETTE, makeButton, makeLabel } from "./ui";
 
 type Screen = "world" | "party" | "bag" | "battle" | "shop";
@@ -51,12 +51,27 @@ export class GameApp {
     private playerName: string,
   ) {
     this.state = new GameState(boot);
-    this.world = new WorldScreen(this.state, {
-      onShop: () => this.startShop(),
-      onParty: () => this.startParty(),
-      onBag: () => this.startBag(),
-    });
+    this.world = new WorldScreen(this.state, this.worldActions);
     this.canvasNode.addChild(this.world.root);
+  }
+
+  private readonly worldActions: WorldActions = {
+    onShop: () => this.startShop(),
+    onParty: () => this.startParty(),
+    onBag: () => this.startBag(),
+    onTravel: (regionId, gateway) => this.travel(regionId, gateway),
+  };
+
+  // Swap the world to another region, arriving through the named gateway.
+  // The d-pad and player name are rebuilt so they stay above the new world.
+  private travel(regionId: string, gateway: string | null): void {
+    this.world.releaseAll();
+    this.world.root.destroy();
+    this.world = new WorldScreen(this.state, this.worldActions, regionId, gateway);
+    this.canvasNode.addChild(this.world.root);
+    this.buildDpad();
+    this.showPlayerName();
+    this.screen = "world";
   }
 
   start() {
@@ -90,8 +105,8 @@ export class GameApp {
     if (this.screen === "world") this.world.update(dt);
   }
 
-  // Kept ready for Meadow Isle: Harbor Town intentionally has no encounter
-  // trigger, so battles are unreachable until the ferry route lands.
+  // Battles stay unreachable until Meadow Isle's encounter grass lands in
+  // M2 — regions have no encounter trigger yet.
   private startBattle(wild: Creature): void {
     this.screen = "battle";
     this.hideWorld();
@@ -165,6 +180,7 @@ export class GameApp {
 
   private returnToWorld(respawn: boolean): void {
     this.screen = "world";
+    if (respawn && this.world.regionId !== "harbor") this.travel("harbor", null);
     this.world.root.active = true;
     if (this.dpad) this.dpad.active = true;
     if (respawn) this.world.respawnHome();
@@ -201,8 +217,9 @@ export class GameApp {
   // Player name in the bottom-right corner — whose adventure this is.
   // Tapping it opens the name screen (names are changeable anytime).
   private showPlayerName() {
-    this.nameLabel?.destroy();
-    const size = view.getDesignResolutionSize();
+    if (this.nameLabel?.isValid) this.nameLabel.destroy();
+    this.nameLabel = null;
+    const size = view.getVisibleSize();
     const label = makeLabel(
       this.world.root,
       this.playerName,
@@ -266,7 +283,7 @@ export class GameApp {
     this.dpad = new Node("dpad");
     this.canvasNode.addChild(this.dpad);
     this.dpad.active = this.screen === "world";
-    const size = view.getDesignResolutionSize();
+    const size = view.getVisibleSize();
     const cx = -size.width / 2 + 110;
     const cy = -size.height / 2 + 110;
     const gap = 56;
