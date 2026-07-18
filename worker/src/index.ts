@@ -10,6 +10,7 @@
 //
 // `Env` comes from worker-configuration.d.ts (regenerate: `npm run cf-types`).
 
+import { artKeyFromPath } from "./art-path.ts";
 import { buildAuth } from "./auth.ts";
 import { handleApi, json } from "./api.ts";
 import { LOGIN_HTML } from "./login-page.ts";
@@ -60,8 +61,8 @@ export default {
 // the rest of the Cocos bundle — with immutable caching (keys are versioned,
 // e.g. art/v1/...; re-uploads must bump the version prefix).
 async function serveArt(url: URL, env: Env): Promise<Response> {
-  const key = decodeURIComponent(url.pathname.slice("/art/".length));
-  if (!key || key.includes("..")) return new Response("not found", { status: 404 });
+  const key = artKeyFromPath(url.pathname);
+  if (!key) return new Response("not found", { status: 404 });
 
   const obj = await env.ART.get(key);
   if (!obj) return new Response("not found", { status: 404 });

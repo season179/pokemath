@@ -56,9 +56,122 @@ Implications to design around:
 - Encounter/boss stat curves per island must be tuned so "one island below
   your ability" feels breezy and "one island above" feels lethal — that
   contrast is what communicates readiness.
-- Early-island XP should stay meaningful enough that review isn't a grind,
-  but scaled so that farming Meadow Isle forever can't substitute for
-  advancing.
+- XP uses strong level-relative scaling. As the player outlevels an island,
+  its enemies award less and less XP. A player ready for Skyreach Volcano
+  earns only **0–1 XP per Meadow Isle kill**. This prevents low-island farming
+  from substituting for advancement.
+- Do **not** use answer speed or elapsed play time to accelerate progression.
+  This is turn-based, and children may leave the game mid-turn when distracted.
+  The loop itself — battles, collecting, discovery, and visible progress — has
+  to make the repetition enjoyable.
+
+## Player and pet combat model
+
+**Current direction, not final:**
+
+- The **player** owns progression and combat power: level, XP, HP, attack, and
+  any other eventual stats.
+- Pets perform the battle visually, but do not independently own level, XP,
+  attack, or permanent stat growth.
+- Damage is calculated from the player's stats. This avoids having to level
+  every newly caught pet separately and keeps island readiness attached to the
+  child's overall progress.
+- Still unresolved: whether a pet may have temporary per-battle state (such as
+  current HP), species-specific moves/passives, or purely visual differences.
+  That choice determines whether catching and switching pets has strategic
+  value or is primarily collection/cosmetic play.
+
+> Implementation note: the current prototype/domain model stores HP, attack,
+> level, and XP on each `Creature` (`shared/creature.ts`). The direction above
+> intentionally differs and would require a later design and migration; no
+> implementation decision has been made here.
+
+## Pokémon-inspired mechanics to preserve
+
+**Promising direction, still subject to playtesting:** grinding is not the fun
+by itself. Repetition works when each battle can advance several desires at
+once: gain XP, catch something new, evolve a favourite, discover a place, or
+reach the next guardian.
+
+### 1. Level-relative XP
+
+- Enemies near the player's level award normal XP.
+- Stronger enemies offer high XP at high risk.
+- Enemies far below the player's level award only 0–1 XP.
+- This pushes players toward the right island without an artificial lock.
+
+### 2. Global progression and instantly usable pets
+
+- The player owns permanent numerical progression: level, XP, attack, defence,
+  and related stats.
+- A pet owns the tactical and expressive identity: moves, passive ability,
+  appearance, and evolution.
+- Newly caught pets inherit the player's combat power immediately rather than
+  beginning another independent leveling grind.
+
+In short: **player stats determine how strong you are; the active pet
+determines what you can do.** Pets should not be purely cosmetic, or catching
+risks becoming only a sticker collection.
+
+### 3. Small tactical move sets
+
+A pet can have a compact Pokémon-like move set, for example:
+
+- **Quick move:** reliable, modest damage.
+- **Power move:** stronger; may require a harder or multi-step question.
+- **Defensive move:** a correct answer creates a shield.
+- **Special move:** healing, a status effect, improved catch chance, etc.
+
+There is no answer timer. The player chooses calmly, answers the question, and
+then watches the pet execute the selected move.
+
+### 4. Catching makes repetition unpredictable
+
+Wild creatures can be common, uncommon, or rare; native to particular islands
+or landmarks; occasionally special-coloured; and easier to catch once
+weakened. A battle then offers discovery and collection alongside XP.
+
+### 5. Evolution makes learning progress visible
+
+Pets can evolve when the **player** reaches milestones or completes islands.
+This turns otherwise invisible practice into a dramatic visual reward without
+requiring separate pet levels or answer-speed targets.
+
+### 6. Island guardians and badges
+
+Each creature island can culminate in a guardian battle. Victory awards an
+island badge and can unlock a pet evolution, move, or convenience. The badge
+shows readiness, but need not physically lock the next island: an unprepared
+player remains free to sail ahead and encounter the natural stat wall.
+
+### 7. Routes, landmarks, and secrets
+
+Each island should feel like a journey rather than one grinding field. It can
+alternate between arrival/safety points, routes, caves or ruins, NPCs, rare
+creature habitats, the guardian destination, and shortcuts opened afterward.
+
+### 8. Gentle defeat
+
+Defeat returns the player to Harbor Town or the island entrance without losing
+earned XP or captured pets. An NPC can gently suggest that the enemies may be
+too strong. Mathematical weakness should never be framed as shame or permanent
+loss.
+
+### Mechanics not to copy
+
+- Independent levels for every pet, which discourage trying new captures.
+- A large elemental/type chart competing with math for attention.
+- Excessive random encounters.
+- Harsh money or progress loss after defeat.
+- Repetition that rewards nothing except XP.
+
+### Recommended party model (not settled)
+
+Use separate **temporary, player-derived HP** for each pet. When one pet
+faints, another can enter with its own derived HP pool. Pets still have no
+independent permanent stat progression, but team-building and switching remain
+meaningful. The simpler alternative is one player HP bar shared by the whole
+team, with switching changing only available moves.
 
 ## Map tech
 
@@ -75,7 +188,11 @@ of MAP-style data with an exit tile back to Harbor Town.
   sailable connections?
 - One shared world per save vs. per-kid saves (ties into sibling profiles
   open question in ROADMAP.md).
-- Exact stat/XP curves per island — what "breeze" and "one-shot" mean in
-  numbers.
-- Does the player level (as opposed to pet levels) exist as a visible stat,
-  and what exactly feeds it?
+- Exact stat/XP curves per island — what "breeze," "one-shot," and the
+  level-relative XP falloff mean in numbers.
+- When one pet faints, can the player send out another pet with a fresh,
+  player-derived HP pool, or does the whole team share one player HP bar?
+- What gives different pets strategic identity if they have no independent
+  stats: moves, passive abilities, types, evolutions, or some subset?
+- Is player level visible, and exactly which correct answers/battle outcomes
+  feed it?

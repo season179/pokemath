@@ -45,7 +45,6 @@ export class GameApp {
   ) {
     this.state = new GameState(boot);
     this.world = new WorldScreen(this.state, {
-      onEncounter: (wild) => this.startBattle(wild),
       onShop: () => this.startShop(),
     });
     this.canvasNode.addChild(this.world.root);
@@ -63,6 +62,8 @@ export class GameApp {
     if (this.screen === "world") this.world.update(dt);
   }
 
+  // Kept ready for Meadow Isle: Harbor Town intentionally has no encounter
+  // trigger, so battles are unreachable until the ferry route lands.
   private startBattle(wild: Creature): void {
     this.screen = "battle";
     this.world.root.active = false;
