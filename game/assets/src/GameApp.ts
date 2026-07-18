@@ -101,7 +101,9 @@ export class GameApp {
 
   private async loadBank(): Promise<void> {
     try {
-      this.bank = await loadQuestionBank("std1/woolly-meadows");
+      // Cocos resources.load path: relative to assets/resources, no extension.
+      // The reviewed bank lives at resources/question-banks/std1/woolly-meadows.v1.json.
+      this.bank = await loadQuestionBank("question-banks/std1/woolly-meadows.v1");
     } catch (error) {
       // The reviewed Std-1 bank is required for any Woolly battle; we never
       // fall back to the Year-4 SAMPLE_BANK (#8 forbids it). If this fails,
