@@ -38,7 +38,7 @@ import {
   tileAt,
 } from "./regions/index";
 import { GameState } from "../state";
-import { PALETTE, destroyChildren, makeLabel, makePanel, makeRect } from "../ui";
+import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
 import { paintBagIcon } from "../ui-icons";
 import { colorFromHex, paintCreature } from "../creature-art";
 import { loadPixelTexture, pixelFrame } from "../remote-art";
@@ -140,11 +140,20 @@ export class WorldScreen {
     this.h = regionH(this.def);
     this.root = new Node(`world-${regionId}`);
 
-    const arrival = (entryGateway && gatewayNamed(this.def, entryGateway)?.arriveAt) || this.def.spawn;
-    this.px = arrival.x;
-    this.py = arrival.y;
-    this.companionX = arrival.x;
-    this.companionY = arrival.y + 1;
+    const arrival = this.def.spawn;
+    if (entryGateway) {
+      const gateway = gatewayNamed(this.def, entryGateway);
+      if (!gateway?.arriveAt) {
+        throw new Error(`Region ${regionId} has no arrival gateway named "${entryGateway}"`);
+      }
+      this.px = gateway.arriveAt.x;
+      this.py = gateway.arriveAt.y;
+    } else {
+      this.px = arrival.x;
+      this.py = arrival.y;
+    }
+    this.companionX = this.px;
+    this.companionY = this.py + 1;
     this.companionTargetX = this.companionX;
     this.companionTargetY = this.companionY;
 
@@ -198,6 +207,7 @@ export class WorldScreen {
       this.banner.destroy();
       this.banner = null;
       if (this.pendingSail) {
+        // Keyboard path: Space/Enter confirms the primary action ("Go").
         const sail = this.pendingSail;
         this.pendingSail = null;
         this.actions.onTravel(sail.to, sail.arrive);
@@ -303,10 +313,60 @@ export class WorldScreen {
   }
 
   private showNpcDialog(npc: NpcDef) {
-    this.showNotice(`${npc.name}: ${npc.message}`);
     if (npc.sailTo) {
-      this.pendingSail = { to: npc.sailTo, arrive: npc.sailArrive ?? null };
+      this.showTravelDialog(npc);
+      return;
     }
+    this.showNotice(`${npc.name}: ${npc.message}`);
+  }
+
+  // Travel NPCs offer an explicit choice: bumping the captain or a guide
+  // must never teleport the player by itself.
+  private showTravelDialog(npc: NpcDef) {
+    this.releaseAll();
+    this.pendingSail = null;
+    this.banner?.destroy();
+    const box = makePanel(this.root, 0, -226, 720, 104, {
+      fill: PALETTE.panel,
+      stroke: PALETTE.panelStroke,
+    });
+    makeWrappedLabel(box, `${npc.name}: ${npc.message}`, -170, 0, 420, 74, {
+      fontSize: 18,
+      lineHeight: 23,
+    });
+    const sail = { to: npc.sailTo!, arrive: npc.sailArrive ?? null };
+    makeButton(box, {
+      x: 218,
+      y: 0,
+      w: 118,
+      h: 50,
+      label: "Go! 走吧",
+      color: PALETTE.actionBlue,
+      fontSize: 19,
+      onTap: () => {
+        this.banner?.destroy();
+        this.banner = null;
+        this.pendingSail = null;
+        this.actions.onTravel(sail.to, sail.arrive);
+      },
+    });
+    makeButton(box, {
+      x: 332,
+      y: 0,
+      w: 52,
+      h: 50,
+      label: "✕",
+      color: new Color(144, 164, 174, 255),
+      fontSize: 19,
+      onTap: () => {
+        this.banner?.destroy();
+        this.banner = null;
+        this.pendingSail = null;
+      },
+    });
+    // Space/Enter (tap) confirms "Go"; touch players can always decline.
+    this.pendingSail = sail;
+    this.banner = box;
   }
 
   showNotice(text: string) {

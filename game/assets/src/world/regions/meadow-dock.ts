@@ -32,7 +32,7 @@ export const MEADOW_DOCK: RegionDef = {
       x: 5,
       y: 12,
       name: "Captain Ro",
-      message: "All aboard! Back to Harbor Town we go! 上船啦——回港湾镇！",
+      message: "All aboard! Back to Harbor Town we go! 上船啦，回港湾镇！",
       characterSheet: "characters/character_10/character10-sheet.png",
       sailTo: "harbor",
       sailArrive: "ferry",

@@ -163,6 +163,35 @@ test("camOffset centers small maps and clamps large maps", () => {
   assert.equal(camOffset(1950, 2000, 960), -1520);
 });
 
+test("NPC sail routes target real regions with real arrival gateways", () => {
+  for (const def of Object.values(REGIONS)) {
+    for (const npc of def.npcs) {
+      if (!npc.sailTo) continue;
+      const target = REGIONS[npc.sailTo];
+      assert.ok(target, `${def.id} ${npc.name} sails to ${npc.sailTo}, which exists`);
+      const gateway = gatewayNamed(target, npc.sailArrive!);
+      assert.ok(gateway, `${npc.sailTo}.${npc.sailArrive} exists`);
+      assert.ok(
+        gateway.arriveAt && isWalkable(target, gateway.arriveAt.x, gateway.arriveAt.y),
+        `${npc.sailTo}.${npc.sailArrive} arrival is walkable`,
+      );
+    }
+  }
+});
+
+test("every arrival point lies in the region's reachable area", () => {
+  for (const def of Object.values(REGIONS)) {
+    const reachable = reachableTiles(def, def.spawn);
+    for (const gateway of def.gateways) {
+      if (!gateway.arriveAt) continue;
+      assert.ok(
+        reachable.has(`${gateway.arriveAt.x},${gateway.arriveAt.y}`),
+        `${def.id}.${gateway.name} arrival ${gateway.arriveAt.x},${gateway.arriveAt.y} reachable from spawn`,
+      );
+    }
+  }
+});
+
 test("region dimensions", () => {
   assert.equal(regionW(REGIONS.harbor), 20);
   assert.equal(regionH(REGIONS.harbor), 13);

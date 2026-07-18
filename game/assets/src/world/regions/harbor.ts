@@ -49,7 +49,7 @@ export const HARBOR: RegionDef = {
       x: 9,
       y: 11,
       name: "Captain Ro",
-      message: "Ahoy! Hop aboard — next stop, Meadow Isle! 上船啦——下一站，青草岛！",
+      message: "Ahoy! Hop aboard — next stop, Meadow Isle! 上船啦，去青草岛！",
       characterSheet: "characters/character_10/character10-sheet.png",
       sailTo: "meadow/dock",
       sailArrive: "ferry",
