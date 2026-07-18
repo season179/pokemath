@@ -40,6 +40,9 @@ export class GameApp {
   private dpad: Node | null = null;
   private nameLabel: Node | null = null;
   private nameScreen: NameScreen | null = null;
+  private canvasElement: HTMLCanvasElement | null = null;
+  private canvasFocusHandler: (() => void) | null = null;
+  private canvasBlurHandler: (() => void) | null = null;
 
   constructor(
     private canvasNode: Node,
@@ -60,8 +63,27 @@ export class GameApp {
     this.enableCanvasKeyboardFocus();
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+    view.on("canvas-resize", this.onViewResize, this);
+    view.on("design-resolution-changed", this.onViewResize, this);
     this.buildDpad();
     this.showPlayerName();
+  }
+
+  destroy() {
+    input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+    input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+    view.off("canvas-resize", this.onViewResize, this);
+    view.off("design-resolution-changed", this.onViewResize, this);
+    if (this.canvasElement && this.canvasFocusHandler) {
+      this.canvasElement.removeEventListener("pointerdown", this.canvasFocusHandler);
+    }
+    if (this.canvasElement && this.canvasBlurHandler) {
+      this.canvasElement.removeEventListener("blur", this.canvasBlurHandler);
+    }
+    this.canvasElement = null;
+    this.canvasFocusHandler = null;
+    this.canvasBlurHandler = null;
+    this.world.releaseAll();
   }
 
   update(dt: number) {
@@ -72,8 +94,7 @@ export class GameApp {
   // trigger, so battles are unreachable until the ferry route lands.
   private startBattle(wild: Creature): void {
     this.screen = "battle";
-    this.world.root.active = false;
-    if (this.dpad) this.dpad.active = false;
+    this.hideWorld();
     this.battle = new BattleScreen(this.state, wild, this.bank, {
       onExit: () => this.endBattle(false),
       onRespawn: () => this.endBattle(true),
@@ -90,8 +111,7 @@ export class GameApp {
 
   private startShop(): void {
     this.screen = "shop";
-    this.world.root.active = false;
-    if (this.dpad) this.dpad.active = false;
+    this.hideWorld();
     this.shop = new ShopScreen(this.state, () => this.endShop());
     this.canvasNode.addChild(this.shop.root);
   }
@@ -151,6 +171,12 @@ export class GameApp {
     else this.world.refreshHud();
   }
 
+  private onViewResize() {
+    this.world.refreshLayout();
+    this.buildDpad();
+    this.showPlayerName();
+  }
+
   // Cocos 3.8's web keyboard source listens on #GameCanvas (not window).
   // Canvas is not keyboard-focusable by default, so physical keys vanish
   // unless we opt it in and focus it. Re-focus after every pointer press;
@@ -163,8 +189,12 @@ export class GameApp {
     canvas.tabIndex = 0;
     canvas.style.outline = "none";
     const focus = () => canvas.focus({ preventScroll: true });
+    const release = () => this.world.releaseAll();
+    this.canvasElement = canvas;
+    this.canvasFocusHandler = focus;
+    this.canvasBlurHandler = release;
     canvas.addEventListener("pointerdown", focus);
-    canvas.addEventListener("blur", () => this.world.releaseAll());
+    canvas.addEventListener("blur", release);
     focus();
   }
 
@@ -231,8 +261,11 @@ export class GameApp {
 
   // --- touch d-pad (bottom-left), for iPad play ---
   private buildDpad() {
+    this.world.releaseAll();
+    this.dpad?.destroy();
     this.dpad = new Node("dpad");
     this.canvasNode.addChild(this.dpad);
+    this.dpad.active = this.screen === "world";
     const size = view.getDesignResolutionSize();
     const cx = -size.width / 2 + 110;
     const cy = -size.height / 2 + 110;

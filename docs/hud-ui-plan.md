@@ -4,13 +4,14 @@
 
 **Design reference:** `.lavish/hud-ui-research.html`
 
-**Implementation target:** Cocos Creator 3.8.8, 960×640 design resolution
+**Implementation target:** Cocos Creator 3.8.8, 1280×720 design resolution;
+960×640 remains the compact viewport and coordinate baseline used below
 
 **Implementation status:** Complete on 2026-07-18. Phase 1 and Phase 2 were
-implemented and verified in the built game at 960×640 and 1024×768. The final
-gate passed `npm run sync`, 35 tests, TypeScript checking, the Cocos web-mobile
-build, pointer and keyboard interaction checks, and browser console/error
-inspection.
+implemented and verified in the built game at 960×640 and 1024×768 browser
+viewports. The final gate passed `npm run sync`, 35 tests, TypeScript checking,
+the Cocos web-mobile build, pointer and keyboard interaction checks, and
+browser console/error inspection.
 
 ## Goal
 
@@ -51,7 +52,8 @@ follower.
 `WorldScreen.buildHuds()` currently creates:
 
 - a party panel centered at `y=288` with height `66`; its top reaches `y=321`
-  on a canvas whose top bound is `y=320`, so it is clipped;
+  and crosses the legacy 960×640 authoring baseline by one unit. The shipped
+  1280×720 build does not clip it, but the placement still crowds the top edge;
 - a wallet line containing RM and two emoji item counts;
 - a permanent location panel using the same visual weight as both status
   panels.
@@ -61,18 +63,21 @@ icons do not communicate name, HP, or active state.
 
 ## Target world layout
 
-All coordinates below use centered Cocos coordinates for the 960×640 design
-resolution.
+All coordinates below use centered Cocos coordinates for a 960×640 compact
+layout baseline. The shipped web build uses a 1280×720 Cocos design resolution,
+and the implemented edge controls derive their actual positions from
+`view.getDesignResolutionSize()`.
 
 | Element | Size | Center | Behaviour |
 |---|---:|---:|---|
-| Active-pet card | `196×60` | `(-362, 270)` | 20px from top and left; tap opens Party |
-| Bag button | `54×54` | `(433, 273)` | 20px from top and right; tap opens Bag |
+| Active-pet card | `196×60` | `(-362, 270)` | 20 design units from top and left; tap opens Party |
+| Bag button | `54×54` | `(433, 273)` | 20 design units from top and right; tap opens Bag |
 | Location toast | about `220×42` | `(0, 279)` | hold 1.5–2.0s, fade for about 250ms, destroy |
 
 Derive the edge anchors from `view.getDesignResolutionSize()` at runtime. The
-values above remain exact at 960×640 while the 20px safe area remains stable
-when Cocos expands the aligned canvas for a tablet viewport.
+values above are the compact-layout baseline. At the shipped 1280×720 design
+resolution, the implemented centers are `(-522, 310)`, `(593, 313)`, and
+`(0, 319)`, preserving the 20-unit edge inset.
 
 The active-pet card contains:
 
@@ -175,7 +180,7 @@ Update `game/assets/src/world/WorldScreen.ts`:
 - extend `WorldActions` with `onParty` and `onBag`;
 - keep `refreshHud()` able to reflect active-pet, HP, or level changes;
 - make the active-pet card and Bag button proper touch targets;
-- keep all world HUD bounds inside the 20px safe area;
+- keep all world HUD bounds inside the 20-design-unit safe area;
 - turn `buildTownTitle()` into a one-shot toast.
 
 ### 3. Add Party and Bag screens
@@ -252,7 +257,7 @@ state.
 
 ### World
 
-- No HUD pixel crosses the 20px top/side safe area at 960×640.
+- No HUD element crosses the 20-design-unit top/side safe area.
 - The active pet's portrait, full starter name, level, and HP are readable.
 - No whole-party dot strip is visible.
 - No RM, potion count, or ball count is visible while walking.

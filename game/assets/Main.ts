@@ -48,4 +48,9 @@ export class Main extends Component {
   update(dt: number) {
     this.app?.update(dt);
   }
+
+  onDestroy() {
+    this.app?.destroy();
+    this.app = null;
+  }
 }

@@ -22,6 +22,7 @@ export class PartyScreen {
   private page = 0;
 
   constructor(private state: GameState, private actions: PartyActions) {
+    this.page = Math.floor(this.state.activeIndex / ROWS_PER_PAGE);
     this.render();
   }
 

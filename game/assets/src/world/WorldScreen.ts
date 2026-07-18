@@ -658,6 +658,14 @@ export class WorldScreen {
     this.drawCompanion();
   }
 
+  refreshLayout() {
+    this.refreshHud();
+    if (this.locationToast?.isValid) {
+      const size = view.getDesignResolutionSize();
+      this.locationToast.setPosition(0, size.height / 2 - 41);
+    }
+  }
+
   respawnHome() {
     this.px = PLAYER_SPAWN.x;
     this.py = PLAYER_SPAWN.y;
