@@ -4,6 +4,7 @@
 //
 //   T = tree (blocked)        X = fence/building (blocked)
 //   . = grass                 p = path
+//   g = tall grass (walkable; triggers wild encounters in regions that have an encounter table)
 //   b = beach                 w = water (blocked)
 //   d/D = boardwalk/pier      f = flowers (walkable decoration)
 //   o = stone (blocked)       C = clock post (blocked)
@@ -13,6 +14,10 @@
 export const TILE = 48;
 
 const SOLID_TILES = new Set(["T", "X", "w", "N", "o", "C"]);
+
+// Walkable tiles that can start a wild encounter. Only regions that also
+// declare an `encounters` table actually trigger battles (see WorldScreen).
+const ENCOUNTER_TILES = new Set(["g"]);
 
 export type Direction = "up" | "down" | "left" | "right";
 
@@ -58,6 +63,26 @@ export interface NpcDef {
 
 export type TileHandler = "heal" | "shop" | "workshop";
 
+// Wild-encounter roster for a region. Only Woolly Meadows declares one in the
+// preview; every other region stays encounter-free. Entries reference species
+// by stable semantic id (resolved through shared/encounters' SPECIES_BY_ID),
+// so region data never imports Species objects. `weight` drives selection;
+// `rarity` is a human-readable label so the common/uncommon/rare split is
+// verifiable directly from the map data.
+export type Rarity = "common" | "uncommon" | "rare";
+
+export interface EncounterEntry {
+  readonly speciesId: string;
+  readonly weight: number;
+  readonly rarity: Rarity;
+}
+
+export interface EncounterTable {
+  /** Probability of an encounter each time the player enters a tall-grass tile. */
+  readonly rate: number;
+  readonly entries: readonly EncounterEntry[];
+}
+
 /**
  * Which island/hub cluster a region belongs to on the world map. Open-ended:
  * the known clusters are listed for autocomplete, but a future island simply
@@ -99,6 +124,8 @@ export interface RegionDef {
   readonly npcs: readonly NpcDef[];
   readonly gateways: readonly GatewayDef[];
   readonly handlers?: Partial<Record<string, TileHandler>>;
+  /** If present, tall-grass (`g`) tiles in this region can start wild battles. */
+  readonly encounters?: EncounterTable;
 }
 
 export function regionW(def: RegionDef): number {
@@ -116,6 +143,10 @@ export function tileAt(def: RegionDef, x: number, y: number): string {
 
 export function isWalkable(def: RegionDef, x: number, y: number): boolean {
   return !SOLID_TILES.has(tileAt(def, x, y));
+}
+
+export function isEncounterTile(def: RegionDef, x: number, y: number): boolean {
+  return ENCOUNTER_TILES.has(tileAt(def, x, y));
 }
 
 export function npcAt(def: RegionDef, x: number, y: number): NpcDef | undefined {

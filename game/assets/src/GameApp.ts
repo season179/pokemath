@@ -3,7 +3,8 @@
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { EventKeyboard, Input, KeyCode, Node, input, view } from "cc";
-import { Creature, QuestionBank, SAMPLE_BANK, type SaveState } from "../shared/index";
+import { Creature, QuestionBank, type SaveState } from "../shared/index";
+import { loadQuestionBank } from "./questions/loadQuestionBank";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
 import { BattleScreen } from "./battle/BattleScreen";
@@ -31,7 +32,10 @@ const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
 
 export class GameApp {
   private state: GameState;
-  private bank = new QuestionBank(SAMPLE_BANK);
+  // The reviewed Standard-1 Woolly bank (#6), loaded async from versioned JSON.
+  // Battles stay closed until it loads; we never fall back to the Year-4
+  // SAMPLE_BANK (#8 forbids it in Woolly).
+  private bank: QuestionBank | null = null;
   private screen: Screen = "world";
   private world: WorldScreen;
   private party: PartyScreen | null = null;
@@ -61,6 +65,8 @@ export class GameApp {
     onParty: () => this.startParty(),
     onBag: () => this.startBag(),
     onTravel: (regionId, gateway) => this.travel(regionId, gateway),
+    onEncounter: (wild) => this.startBattle(wild),
+    encounterReady: () => this.bank !== null,
     onMap: () => this.openMap(),
   };
 
@@ -91,6 +97,26 @@ export class GameApp {
     view.on("canvas-resize", this.onViewResize, this);
     view.on("design-resolution-changed", this.onViewResize, this);
     this.showPlayerName();
+    // Load the reviewed Std-1 bank so Woolly encounters can start. If the Cocos
+    // resource path isn't resolving yet, encounters stay off (see loadBank).
+    void this.loadBank();
+  }
+
+  private async loadBank(): Promise<void> {
+    try {
+      // Cocos resources.load path: relative to assets/resources, no extension.
+      // The reviewed bank lives at resources/question-banks/std1/woolly-meadows.v1.json.
+      this.bank = await loadQuestionBank("question-banks/std1/woolly-meadows.v1");
+    } catch (error) {
+      // The reviewed Std-1 bank is required for any Woolly battle; we never
+      // fall back to the Year-4 SAMPLE_BANK (#8 forbids it). If this fails,
+      // confirm the bank JSON is loadable via Cocos resources (its resource
+      // path/bundle), then encounters will enable.
+      console.error(
+        "[pokemath] Could not load the reviewed Std-1 Woolly bank; encounters stay off.",
+        error,
+      );
+    }
   }
 
   destroy() {
@@ -114,19 +140,22 @@ export class GameApp {
     if (this.screen === "world") this.world.update(dt);
   }
 
-  // Battles stay unreachable until Meadow Isle's encounter grass lands in
-  // #8 — regions have no encounter trigger yet. Until then this guard is pure
-  // defense-in-depth: a battle can never start outside a preview encounter
-  // region (Woolly), so Meadow Dock stays transit-only and sealed areas stay
-  // empty no matter how a future trigger gets wired (issue #29).
+  // A wild encounter (started from Woolly Meadows' tall grass) opens the
+  // battle screen with a fresh wild creature. Guards: only in a preview
+  // encounter region (#29), and only once the reviewed Std-1 bank has loaded.
   private startBattle(wild: Creature): void {
     if (!isEncounterRegion(this.world.regionId)) {
       console.warn(`Refusing battle in non-encounter region: ${this.world.regionId}`);
       return;
     }
+    const bank = this.bank;
+    if (!bank) {
+      console.warn("Ignoring encounter: the reviewed Std-1 bank has not loaded yet.");
+      return;
+    }
     this.screen = "battle";
     this.hideWorld();
-    this.battle = new BattleScreen(this.state, wild, this.bank, {
+    this.battle = new BattleScreen(this.state, wild, bank, {
       onExit: () => this.endBattle(false),
       onRespawn: () => this.endBattle(true),
     });

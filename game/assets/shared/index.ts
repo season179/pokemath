@@ -6,6 +6,7 @@ export * from "./question-engine";
 export * from "./question-bank-validate";
 export * from "./question-bank";
 export * from "./creature";
+export * from "./encounters";
 export * from "./battle-rules";
 export * from "./shop-rules";
 export * from "./save-types";
