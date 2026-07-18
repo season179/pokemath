@@ -185,6 +185,18 @@ mini-map bottom-left, and Bag/Map buttons top-right — and **no blue on-screen
 directional pad** anywhere (criterion 2; the only lower-left control is the
 mini-map).
 
+**Cover-scale assertion (issue #38):** Harbor's `map` node must be zoomed so
+its scaled size covers the whole 1280×720 canvas — no background margins. The
+world root's direct `map` child carries the camera scale; `fallback-tiles`
+under it always keeps the region's unscaled pixel size, so the check works
+with or without streamed art. Like `ck`/`tp`, the helper aborts on mismatch:
+`cov || exit 1`.
+
+```bash
+cov() { local got; got=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let wr=null;(function w(n){if(n.name&&n.name.indexOf('world-')===0&&n.name!=='world-map'){wr=n;return;}if(n.children)for(const c of n.children)w(c);})(s);if(!wr)return'FAIL no-world';const m=wr.children.find(function(c){return c.name==='map';});if(!m)return'FAIL no-map';const t=m.children.find(function(c){return c.name==='fallback-tiles';});const ui=t&&t.getComponent('cc.UITransform');if(!ui)return'FAIL no-fallback-tiles';const w=ui.contentSize.width*m.scale.x,h=ui.contentSize.height*m.scale.y;return (w>=1280&&h>=720?'PASS':'FAIL')+' map '+w+'x'+h+' (scale '+m.scale.x+')';})()"); got=${got//\"/}; echo "  COVER $got"; [[ "$got" == PASS* ]]; }
+cov || exit 1   # → COVER PASS map 1280x832 (scale 1.3333333333333333)
+```
+
 ---
 
 ## 5. The route

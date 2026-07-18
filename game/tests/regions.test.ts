@@ -4,8 +4,10 @@ import assert from "node:assert/strict";
 import {
   PREVIEW_LOCKED_MESSAGE,
   REGIONS,
+  TILE,
   camOffset,
   canTraverseGateway,
+  coverScale,
   gatewayNamed,
   gatewayNotice,
   isEncounterRegion,
@@ -261,6 +263,20 @@ test("camOffset centers small maps and clamps large maps", () => {
   assert.equal(camOffset(100, 2000, 960), -480);
   // …and at the far edge.
   assert.equal(camOffset(1950, 2000, 960), -1520);
+});
+
+test("coverScale zooms small maps to cover 1280×720 and leaves large maps at 1", () => {
+  const px = (def: RegionDef) => [regionW(def) * TILE, regionH(def) * TILE] as const;
+  // Harbor (20×13 → 960×624 px) is smaller than the canvas on both axes:
+  // zooms 4/3 so the width exactly fills 1280 (height becomes 832 and pans).
+  assert.equal(coverScale(...px(REGIONS.harbor), 1280, 720), 4 / 3);
+  // Meadow Dock (24×16 → 1152×768 px) covers vertically but not horizontally:
+  // zooms 10/9 so the width exactly fills 1280.
+  assert.equal(coverScale(...px(REGIONS["meadow/dock"]), 1280, 720), 10 / 9);
+  // Woolly (32×24 → 1536×1152 px) already exceeds the canvas: untouched.
+  assert.equal(coverScale(...px(REGIONS["meadow/woolly"]), 1280, 720), 1);
+  // Any map larger than the canvas on both axes stays at exactly 1.
+  assert.equal(coverScale(2000, 3000, 1280, 720), 1);
 });
 
 test("NPC sail routes target real regions with real arrival gateways", () => {
