@@ -7,6 +7,7 @@ import { Creature, QuestionBank, type SaveState } from "../shared/index";
 import { loadQuestionBank } from "./questions/loadQuestionBank";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
+import { SignOutScreen } from "./SignOutScreen";
 import { BattleScreen } from "./battle/BattleScreen";
 import { BagScreen } from "./bag/BagScreen";
 import { PartyScreen } from "./party/PartyScreen";
@@ -15,9 +16,9 @@ import { GameState } from "./state";
 import { Direction, isEncounterRegion, isOpenRegion } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { WorldMapScreen } from "./world/WorldMapScreen";
-import { makeLabel } from "./ui";
+import { PALETTE, makeLabel } from "./ui";
 
-type Screen = "world" | "party" | "bag" | "battle" | "shop" | "map";
+type Screen = "world" | "party" | "bag" | "battle" | "shop" | "map" | "signout";
 
 const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
   [KeyCode.ARROW_UP]: "up",
@@ -45,6 +46,8 @@ export class GameApp {
   private map: WorldMapScreen | null = null;
   private nameLabel: Node | null = null;
   private nameScreen: NameScreen | null = null;
+  private signOutLabel: Node | null = null;
+  private signOutScreen: SignOutScreen | null = null;
   private canvasElement: HTMLCanvasElement | null = null;
   private canvasFocusHandler: (() => void) | null = null;
   private canvasBlurHandler: (() => void) | null = null;
@@ -279,6 +282,8 @@ export class GameApp {
   private showPlayerName() {
     if (this.nameLabel?.isValid) this.nameLabel.destroy();
     this.nameLabel = null;
+    if (this.signOutLabel?.isValid) this.signOutLabel.destroy();
+    this.signOutLabel = null;
     const size = view.getVisibleSize();
     const label = makeLabel(
       this.world.root,
@@ -289,6 +294,37 @@ export class GameApp {
     );
     this.nameLabel = label.node;
     label.node.on(Node.EventType.TOUCH_END, () => this.openNameScreen());
+
+    // Sign-out lives with the name — siblings taking turns on one computer
+    // switch accounts here. It only opens the confirmation screen, so a
+    // stray tap can never end the session by itself.
+    const signOut = makeLabel(
+      this.world.root,
+      "Sign out · 退出",
+      size.width / 2 - 24,
+      -size.height / 2 + 42,
+      { fontSize: 11, color: PALETTE.sub, align: "right" },
+    );
+    this.signOutLabel = signOut.node;
+    signOut.node.on(Node.EventType.TOUCH_END, () => this.openSignOut());
+  }
+
+  // Deliberate session end so someone else can play (shared computer). A
+  // checkpoint is pushed on open, so "your progress is saved" is already
+  // true while the player decides; the screen itself drives the sign-out.
+  private openSignOut(): void {
+    if (this.screen !== "world" || this.nameScreen) return;
+    this.screen = "signout";
+    this.hideWorld();
+    this.persistence.checkpoint(this.state.toSave());
+    this.signOutScreen = new SignOutScreen(this.persistence, () => this.endSignOut());
+    this.canvasNode.addChild(this.signOutScreen.root);
+  }
+
+  private endSignOut(): void {
+    this.signOutScreen?.root.destroy();
+    this.signOutScreen = null;
+    this.returnToWorld(false);
   }
 
   private openNameScreen() {
@@ -323,6 +359,10 @@ export class GameApp {
     }
     if (this.screen === "map") {
       this.map?.handleKeyDown(e);
+      return;
+    }
+    if (this.screen === "signout") {
+      this.signOutScreen?.handleKeyDown(e);
       return;
     }
 
