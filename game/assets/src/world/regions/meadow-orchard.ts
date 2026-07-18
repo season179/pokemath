@@ -32,7 +32,7 @@ export const MEADOW_ORCHARD: RegionDef = {
     "TTTTTTTTTTTTTTpTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 14, y: 1 },
-  npcs: [guide(16, 2, "characters/character_07/character07-sheet.png")],
+  npcs: [guide(16, 2, "characters/character_7/character07-sheet.png")],
   gateways: [
     {
       name: "north",

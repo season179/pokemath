@@ -30,7 +30,7 @@ export const MEADOW_BARN: RegionDef = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 11 },
-  npcs: [guide(2, 13, "characters/character_09/character09-sheet.png")],
+  npcs: [guide(2, 13, "characters/character_9/character09-sheet.png")],
   gateways: [
     {
       name: "east",

@@ -30,7 +30,7 @@ export const MEADOW_TICKTOCK: RegionDef = {
     "TTTTTTTTTTTTTTpTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 8 },
-  npcs: [guide(2, 9, "characters/character_06/character06-sheet.png")],
+  npcs: [guide(2, 9, "characters/character_6/character06-sheet.png")],
   gateways: [
     {
       name: "west",
