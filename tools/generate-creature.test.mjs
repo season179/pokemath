@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -233,11 +233,13 @@ test("alternate palette changes colour while preserving dimensions and alpha exa
   assert.ok(changedRgb > 0);
 });
 
-test("generation uses the Codex subscription worker and writes a reproducible manifest", async (context) => {
+test("generation retains the raw source and a reproducible manifest", async (context) => {
   const config = normalizeCreatureConfig(validConfig({ stages: 2 }));
   const raw = await makeRawCanvas(2);
   const outputDirectory = await mkdtemp(join(tmpdir(), "pokemath-creature-"));
+  const sourceArchiveDirectory = await mkdtemp(join(tmpdir(), "pokemath-creature-source-"));
   context.after(() => rm(outputDirectory, { recursive: true, force: true }));
+  context.after(() => rm(sourceArchiveDirectory, { recursive: true, force: true }));
   let calls = 0;
   let workingDirectory;
   const runGeneration = async ({ config: receivedConfig, outputDirectory: receivedDirectory }) => {
@@ -251,16 +253,24 @@ test("generation uses the Codex subscription worker and writes a reproducible ma
   const result = await generateCreature(config, {
     runGeneration,
     outputDirectory,
+    sourceArchiveDirectory,
     now: new Date("2026-07-18T00:00:00.000Z"),
   });
   assert.equal(calls, 1);
   assert.equal(result.manifest.transport, "codex-subscription");
   assert.equal(result.manifest.model, "gpt-image-2");
   assert.equal(result.manifest.output.stripWidth, 96);
+  assert.equal(result.sourceArchiveDirectory, sourceArchiveDirectory);
   await assert.rejects(access(workingDirectory), /ENOENT/);
 
   assert.equal(result.manifest.createdAt, "2026-07-18T00:00:00.000Z");
   assert.deepEqual((await readdir(outputDirectory)).sort(), ["mossback.png", "mossback_alt.png"]);
+  assert.deepEqual((await readdir(sourceArchiveDirectory)).sort(), ["manifest.json", "raw.png"]);
+  assert.deepEqual(await readFile(join(sourceArchiveDirectory, "raw.png")), raw);
+  assert.deepEqual(
+    JSON.parse(await readFile(join(sourceArchiveDirectory, "manifest.json"), "utf8")),
+    result.manifest,
+  );
   const outputMetadata = await sharp(join(outputDirectory, "mossback.png")).metadata();
   const altMetadata = await sharp(join(outputDirectory, "mossback_alt.png")).metadata();
   assert.equal(outputMetadata.width, 96);
@@ -284,6 +294,30 @@ test("a non-empty output directory fails before starting Codex generation", asyn
   await assert.rejects(
     generateCreature(config, { runGeneration, outputDirectory }),
     /output directory is not empty/,
+  );
+  assert.equal(generationCalls, 0);
+});
+
+test("a non-empty source archive fails before starting Codex generation", async (context) => {
+  const config = normalizeCreatureConfig(validConfig({ stages: 1 }));
+  const outputDirectory = await mkdtemp(join(tmpdir(), "pokemath-creature-output-"));
+  const sourceArchiveDirectory = await mkdtemp(join(tmpdir(), "pokemath-creature-source-"));
+  context.after(() => rm(outputDirectory, { recursive: true, force: true }));
+  context.after(() => rm(sourceArchiveDirectory, { recursive: true, force: true }));
+  await writeFile(join(sourceArchiveDirectory, "keep.txt"), "do not overwrite");
+  let generationCalls = 0;
+  const runGeneration = async () => {
+    generationCalls += 1;
+    throw new Error("should not be called");
+  };
+
+  await assert.rejects(
+    generateCreature(config, {
+      runGeneration,
+      outputDirectory,
+      sourceArchiveDirectory,
+    }),
+    /source archive directory is not empty/,
   );
   assert.equal(generationCalls, 0);
 });

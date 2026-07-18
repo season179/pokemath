@@ -61,10 +61,24 @@ Each successful run leaves exactly two files there:
 - `<creature-id>_alt.png` — identical strip with the alternate palette;
 
 Use `--out-dir <directory>` to choose another empty output directory.
-The raw image, prompt, individual stages, manifest, and Codex log live only in
-a temporary generation workspace and are discarded after successful
-normalization. If generation fails, the error reports the preserved workspace
-path for diagnosis.
+Every successful default run also retains its generation source in the
+gitignored provenance directory:
+
+```text
+art-samples/PokeMath Original/Creature Sources/<creature-id>/
+├── raw.png
+└── manifest.json
+```
+
+The manifest includes the complete generation prompt, normalized config,
+source geometry, and hashes for the raw and production images. Use
+`--archive-dir <directory>` to choose another empty provenance directory. When
+`--out-dir` is supplied without `--archive-dir`, the archive defaults to
+`<out-dir>-source`.
+
+Temporary stage crops and Codex logs are discarded after the raw source and
+manifest are safely archived. If generation fails, the error reports the
+preserved workspace path for diagnosis.
 
 If a failed Codex image worker saved `raw.png`, process that preserved workspace
 into a separate empty production directory without generating another image:
@@ -74,6 +88,7 @@ npm run generate:creature -- \
   --config creature-specs/cloudhorn.json \
   --source-dir <preserved-run-directory> \
   --out-dir <empty-production-directory> \
+  --archive-dir <empty-provenance-directory> \
   --process-only
 ```
 

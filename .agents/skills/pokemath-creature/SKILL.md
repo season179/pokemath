@@ -51,7 +51,10 @@ suggests another count.
 
 7. Inspect both PNGs with `view_image`. Confirm readable progression, same
    identity and facing direction, clean transparency, and a useful alt palette.
-8. Report links to `<id>.png`, `<id>_alt.png`, and the retained JSON spec.
+8. Confirm `raw.png` and `manifest.json` were retained under
+   `art-samples/PokeMath Original/Creature Sources/<id>/`.
+9. Report links to both production PNGs, both retained source files, and the
+   editable JSON spec.
 
 ## Hard rules
 
@@ -59,7 +62,9 @@ suggests another count.
 - The production directory must contain exactly `<id>.png` and `<id>_alt.png`.
 - Normal and alt must be `48 × stages` by `48`, with identical alpha masks.
 - Never overwrite an existing creature directory or silently delete user files.
-- Temporary raw images, stages, prompts, manifests, and logs are discarded only
-  after successful processing. Failed workspaces are preserved for diagnosis.
+- Successful runs must retain exactly `raw.png` and `manifest.json` in a
+  separate source archive directory; never put them in the production directory.
+- Temporary stage crops and logs are discarded only after the source archive is
+  written successfully. Failed workspaces are preserved for diagnosis.
 - One targeted regeneration is acceptable after failed visual QA. Ask before
   spending subscription allowance on further attempts.

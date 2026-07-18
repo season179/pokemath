@@ -43,13 +43,14 @@ export const STAGE_LAYOUTS = Object.freeze({
 
 function usage() {
   return `Usage:
-  node tools/generate-creature.mjs --config <file.json> [--out-dir <directory>]
+  node tools/generate-creature.mjs --config <file.json> [--out-dir <directory>] [--archive-dir <directory>]
   node tools/generate-creature.mjs --config <file.json> --dry-run
-  node tools/generate-creature.mjs --config <file.json> --source-dir <run-directory> --out-dir <directory> --process-only
+  node tools/generate-creature.mjs --config <file.json> --source-dir <run-directory> --out-dir <directory> [--archive-dir <directory>] --process-only
 
 The config field "stages" accepts 1, 2, 3, or 4. A value of 1 means the
 creature has no evolution. Successful generation leaves exactly two files in
-the output directory: <id>.png and <id>_alt.png.`;
+the output directory: <id>.png and <id>_alt.png. It also retains raw.png and
+manifest.json in a separate source archive directory.`;
 }
 
 function requireString(value, field) {
@@ -521,12 +522,12 @@ function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
 }
 
-async function ensureEmptyDirectory(directory) {
+async function ensureEmptyDirectory(directory, label = "output directory") {
   try {
     await access(directory);
     const entries = await readdir(directory);
     if (entries.length > 0) {
-      throw new Error(`output directory is not empty: ${directory}`);
+      throw new Error(`${label} is not empty: ${directory}`);
     }
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
@@ -536,8 +537,15 @@ async function ensureEmptyDirectory(directory) {
 
 export async function generateCreature(config, options = {}) {
   const outputDirectory = resolve(options.outputDirectory);
+  const sourceArchiveDirectory = resolve(
+    options.sourceArchiveDirectory ?? `${outputDirectory}-source`,
+  );
+  if (sourceArchiveDirectory === outputDirectory) {
+    throw new Error("output and source archive directories must be different");
+  }
   // Fail before starting a subscription-backed generation if files could be overwritten.
   await ensureEmptyDirectory(outputDirectory);
+  await ensureEmptyDirectory(sourceArchiveDirectory, "source archive directory");
   const runGeneration = options.runGeneration ?? runCodexGeneration;
   const workingDirectory = await mkdtemp(join(tmpdir(), `pokemath-${config.id}-`));
   let completed = false;
@@ -546,6 +554,7 @@ export async function generateCreature(config, options = {}) {
     const result = await processCreatureOutput(config, {
       sourceDirectory: workingDirectory,
       outputDirectory,
+      sourceArchiveDirectory,
       now: options.now,
     });
     completed = true;
@@ -561,10 +570,17 @@ export async function generateCreature(config, options = {}) {
 export async function processCreatureOutput(config, options = {}) {
   const outputDirectory = resolve(options.outputDirectory);
   const sourceDirectory = resolve(options.sourceDirectory);
+  const sourceArchiveDirectory = resolve(
+    options.sourceArchiveDirectory ?? `${outputDirectory}-source`,
+  );
   if (sourceDirectory === outputDirectory) {
     throw new Error("source and output directories must be different");
   }
+  if (sourceArchiveDirectory === outputDirectory || sourceArchiveDirectory === sourceDirectory) {
+    throw new Error("source archive, source, and output directories must be different");
+  }
   await ensureEmptyDirectory(outputDirectory);
+  await ensureEmptyDirectory(sourceArchiveDirectory, "source archive directory");
   const rawPath = join(sourceDirectory, "raw.png");
   let rawImage;
   try {
@@ -575,11 +591,6 @@ export async function processCreatureOutput(config, options = {}) {
   }
   const normalized = await normalizeCreatureImage(rawImage, config);
   const altStrip = await createAltVariant(normalized.strip, config.alt);
-
-  await Promise.all([
-    writeFile(join(outputDirectory, `${config.id}.png`), normalized.strip),
-    writeFile(join(outputDirectory, `${config.id}_alt.png`), altStrip),
-  ]);
 
   const manifest = {
     version: 3,
@@ -606,13 +617,23 @@ export async function processCreatureOutput(config, options = {}) {
       altSha256: sha256(altStrip),
     },
   };
-  return { outputDirectory, manifest };
+  await Promise.all([
+    writeFile(join(outputDirectory, `${config.id}.png`), normalized.strip),
+    writeFile(join(outputDirectory, `${config.id}_alt.png`), altStrip),
+    writeFile(join(sourceArchiveDirectory, "raw.png"), rawImage),
+    writeFile(
+      join(sourceArchiveDirectory, "manifest.json"),
+      `${JSON.stringify(manifest, null, 2)}\n`,
+    ),
+  ]);
+  return { outputDirectory, sourceArchiveDirectory, manifest };
 }
 
 function parseArguments(argv) {
   const parsed = {
     configPath: "",
     outputDirectory: "",
+    sourceArchiveDirectory: "",
     sourceDirectory: "",
     dryRun: false,
     processOnly: false,
@@ -621,6 +642,7 @@ function parseArguments(argv) {
     const argument = argv[index];
     if (argument === "--config") parsed.configPath = argv[++index] ?? "";
     else if (argument === "--out-dir") parsed.outputDirectory = argv[++index] ?? "";
+    else if (argument === "--archive-dir") parsed.sourceArchiveDirectory = argv[++index] ?? "";
     else if (argument === "--source-dir") parsed.sourceDirectory = argv[++index] ?? "";
     else if (argument === "--dry-run") parsed.dryRun = true;
     else if (argument === "--process-only") parsed.processOnly = true;
@@ -640,15 +662,33 @@ export async function runCli(argv = process.argv.slice(2)) {
 
   const configPath = resolve(args.configPath);
   const config = normalizeCreatureConfig(JSON.parse(await readFile(configPath, "utf8")));
-  const dryRunDirectory = args.outputDirectory
+  const root = dirname(fileURLToPath(import.meta.url));
+  const outputDirectory = args.outputDirectory
     ? resolve(args.outputDirectory)
-    : resolve("<generated-output-directory>");
+    : resolve(root, "..", "art-samples", "PokeMath Original", "Creatures", config.id);
+  const sourceArchiveDirectory = args.sourceArchiveDirectory
+    ? resolve(args.sourceArchiveDirectory)
+    : args.outputDirectory
+      ? resolve(`${outputDirectory}-source`)
+      : resolve(
+        root,
+        "..",
+        "art-samples",
+        "PokeMath Original",
+        "Creature Sources",
+        config.id,
+      );
   if (args.dryRun) {
     console.log(JSON.stringify({
       transport: "codex-subscription",
       model: IMAGE_MODEL,
       config,
-      codexArguments: buildCodexArguments(config, dryRunDirectory),
+      outputDirectory,
+      sourceArchiveDirectory,
+      codexArguments: buildCodexArguments(
+        config,
+        resolve("<temporary-generation-workspace>"),
+      ),
     }, null, 2));
     return;
   }
@@ -657,19 +697,17 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   const now = new Date();
-  const root = dirname(fileURLToPath(import.meta.url));
-  const outputDirectory = args.outputDirectory
-    ? resolve(args.outputDirectory)
-    : resolve(root, "..", "art-samples", "PokeMath Original", "Creatures", config.id);
   const result = args.processOnly
     ? await processCreatureOutput(config, {
       sourceDirectory: resolve(args.sourceDirectory),
       outputDirectory,
+      sourceArchiveDirectory,
       now,
     })
-    : await generateCreature(config, { outputDirectory, now });
+    : await generateCreature(config, { outputDirectory, sourceArchiveDirectory, now });
   console.log(`${args.processOnly ? "Processed" : "Generated"} ${config.stages}-stage creature line with ${IMAGE_MODEL}`);
   console.log(`Saved to ${result.outputDirectory}`);
+  console.log(`Sources saved to ${result.sourceArchiveDirectory}`);
 }
 
 const isMain = process.argv[1]

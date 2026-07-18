@@ -49,6 +49,18 @@ The alt is a deterministic palette transform, so geometry and alpha remain
 pixel-identical. The JSON spec remains under `creature-specs/` as the editable
 source of truth; it is not a production sprite artifact.
 
+## Source archive contract
+
+```text
+art-samples/PokeMath Original/Creature Sources/<id>/
+├── raw.png
+└── manifest.json
+```
+
+The raw model output and reproducibility manifest are retained outside the
+production directory so the two-file sprite contract stays exact. Both the
+production directory and source archive must be empty before generation.
+
 ## Quality gates
 
 - Exact requested stage count and reading order.
