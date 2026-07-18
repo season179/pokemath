@@ -476,10 +476,17 @@ export class WorldScreen {
   }
 
   private buildPlayerSprite(texture: Texture2D) {
+    // The sheet only has one horizontal-facing row (y=32) and it faces right;
+    // the left frame is that same frame mirrored, not a different column (all
+    // columns in the row face the same way, which left the player facing right
+    // while walking left).
+    const right = pixelFrame(texture, 64, 32, 32, 32);
+    const left = pixelFrame(texture, 64, 32, 32, 32);
+    left.flipUVX = true;
     this.playerFrames = {
       down: pixelFrame(texture, 0, 0, 32, 32),
-      left: pixelFrame(texture, 0, 32, 32, 32),
-      right: pixelFrame(texture, 64, 32, 32, 32),
+      left,
+      right,
       up: pixelFrame(texture, 0, 64, 32, 32),
     };
     const frame = this.playerFrames.down!;
