@@ -1,0 +1,43 @@
+{
+  "id": "lumentail",
+  "name": "Lumentail",
+  "concept": "a playful twilight fox whose lantern-like tails multiply as it grows into a gentle guide of lost woodland travellers",
+  "stages": 4,
+  "stageDescriptions": [
+    "a tiny round fox kit with exactly one large lantern-shaped tail, oversized pointed ears with pale inner tips, short legs, a small golden diamond marking on its forehead, and a bright friendly face",
+    "a nimble young fox with exactly three clearly separated lantern tails splayed outward with open background channels between them, longer legs, the same oversized pointed ears and golden diamond forehead marking, and the same bright friendly face",
+    "a graceful adolescent fox with exactly six clearly countable lantern tails radiating outward in a single open fan without overlaps or enclosed gaps, a fuller neck ruff, slender quadruped proportions, the same pointed ears and golden diamond forehead marking, and the same friendly face",
+    "a majestic adult twilight guardian fox with exactly nine clearly countable lantern tails radiating outward in a balanced open fan without overlaps or enclosed gaps, an elegant layered neck ruff, sturdy quadruped proportions, the same pointed ears and golden diamond forehead marking, and a calm friendly face"
+  ],
+  "habitat": "a quiet twilight woodland dotted with naturally glowing flowers",
+  "palette": [
+    "deep indigo fur",
+    "soft turquoise tail tips",
+    "warm coral ear markings",
+    "moon-gold accents",
+    "near-black violet outlines"
+  ],
+  "avoid": [
+    "fire or flame-shaped tails",
+    "white or cream main fur",
+    "red main fur",
+    "bipedal posture",
+    "wings",
+    "horns",
+    "weapons",
+    "clothing",
+    "extra creatures",
+    "merged or hidden tails",
+    "overlapping tails",
+    "closed loops or enclosed background pockets between tails",
+    "recognisable existing franchise characters"
+  ],
+  "quality": "high",
+  "chromaKey": "#00ff00",
+  "chromaTolerance": 64,
+  "alt": {
+    "hue": 145,
+    "saturation": 1.3,
+    "brightness": 0.92
+  }
+}

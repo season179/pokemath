@@ -1,0 +1,35 @@
+{
+  "id": "cloudhorn",
+  "name": "Cloudhorn",
+  "concept": "a gentle sky-goat whose soft cloud fleece grows into the mantle of a mountain-weather guardian",
+  "stages": 4,
+  "stageDescriptions": [
+    "a tiny round lamb with short legs, two golden horn buds, a puffball cloud tail, and a curious friendly face",
+    "a nimble young goat with small curled golden horns, thicker cloud fleece around its neck, and the same friendly face",
+    "a sturdy adolescent mountain goat with swept spiral horns, a billowing cloud mane, and one small pale-blue lightning marking on its shoulder",
+    "a majestic adult sky guardian goat with large elegant spiral horns, a flowing cloud mantle, sturdy quadruped proportions, and the same pale-blue lightning marking"
+  ],
+  "habitat": "sunlit highland meadows above a sea of clouds",
+  "palette": [
+    "cloud white",
+    "soft sky blue",
+    "warm gold",
+    "deep navy outlines"
+  ],
+  "avoid": [
+    "wings",
+    "weapons",
+    "clothing",
+    "humanoid posture",
+    "extra creatures",
+    "recognisable existing franchise characters"
+  ],
+  "quality": "high",
+  "chromaKey": "#ff00ff",
+  "chromaTolerance": 64,
+  "alt": {
+    "hue": 245,
+    "saturation": 1.25,
+    "brightness": 0.9
+  }
+}

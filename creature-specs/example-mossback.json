@@ -1,0 +1,30 @@
+{
+  "id": "mossback",
+  "name": "Mossback",
+  "concept": "a shy moss-backed pond turtle that grows into a gentle garden guardian",
+  "stages": 3,
+  "stageDescriptions": [
+    "a tiny round hatchling with one moss sprout on its shell",
+    "a sturdy young turtle with a small moss garden and two stone ridges",
+    "a large gentle guardian turtle with a miniature flowering garden across its shell"
+  ],
+  "habitat": "a peaceful meadow pond and nearby garden",
+  "palette": [
+    "moss green",
+    "warm earth brown",
+    "soft cream"
+  ],
+  "avoid": [
+    "weapons",
+    "clothing",
+    "humanoid posture",
+    "recognisable existing franchise characters"
+  ],
+  "quality": "medium",
+  "chromaKey": "#00ff00",
+  "alt": {
+    "hue": 180,
+    "saturation": 1.25,
+    "brightness": 0.9
+  }
+}

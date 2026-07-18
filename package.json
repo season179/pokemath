@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node --test",
     "demo": "node shared/examples/quickstart.ts",
+    "generate:creature": "node tools/generate-creature.mjs",
     "sync": "node tools/sync-shared.mjs",
     "sync-art": "node tools/sync-art.mjs",
     "typecheck": "tsc --noEmit -p game/tsconfig.check.json && tsc --noEmit -p worker/tsconfig.json",
@@ -16,6 +17,7 @@
     "typescript": "5.5"
   },
   "dependencies": {
-    "better-auth": "^1.6.23"
+    "better-auth": "^1.6.23",
+    "sharp": "^0.35.3"
   }
 }

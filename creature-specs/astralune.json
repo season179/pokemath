@@ -1,0 +1,35 @@
+{
+  "id": "astralune",
+  "name": "Astralune",
+  "concept": "a mythical moonlit unicorn whose quiet starlight matures into a radiant celestial guardian",
+  "stages": 2,
+  "stageDescriptions": [
+    "a small graceful unicorn foal with a short opal spiral horn, compact quadruped proportions, a soft starlight mane, a crescent marking on its shoulder, and a gentle curious face",
+    "a majestic adult unicorn with a long opal spiral horn, elegant but sturdy quadruped proportions, a flowing celestial mane and tail, the same crescent shoulder marking, and the same gentle face"
+  ],
+  "habitat": "a moonlit meadow beneath a clear field of stars",
+  "palette": [
+    "pearl white",
+    "moon lavender",
+    "soft gold",
+    "midnight blue outlines"
+  ],
+  "avoid": [
+    "wings",
+    "pegasus features",
+    "armor",
+    "weapons",
+    "clothing",
+    "humanoid posture",
+    "extra creatures",
+    "recognisable existing franchise characters"
+  ],
+  "quality": "high",
+  "chromaKey": "#ff00ff",
+  "chromaTolerance": 64,
+  "alt": {
+    "hue": 315,
+    "saturation": 1.4,
+    "brightness": 0.88
+  }
+}
