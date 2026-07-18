@@ -32,6 +32,8 @@ import {
   gatewayAt,
   gatewayNamed,
   gatewayNotice,
+  isEncounterRegion,
+  isEncounterTile,
   isWalkable,
   npcAt,
   region,
@@ -39,6 +41,7 @@ import {
   regionW,
   tileAt,
 } from "./regions/index";
+import { Creature, pickEncounter, rollEncounter } from "../../shared/index";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
 import { paintBagIcon } from "../ui-icons";
@@ -93,6 +96,10 @@ export interface WorldActions {
   onBag: () => void;
   /** Sail or walk into another region, arriving through the named gateway. */
   onTravel: (regionId: string, gateway: string | null) => void;
+  /** A wild encounter started on tall grass; open the battle screen. */
+  onEncounter: (wild: Creature) => void;
+  /** True once the reviewed question bank has loaded and battles may start. */
+  encounterReady: () => boolean;
 }
 
 export class WorldScreen {
@@ -314,6 +321,22 @@ export class WorldScreen {
       this.actions.onShop();
     } else if (handler === "workshop") {
       this.showNotice("Professor Sum's workshop is still being prepared.");
+    }
+
+    // Wild encounters: only in an encounter-capable region (#29 preview gate)
+    // and only on tall-grass tiles, and only once the reviewed question bank
+    // has loaded. A fresh level-1, non-boss creature of the rarity-weighted
+    // species starts the battle.
+    if (
+      this.def.encounters &&
+      isEncounterRegion(this.regionId) &&
+      isEncounterTile(this.def, this.px, this.py) &&
+      this.actions.encounterReady() &&
+      rollEncounter(this.def.encounters.rate)
+    ) {
+      const species = pickEncounter(this.def.encounters.entries);
+      this.releaseAll();
+      this.actions.onEncounter(Creature.fromSpecies(species));
     }
   }
 
@@ -576,6 +599,12 @@ export class WorldScreen {
       g.moveTo(px + 24, py + 34);
       g.lineTo(px + 29, py + 34);
       g.stroke();
+    } else if (type === "g") {
+      // Tall grass (encounter zone): a darker, tufted patch distinct from
+      // the short walkable grass so kids can see where monsters hide.
+      g.fillColor = (tx + ty) % 2 === 0 ? hex("#5fa676") : hex("#579e6e");
+      g.fillRect(px, py, TILE, TILE);
+      this.paintGrassBlades(g, px, py);
     } else if (type === "f") {
       g.fillColor = hex("#e989a6");
       g.circle(px + 14, py + 18, 5);
@@ -774,7 +803,7 @@ export class WorldScreen {
     for (let y = 0; y < this.h; y++) {
       for (let x = 0; x < this.w; x++) {
         const tile = tileAt(this.def, x, y);
-        if (tile === "X" || tile === "o" || tile === "C") this.paintProp(g, tile, x, y);
+        if (tile === "X" || tile === "o" || tile === "C" || tile === "g") this.paintProp(g, tile, x, y);
       }
     }
   }
@@ -795,6 +824,9 @@ export class WorldScreen {
       g.fillColor = hex("#b5b5ad");
       g.ellipse(px + 20, py + 26, 8, 5);
       g.fill();
+    } else if (type === "g") {
+      // Over the pixel-textured grass, tall grass is just blade tufts.
+      this.paintGrassBlades(g, px, py);
     } else {
       g.fillColor = hex("#6b4b3e");
       g.fillRect(px + 21, py + 6, 6, 24);
@@ -809,6 +841,19 @@ export class WorldScreen {
       g.lineTo(px + 24, py + 40);
       g.moveTo(px + 24, py + 34);
       g.lineTo(px + 29, py + 34);
+      g.stroke();
+    }
+  }
+
+  private paintGrassBlades(g: Graphics, px: number, py: number): void {
+    g.strokeColor = hex("#3f8a5c");
+    g.lineWidth = 2;
+    const blades: Array<[number, number]> = [
+      [10, 12], [22, 8], [34, 14], [16, 26], [30, 30],
+    ];
+    for (const [bx, by] of blades) {
+      g.moveTo(px + bx, py + by);
+      g.lineTo(px + bx + 2, py + by + 10);
       g.stroke();
     }
   }

@@ -14,6 +14,9 @@ export interface CreatureState {
 }
 
 export interface Species {
+  // Stable semantic identity for encounter rosters and (in save v2) the
+  // creature record. Independent of name/art, which can both change.
+  readonly id: string;
   readonly name: string;
   readonly color: string;
   readonly maxHp: number;
@@ -21,18 +24,56 @@ export interface Species {
 }
 
 export const SPECIES: readonly Species[] = [
-  { name: "Addlepuff", color: "#f48fb1", maxHp: 15, attack: 3 },
-  { name: "Subtractopus", color: "#9575cd", maxHp: 17, attack: 4 },
-  { name: "Countasaur", color: "#4db6ac", maxHp: 16, attack: 3 },
-  { name: "Digitell", color: "#ffb74d", maxHp: 14, attack: 4 },
+  { id: "addlepuff", name: "Addlepuff", color: "#f48fb1", maxHp: 15, attack: 3 },
+  { id: "subtractopus", name: "Subtractopus", color: "#9575cd", maxHp: 17, attack: 4 },
+  { id: "countasaur", name: "Countasaur", color: "#4db6ac", maxHp: 16, attack: 3 },
+  { id: "digitell", name: "Digitell", color: "#ffb74d", maxHp: 14, attack: 4 },
 ];
 
 export const STARTER: Species = {
+  id: "multiplybara",
   name: "Multiplybara",
   color: "#81c784",
   maxHp: 22,
   attack: 5,
 };
+
+// Woolly Meadows preview roster (M2A / #8). Ordinary, catchable, stage-1 forms —
+// no boss, no Unique. Names are PROVISIONAL bilingual placeholders pending the
+// dedicated naming pass (see docs/islands/meadow-isle.md open question). Stats
+// sit below the starter so a child's first team can win and catch.
+//   common    → Fluffball:    the signature woolly grazer, appears most.
+//   uncommon  → Balltail Hare: a sturdier meadow hare.
+//   rare      → Woolly Ram:    the strongest of the three, appears least.
+export const WOOLLY_FLUFFBALL: Species = {
+  id: "woolly/fluffball",
+  name: "Fluffball",
+  color: "#ede0c8",
+  maxHp: 13,
+  attack: 2,
+};
+
+export const WOOLLY_HARE: Species = {
+  id: "woolly/hare",
+  name: "Balltail Hare",
+  color: "#c19a6b",
+  maxHp: 15,
+  attack: 3,
+};
+
+export const WOOLLY_RAM: Species = {
+  id: "woolly/ram",
+  name: "Woolly Ram",
+  color: "#7d8fa9",
+  maxHp: 18,
+  attack: 4,
+};
+
+// Every species by semantic id — the encounter engine resolves wild picks
+// through this rather than threading Species objects through region data.
+export const SPECIES_BY_ID: Readonly<Record<string, Species>> = Object.fromEntries(
+  [STARTER, ...SPECIES, WOOLLY_FLUFFBALL, WOOLLY_HARE, WOOLLY_RAM].map((s) => [s.id, s]),
+);
 
 // Every XP_PER_LEVEL points is a level: stat growth plus a full heal.
 export const XP_PER_LEVEL = 20;
