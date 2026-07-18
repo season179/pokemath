@@ -105,8 +105,15 @@ assetManager.loadRemote<ImageAsset>(
 
 Relative URLs work because the game and the `/art/*` route share the origin
 (`game.pokemath.fun`). For local dev against `wrangler dev`, the route serves
-from the same origin too (use `--remote` or `wrangler r2 object put` to the
-local simulator as needed).
+from the same origin too. To serve the **real** art without touching the
+production database, mark **only the `ART` binding remote** and keep `DB`
+local — `worker/wrangler.smoke.jsonc` does exactly this for the preview smoke
+check ([`docs/preview-smoke-check.md`](preview-smoke-check.md) §2). **Never
+use the global `wrangler dev --remote` flag on a dev server that mutates
+data**: it routes *every* binding — including the `pokemath-db` D1 — to the
+production resources, so local sign-ups would write to the live database.
+Alternatively, populate the local R2 simulator with
+`wrangler r2 object put --local`.
 
 ## Rules (engineers and AI agents)
 
