@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="garden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokeMath Reward &amp; Return System Research</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+  <style>
+    :root {
+      --pm-ink:#24334f; --pm-muted:#65738b; --pm-paper:#fffdf5; --pm-cream:#fff4d6;
+      --pm-line:#3b4a6b; --pm-blue:#2584d8; --pm-blue-dark:#145a9c; --pm-green:#4fae61;
+      --pm-gold:#f4aa2d; --pm-red:#d45a5a; --pm-purple:#7555a5; --pm-sky:#dff4ff;
+    }
+    html { scroll-behavior:smooth; }
+    body { color:var(--pm-ink); background:#edf5ef; }
+    .pm-card { min-width:0; background:var(--pm-paper); border:1px solid rgba(59,74,107,.2); box-shadow:0 3px 13px rgba(36,51,79,.05); }
+    .callout { border-left:5px solid var(--pm-blue); background:#e8f5ff; }
+    .callout.good { border-left-color:var(--pm-green); background:#eaf8ed; }
+    .callout.warn { border-left-color:var(--pm-gold); background:#fff3da; }
+    .callout.stop { border-left-color:var(--pm-red); background:#fff0ef; }
+    .mini-label { font-size:.72rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--pm-blue-dark); }
+    .system-map { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
+    .system-row { display:grid; grid-template-columns:180px minmax(0,1fr) 140px; gap:14px; align-items:center; }
+    .cadence { padding:14px; border:2px solid rgba(59,74,107,.22); border-radius:18px; background:white; }
+    .cadence strong { display:block; }
+    .cadence small { color:var(--pm-muted); }
+    .track { height:18px; border:2px solid var(--pm-line); border-radius:999px; overflow:hidden; background:#e8edf2; }
+    .track i { display:block; height:100%; background:linear-gradient(90deg,#5fc6ff,var(--pm-blue)); }
+    .reward-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; background:#edf6ff; border:1px solid #6fa5cc; font-size:.75rem; font-weight:800; }
+    .loop-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; }
+    .loop-step { min-width:0; position:relative; padding:18px; border:2px solid rgba(59,74,107,.2); border-radius:18px; background:white; }
+    .loop-step:not(:last-child):after { content:"→"; position:absolute; right:-15px; top:42%; z-index:2; width:28px; text-align:center; color:var(--pm-gold); font-size:25px; font-weight:1000; }
+    .step-icon { width:42px; height:42px; display:grid; place-content:center; border-radius:13px; background:var(--pm-ink); color:white; font-size:20px; margin-bottom:10px; }
+    .motivation-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .need-card { min-width:0; border-radius:20px; padding:20px; border:3px solid; background:white; }
+    .need-card.competence { border-color:#55a867; }
+    .need-card.autonomy { border-color:#4d94ca; }
+    .need-card.attachment { border-color:#8a6bb1; }
+    .need-card h3 { font-size:1.15rem; font-weight:950; }
+    .need-card ul { margin-top:10px; padding-left:18px; }
+    .need-card li { margin-top:6px; }
+    .journey { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; align-items:end; }
+    .journey > div { min-width:0; padding:12px 8px; border-radius:14px 14px 6px 6px; text-align:center; color:white; font-weight:850; font-size:.75rem; }
+    .journey small { display:block; opacity:.78; font-weight:650; margin-top:3px; }
+    .j1{height:86px;background:#527ca7}.j2{height:106px;background:#447f9c}.j3{height:128px;background:#3d8a7a}.j4{height:148px;background:#66954d}.j5{height:168px;background:#b08339}.j6{height:190px;background:#8a5f86}
+    .prototype { position:relative; aspect-ratio:3/2; overflow:hidden; border:8px solid #1f2d42; border-radius:24px; background:linear-gradient(#a6def4 0 36%,#79c66e 36%); box-shadow:0 14px 30px rgba(36,51,79,.18); font-family:ui-rounded,"Avenir Next Rounded",system-ui,sans-serif; }
+    .prototype:before { content:""; position:absolute; left:-3%; right:-3%; top:29%; height:22%; background:#4d9b55; clip-path:polygon(0 60%,11% 27%,19% 58%,30% 18%,43% 55%,55% 11%,69% 59%,83% 20%,100% 48%,100% 100%,0 100%); }
+    .quest-card { position:absolute; z-index:3; left:4%; right:4%; top:5%; padding:3% 4%; border:4px solid var(--pm-line); border-radius:18px; background:rgba(255,253,245,.97); display:grid; grid-template-columns:auto 1fr auto; gap:4%; align-items:center; }
+    .quest-face { width:54px; aspect-ratio:1; border-radius:50%; background:#f0b44a; border:3px solid var(--pm-line); display:grid; place-content:center; font-size:25px; }
+    .quest-title { font-weight:950; font-size:clamp(.75rem,1.8vw,1.15rem); }
+    .quest-copy { font-size:clamp(.5rem,1.2vw,.78rem); color:#53627b; }
+    .choice-row { position:absolute; z-index:3; left:5%; right:5%; bottom:5%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:2%; }
+    .choice { min-width:0; padding:8% 5%; border:4px solid var(--pm-line); border-radius:16px; background:#fffdf5; text-align:center; box-shadow:0 5px 0 rgba(36,51,79,.25); }
+    .choice b { display:block; font-size:clamp(.55rem,1.4vw,.9rem); }
+    .choice small { display:block; margin-top:4px; color:#62718a; font-size:clamp(.4rem,1vw,.65rem); }
+    .choice.recommended { background:#e9f7ec; border-color:#377a43; }
+    .collection-shell { border:7px solid #1f2d42; border-radius:24px; overflow:hidden; background:#fff8e7; box-shadow:0 14px 30px rgba(36,51,79,.16); }
+    .collection-head { padding:16px 18px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; background:#2f547d; color:white; }
+    .creature-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; padding:16px; }
+    .creature-cell { min-width:0; aspect-ratio:1; display:grid; place-content:center; border:3px solid #63738d; border-radius:16px; background:white; font-size:clamp(1.3rem,3.5vw,2.4rem); position:relative; }
+    .creature-cell small { position:absolute; left:5px; bottom:3px; font-size:.55rem; font-weight:900; color:#52617a; }
+    .creature-cell.seen { color:#7d8798; background:#e5e9ed; filter:grayscale(1); }
+    .creature-cell.unknown { color:#9ca5b2; background:#dfe4e8; }
+    .creature-cell.rare { border-color:#b77811; background:#fff3cf; }
+    .capture-flow { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .capture-step { min-width:0; padding:16px; border-radius:16px; background:white; border:2px solid rgba(59,74,107,.22); position:relative; }
+    .capture-step:not(:last-child):after { content:"→"; position:absolute; right:-14px; top:40%; z-index:2; color:var(--pm-gold); font-size:23px; font-weight:1000; }
+    .heart-meter { display:flex; gap:5px; margin-top:10px; font-size:1.15rem; }
+    .metric { border-radius:16px; padding:16px; background:#f7faf8; border:1px solid rgba(59,74,107,.18); }
+    .metric strong { font-size:1.25rem; }
+    .evidence-high { color:#1e6c30; font-weight:900; }
+    .evidence-medium { color:#8a5a0d; font-weight:900; }
+    table th, table td { vertical-align:top; }
+    table code { overflow-wrap:anywhere; }
+    @media(max-width:900px){
+      .loop-grid{grid-template-columns:1fr}.loop-step{padding-left:72px}.loop-step .step-icon{position:absolute;left:16px;top:16px}.loop-step:not(:last-child):after{content:"↓";right:auto;left:31px;top:calc(100% - 4px)}
+      .motivation-grid{grid-template-columns:1fr}.system-row{grid-template-columns:1fr}.journey{grid-template-columns:repeat(3,1fr)}.capture-flow{grid-template-columns:1fr}.capture-step:not(:last-child):after{content:"↓";right:auto;left:24px;top:calc(100% - 4px)}
+      .j1,.j2,.j3,.j4,.j5,.j6{height:auto;min-height:92px}
+    }
+    @media(max-width:560px){.choice-row{grid-template-columns:1fr;position:relative;left:auto;right:auto;bottom:auto;margin:36% 4% 4%}.choice{padding:4%}.prototype{aspect-ratio:auto;min-height:540px}.quest-card{grid-template-columns:auto 1fr}.quest-card>.badge{grid-column:1/-1}.journey{grid-template-columns:1fr 1fr}.creature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <main class="mx-auto max-w-7xl space-y-11 px-4 py-8 sm:px-6 lg:py-12">
+    <header class="space-y-5">
+      <div class="flex flex-wrap gap-2">
+        <span class="badge badge-primary">Research · 18 Jul 2026</span>
+        <span class="badge badge-outline">Ages 7–12</span>
+        <span class="badge badge-outline">Healthy return, not endless play</span>
+      </div>
+      <div class="max-w-5xl space-y-3">
+        <h1 class="text-4xl font-black tracking-tight sm:text-6xl">Build the desire to return—not the fear of missing out</h1>
+        <p class="max-w-4xl text-lg text-base-content/70 sm:text-xl">PokeMath should make a child feel capable, curious, and attached to their adventure. XP is useful feedback, but the lasting pull comes from mastery, choice, discovery, and caring about what happens next.</p>
+      </div>
+      <div class="callout good max-w-5xl rounded-box p-5">
+        <strong>Recommendation:</strong> design for satisfying 10–15 minute adventures, with 2–4 battles and one meaningful session payoff. Make creature discovery and collection a primary reward track beside player XP. Encourage three separated play days per week without ever resetting progress for a missed day. Every session should advance at least two tracks—not XP alone.
+      </div>
+    </header>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">The motivational engine</h2><p class="mt-1 text-sm opacity-70">The research consistently points to three needs; PokeMath can express all three through its existing world.</p></div>
+      <div class="motivation-grid">
+        <article class="need-card competence"><div class="mini-label">I can do this</div><h3>Competence</h3><ul class="text-sm"><li>Questions sit just beyond comfort but remain attainable.</li><li>Correct answers cause an immediate, visible battle effect.</li><li>Progress explains what improved—not merely “+points.”</li><li>Defeat gives a route back: hint, retry, easier encounter, or practice.</li></ul></article>
+        <article class="need-card autonomy"><div class="mini-label">This is my adventure</div><h3>Autonomy</h3><ul class="text-sm"><li>Choose a route, pet, move, and one of several session goals.</li><li>Choose a reward when possible instead of receiving filler.</li><li>Allow calm stopping and resuming at natural checkpoints.</li><li>No timers, forced streaks, energy gates, or daily obligation.</li></ul></article>
+        <article class="need-card attachment"><div class="mini-label">I care what happens</div><h3>Attachment &amp; purpose</h3><ul class="text-sm"><li>Pets react, evolve, and remember shared milestones.</li><li>NPC problems resolve visibly in the world.</li><li>Collection has meaning: habitat, personality, and discovery notes.</li><li>Badges tell the story of places and skills mastered.</li></ul></article>
+      </div>
+      <p class="text-sm opacity-70">“Attachment &amp; purpose” combines relatedness with UNICEF’s child-play drivers: nurturing, collecting, creating, identity, and performing knowledge.</p>
+    </section>
+
+    <section class="pm-card rounded-box p-5 sm:p-7 space-y-5">
+      <div><h2 class="text-2xl font-bold">The five-step play loop</h2><p class="mt-1 text-sm opacity-70">The reward is not bolted onto the mathematics—the mathematics changes the world.</p></div>
+      <div class="loop-grid">
+        <article class="loop-step"><div class="step-icon">🧭</div><strong>Choose</strong><p class="mt-1 text-sm opacity-65">Pick a route or short goal: help, hunt, explore, or train.</p></article>
+        <article class="loop-step"><div class="step-icon">❓</div><strong>Think</strong><p class="mt-1 text-sm opacity-65">Answer a just-right question without speed pressure.</p></article>
+        <article class="loop-step"><div class="step-icon">⚡</div><strong>Act</strong><p class="mt-1 text-sm opacity-65">The answer immediately powers a move and receives useful feedback.</p></article>
+        <article class="loop-step"><div class="step-icon">🎁</div><strong>Earn</strong><p class="mt-1 text-sm opacity-65">XP, RM, collection progress, and quest progress remain transparent.</p></article>
+        <article class="loop-step"><div class="step-icon">🌄</div><strong>Reveal</strong><p class="mt-1 text-sm opacity-65">A new clue, path, creature, evolution, or NPC change creates anticipation.</p></article>
+      </div>
+      <div class="callout rounded-box p-4 text-sm"><strong>The critical handoff:</strong> end each session after a payoff but with one visible, non-urgent next possibility. “The bridge is repaired—tomorrow you could explore the orchard” is healthier and more compelling than “Come back in 3:42 or lose your streak.”</div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">A reward ladder for PokeMath</h2><p class="mt-1 text-sm opacity-70">Different time horizons prevent the game from depending on one giant XP grind.</p></div>
+      <div class="system-map">
+        <div class="system-row"><div><strong>Every answer</strong><div class="text-sm opacity-60">seconds</div></div><div class="cadence"><strong>Responsive consequence</strong><small>Spell lands, objects move, concise corrective feedback appears.</small></div><div class="flex flex-wrap gap-1"><span class="reward-chip">feedback</span><span class="reward-chip">power</span></div></div>
+        <div class="system-row"><div><strong>Every battle</strong><div class="text-sm opacity-60">3–5 minutes</div></div><div class="cadence"><strong>Visible progress</strong><small>XP bar moves; RM arrives; capture or creature discovery can occur.</small></div><div class="flex flex-wrap gap-1"><span class="reward-chip">XP</span><span class="reward-chip">RM</span><span class="reward-chip">pet</span></div></div>
+        <div class="system-row"><div><strong>Every session</strong><div class="text-sm opacity-60">10–15 minutes</div></div><div class="cadence"><strong>One resolved intention</strong><small>Complete a chosen mini-quest, open a shortcut, or advance an NPC story.</small></div><div class="flex flex-wrap gap-1"><span class="reward-chip">choice</span><span class="reward-chip">world change</span></div></div>
+        <div class="system-row"><div><strong>Across a week</strong><div class="text-sm opacity-60">3 separate days</div></div><div class="cadence"><strong>Expedition journal</strong><small>Three flexible stamps for spaced practice. Missed days never erase stamps or shame the child.</small></div><div class="flex flex-wrap gap-1"><span class="reward-chip">review</span><span class="reward-chip">cosmetic choice</span></div></div>
+        <div class="system-row"><div><strong>Topic arc</strong><div class="text-sm opacity-60">1–3 weeks</div></div><div class="cadence"><strong>Mastery event</strong><small>Mini-guardian, pet evolution beat, badge segment, new move, or landmark transformation.</small></div><div class="flex flex-wrap gap-1"><span class="reward-chip">badge</span><span class="reward-chip">evolution</span></div></div>
+        <div class="system-row"><div><strong>Island journey</strong><div class="text-sm opacity-60">months</div></div><div class="cadence"><strong>Story conclusion</strong><small>Guardian, complete island badge, new island, meaningful ending and next horizon.</small></div><div class="flex flex-wrap gap-1"><span class="reward-chip">identity</span><span class="reward-chip">new world</span></div></div>
+      </div>
+      <div class="callout warn rounded-box p-4 text-sm"><strong>Economy guardrail:</strong> keep only XP and RM as general-purpose numbers. Badges, creatures, cosmetics, shortcuts, and story changes are rewards—not five more currencies. Avoid gems, energy, season tokens, keys, and crafting dust until the game proves it needs them.</div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">Creature collection should be a first-class game</h2><p class="mt-1 text-sm opacity-70">Collection, classification, nurturing, and identity are all child-play drivers in UNICEF’s RITEC research. PokeMath already has the right fantasy; it needs a permanent home for it.</p></div>
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,.9fr)]">
+        <div class="collection-shell">
+          <div class="collection-head"><div><div class="text-xs font-black tracking-widest opacity-75">MEADOW FIELD GUIDE</div><div class="text-xl font-black">Creatures · 6 / 30 found</div></div><span class="badge badge-warning">1 Unique discovered</span></div>
+          <div class="creature-grid">
+            <div class="creature-cell">🐑<small>CAUGHT</small></div><div class="creature-cell">🐝<small>CAUGHT</small></div><div class="creature-cell rare">🦌<small>RARE</small></div><div class="creature-cell">🐢<small>CAUGHT</small></div><div class="creature-cell seen">🦉<small>SEEN</small></div>
+            <div class="creature-cell">🐿️<small>CAUGHT</small></div><div class="creature-cell seen">🦋<small>SEEN</small></div><div class="creature-cell unknown">?</div><div class="creature-cell unknown">?</div><div class="creature-cell unknown">?</div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <article class="pm-card rounded-box p-5"><div class="mini-label">Anywhere</div><h3 class="mt-1 text-xl font-bold">Field Guide</h3><p class="mt-2 text-sm opacity-70">A filterable catalog shows <strong>Unknown → Seen → Caught</strong>, evolution stages, variants, rarity, habitat clues, and discovery notes. Unknown creatures remain silhouettes so the guide creates curiosity without spoiling everything.</p></article>
+          <article class="pm-card rounded-box p-5"><div class="mini-label">Harbor Town</div><h3 class="mt-1 text-xl font-bold">Creature Sanctuary</h3><p class="mt-2 text-sm opacity-70">A physical place where owned creatures live, react, and can join the active team. This makes collection feel like caring for living companions rather than filling a spreadsheet.</p></article>
+          <article class="callout warn rounded-box p-5"><strong>Required foundation:</strong><p class="mt-1 text-sm opacity-75">The current six-creature team cannot remain the entire collection. Storage must separate <code>ownedCreatures</code> from the active <code>team[≤6]</code>, with a Field Guide recording seen/caught species and variants.</p></article>
+        </div>
+      </div>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-sm">
+          <thead><tr><th>Rarity</th><th>Encounter and capture behavior</th><th>Pressure</th></tr></thead>
+          <tbody>
+            <tr><td class="font-bold">Common / Uncommon</td><td>Normal habitat encounters and calm capture flow.</td><td>None beyond the ordinary battle.</td></tr>
+            <tr><td class="font-bold">Rare</td><td>Less frequent habitat encounter; may need more weakening or trust, but follows the normal capture rules.</td><td>No flee clock and no timed mathematics.</td></tr>
+            <tr><td class="font-bold text-warning">Unique</td><td>An authored hunt with clues, preparation, a special battle, and a persistent second-chance trail.</td><td>Telegraphed action/turn limit; may escape.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="pm-card rounded-box p-5 sm:p-7 space-y-5">
+      <div><div class="flex flex-wrap items-center gap-2"><h2 class="text-2xl font-bold">Unique captures: a special hunt</h2><span class="badge badge-warning">Unique only</span></div><p class="mt-1 text-sm opacity-70">Only the Unique rarity receives the flee-pressure mechanic. The encounter should feel dangerous and exceptional, but its tension should test preparation, decisions, and mathematics—not how quickly a child can read, process, or tap.</p></div>
+      <div class="capture-flow">
+        <article class="capture-step"><div class="mini-label">1 · Find</div><strong>Complete its trail</strong><p class="mt-1 text-sm opacity-65">Clues, habitat discoveries, and correct on-topic battles fill a visible Unique research trail. The encounter is guaranteed when the authored hunt is ready.</p></article>
+        <article class="capture-step"><div class="mini-label">2 · Weaken</div><strong>Battle efficiently</strong><p class="mt-1 text-sm opacity-65">The Unique may flee after a telegraphed number of <em>turns</em>. Harder questions power stronger moves, but each question has unlimited thinking time.</p></article>
+        <article class="capture-step"><div class="mini-label">3 · Befriend</div><strong>Fill Unique trust</strong><p class="mt-1 text-sm opacity-65">Correct capture questions and suitable choices fill its larger trust meter before the remaining action count reaches zero.</p><div class="heart-meter"><span>❤️</span><span>❤️</span><span>🤍</span><span>🤍</span></div></article>
+        <article class="capture-step"><div class="mini-label">4 · Persist</div><strong>Escape is not erasure</strong><p class="mt-1 text-sm opacity-65">If it flees, its silhouette, habitat clue, and tracking progress remain. The child knows how to find another chance.</p></article>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="callout good rounded-box p-4 text-sm"><strong>Where Unique difficulty comes from:</strong> completing its hunt, a stronger opponent, fewer battle turns before a flee attempt, more trust hearts, multi-step questions, and choosing the right approach or item.</div>
+        <div class="callout stop rounded-box p-4 text-sm"><strong>Where difficulty should not come from:</strong> a seconds countdown on arithmetic. Time pressure consumes attention needed for working-memory-heavy mathematics and disadvantages anxious, younger, dyslexic, or simply thoughtful players.</div>
+      </div>
+      <div class="callout rounded-box p-4 text-sm"><strong>Optional fluency challenge:</strong> only after a fact family is demonstrably mastered, the child may opt into a separate speed mini-game for a cosmetic flourish or personal best. It must never control core XP, story access, creature survival, or whether a rare capture is lost.</div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">The return system: an expedition, not a streak</h2><p class="mt-1 text-sm opacity-70">Spaced practice improves mathematics retention, so the game should reward separated sessions instead of binge time.</p></div>
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)]">
+        <div class="prototype">
+          <div class="quest-card"><div class="quest-face">🐑</div><div><div class="quest-title">Choose today’s Meadow adventure</div><div class="quest-copy">All three help the island. Pick what sounds fun.</div></div><span class="badge badge-success">1 short session</span></div>
+          <div class="choice-row"><div class="choice recommended"><b>Help the shepherd</b><small>3 battles · repair a fence</small></div><div class="choice"><b>Follow pawprints</b><small>hunt a new creature</small></div><div class="choice"><b>Train with Sparky</b><small>review yesterday’s facts</small></div></div>
+        </div>
+        <div class="space-y-4">
+          <article class="pm-card rounded-box p-5"><div class="mini-label">Weekly shape</div><h3 class="mt-1 text-xl font-bold">Three flexible stamps</h3><div class="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-bold"><div class="rounded bg-success p-2 text-success-content">✓</div><div class="rounded bg-base-200 p-2">·</div><div class="rounded bg-success p-2 text-success-content">✓</div><div class="rounded bg-base-200 p-2">·</div><div class="rounded bg-base-200 p-2">·</div><div class="rounded bg-success p-2 text-success-content">✓</div><div class="rounded bg-base-200 p-2">·</div></div><p class="mt-3 text-sm opacity-70">Any three days. A fourth day still gives normal game rewards, but no escalating pressure.</p></article>
+          <article class="pm-card rounded-box p-5"><div class="mini-label">On return</div><h3 class="mt-1 text-xl font-bold">Warm welcome, zero guilt</h3><p class="mt-2 text-sm opacity-70">“Sparky found new pawprints while resting.” Never “You missed yesterday,” never a broken chain, and never a pet that suffers because the child stayed away.</p></article>
+          <article class="pm-card rounded-box p-5"><div class="mini-label">Review mix</div><h3 class="mt-1 text-xl font-bold">Mostly current, some remembered</h3><p class="mt-2 text-sm opacity-70">Start playtesting around 70–80% current-topic questions and 20–30% spaced/interleaved review. This ratio is a tuning hypothesis, not a research constant.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">Long-term anticipation across one island</h2><p class="mt-1 text-sm opacity-70">Thirty levels need authored milestones. XP alone cannot carry a school year.</p></div>
+      <div class="journey">
+        <div class="j1">First pet bond<small>Lv 1–5</small></div><div class="j2">First shortcut<small>Lv 6–10</small></div><div class="j3">New habitat<small>Lv 11–15</small></div><div class="j4">Mini-guardian<small>Lv 16–20</small></div><div class="j5">Evolution beat<small>Lv 21–25</small></div><div class="j6">Island guardian<small>Lv 26–30</small></div>
+      </div>
+      <p class="text-sm opacity-70">Illustrative cadence: exact unlock levels should follow topic arcs and playtests. The invariant is that a child can always name a nearby goal and a distant dream.</p>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">What established learning games teach us</h2><p class="mt-1 text-sm opacity-70">Borrow the durable loop; reject the pressure mechanics and monetization distortions.</p></div>
+      <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+        <table class="table table-zebra">
+          <thead><tr><th>Reference</th><th>What attracts return play</th><th>Borrow for PokeMath</th><th>Reject or soften</th></tr></thead>
+          <tbody>
+            <tr><td class="font-bold">Prodigy Math</td><td>Battles, world quests, 100+ pets, daily/weekly/seasonal tracks, limited items.</td><td>Math powers the battle; pet rescue; authored quests; always another place to explore.</td><td>Battle-pass pressure, limited-time exclusives, premium reward disparity, faster paid leveling.</td></tr>
+            <tr><td class="font-bold">Khan Academy Kids</td><td>Just-right activities, friendly character guides, stories, creative play, small collectibles.</td><td>Companion encouragement, adaptive challenge, variety between practice forms.</td><td>A disconnected activity library; PokeMath should preserve one coherent adventure.</td></tr>
+            <tr><td class="font-bold">SplashLearn</td><td>Coins earned through practice buy animated pets; personalized grade-level activities.</td><td>Earn → choose → personalize is stronger than receiving random filler.</td><td>Do not let the shop become the main reason to answer questions.</td></tr>
+            <tr><td class="font-bold">Pokémon pattern</td><td>Discovery, collection, evolution, badges, stronger areas and team attachment.</td><td>Already the strongest fit: each new math skill opens an adventure capability.</td><td>Independent grinding for every pet; PokeMath progression stays player-owned.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">Mechanics to avoid</h2><p class="mt-1 text-sm opacity-70">They may increase short-term usage while damaging trust, autonomy, or learning.</p></div>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <article class="callout stop rounded-box p-5"><h3 class="font-bold">Hard streak loss</h3><p class="mt-2 text-sm opacity-75">Missing Tuesday must not erase Monday’s work or trigger guilt.</p></article>
+        <article class="callout stop rounded-box p-5"><h3 class="font-bold">Random paid rewards</h3><p class="mt-2 text-sm opacity-75">No loot boxes, gacha, purchasable spins, or paid odds.</p></article>
+        <article class="callout stop rounded-box p-5"><h3 class="font-bold">Public leaderboards</h3><p class="mt-2 text-sm opacity-75">They advertise low rank to struggling children and confuse speed with learning.</p></article>
+        <article class="callout stop rounded-box p-5"><h3 class="font-bold">Speed as mastery</h3><p class="mt-2 text-sm opacity-75">No answer timers, speed XP, or punishment for thoughtful working.</p></article>
+        <article class="callout stop rounded-box p-5"><h3 class="font-bold">Idle punishment</h3><p class="mt-2 text-sm opacity-75">Pets do not become sad, sick, hungry, or weaker when a child takes a break.</p></article>
+        <article class="callout stop rounded-box p-5"><h3 class="font-bold">Reward inflation</h3><p class="mt-2 text-sm opacity-75">Do not shower ten currencies and five popups after every question; significance collapses.</p></article>
+      </div>
+    </section>
+
+    <section class="pm-card rounded-box p-5 sm:p-7 space-y-5">
+      <div><h2 class="text-2xl font-bold">Evidence → design decision</h2><p class="mt-1 text-sm opacity-70">The strongest findings support a coherent direction, but they do not magically determine every tuning number.</p></div>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead><tr><th>Evidence</th><th>What it means</th><th>PokeMath decision</th><th>Confidence</th></tr></thead>
+          <tbody>
+            <tr><td>2024 gamification meta-analysis: small intrinsic-motivation effect; stronger autonomy/relatedness than competence; novelty fades in long interventions.</td><td>Points and badges do not sustain a year by themselves.</td><td>Build choice, just-right challenge, attachment, and authored discovery around XP.</td><td class="evidence-high">High</td></tr>
+            <tr><td>2025 mathematics meta-analysis: spaced practice beat massed practice overall (<em>g</em> = 0.28).</td><td>Returning on separate days matters more than binge duration.</td><td>Flexible three-day expedition journal; no streak reset.</td><td class="evidence-high">High</td></tr>
+            <tr><td>Grade-7 cluster RCT: interleaved group scored 61% vs 38% one month later.</td><td>Review should require choosing among mixed strategies.</td><td>Mix previously mastered topics into later routes; validate separately for younger children.</td><td class="evidence-medium">Medium</td></tr>
+            <tr><td>Second-grade experiment: immediate computer feedback aided next-day mastery.</td><td>Feedback belongs at the answer, not only after the battle.</td><td>Show result, correction, and battle consequence immediately.</td><td class="evidence-high">High</td></tr>
+            <tr><td>Elementary educational-game study: external rewards did not undermine interest, but did not improve disciplinary engagement.</td><td>Rewards can coexist with learning but are not the learning motive.</td><td>Use rewards as informative progress and choice, not bribery.</td><td class="evidence-medium">Medium</td></tr>
+            <tr><td>UNICEF RITEC: children benefit from control, mastery, collecting, nurturing, creativity, identity, and skill performance.</td><td>A healthy game can be deeply attractive without exploiting loss aversion.</td><td>Pets, habitats, world changes, choices, and mastery celebrations form the long loop.</td><td class="evidence-high">High</td></tr>
+            <tr><td>Math-anxiety research links pressure with weaker performance where arithmetic loads working memory; a primary-school meta-analysis links test anxiety with lower achievement and self-efficacy.</td><td>A countdown can measure anxiety and processing speed alongside mathematics.</td><td>Use capture-turn limits and telegraphed flee behavior; keep question thinking time unlimited.</td><td class="evidence-medium">Medium</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">Measure learning-quality retention</h2><p class="mt-1 text-sm opacity-70">“Minutes played” is not the north-star metric. A child trapped in a grind can produce excellent retention analytics and poor education.</p></div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="metric"><div class="mini-label">Return</div><strong>Practice days / week</strong><p class="mt-1 text-sm opacity-65">Separated active days, not consecutive-day pressure.</p></div>
+        <div class="metric"><div class="mini-label">Challenge</div><strong>70–85% first try</strong><p class="mt-1 text-sm opacity-65">Existing playtest target for on-level content; investigate by topic and age.</p></div>
+        <div class="metric"><div class="mini-label">Learning</div><strong>7- &amp; 30-day recall</strong><p class="mt-1 text-sm opacity-65">Re-test sampled skills later, not immediately after repetition.</p></div>
+        <div class="metric"><div class="mini-label">Well-being</div><strong>Healthy stopping</strong><p class="mt-1 text-sm opacity-65">Can children stop calmly at the session checkpoint and return willingly?</p></div>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="callout good rounded-box p-4 text-sm"><strong>Also track:</strong> hints used, recovery after wrong answers, voluntary route choices, quest completion, delayed transfer, creature/team variety, and whether the child can explain why a badge was earned.</div>
+        <div class="callout warn rounded-box p-4 text-sm"><strong>Do not optimize directly:</strong> longest session, most taps, most notifications opened, shortest answer time, or maximum consecutive days. These are easy to inflate and can oppose the educational goal.</div>
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      <div><h2 class="text-2xl font-bold">Recommended build order</h2><p class="mt-1 text-sm opacity-70">First make one session satisfying; only then add a reason to return.</p></div>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <article class="pm-card rounded-box p-5"><div class="mini-label">Phase 1</div><h3 class="mt-2 font-bold">Core payoff</h3><p class="mt-2 text-sm opacity-70">Approved XP/result UX, immediate answer feedback, gentle defeat, transparent capture rewards.</p></article>
+        <article class="pm-card rounded-box p-5"><div class="mini-label">Phase 2</div><h3 class="mt-2 font-bold">Collection foundation</h3><p class="mt-2 text-sm opacity-70">Owned-creature storage, six-member active team, Field Guide states, and Harbor Sanctuary.</p></article>
+        <article class="pm-card rounded-box p-5"><div class="mini-label">Phase 3</div><h3 class="mt-2 font-bold">Unique capture loop</h3><p class="mt-2 text-sm opacity-70">Authored trail, turn-based flee cues, Unique trust hearts, and persistent second chances. Normal captures remain calm.</p></article>
+        <article class="pm-card rounded-box p-5"><div class="mini-label">Phase 4</div><h3 class="mt-2 font-bold">Goals &amp; milestones</h3><p class="mt-2 text-sm opacity-70">Short session choices, shortcuts, mini-guardians, evolution, moves, and island badges.</p></article>
+        <article class="pm-card rounded-box p-5"><div class="mini-label">Phase 5</div><h3 class="mt-2 font-bold">Spaced return</h3><p class="mt-2 text-sm opacity-70">Flexible expedition journal and interleaved review after enough content and telemetry exist.</p></article>
+      </div>
+      <div class="callout rounded-box p-5"><strong>Do not begin with daily quests.</strong> Without a satisfying session loop, a daily system merely schedules a chore. PokeMath’s first retention feature should be “I want to see what is beyond that bridge,” not “the app says I must return.”</div>
+    </section>
+
+    <section class="pm-card rounded-box p-5 sm:p-7 space-y-4">
+      <div><h2 class="text-2xl font-bold">Sources</h2><p class="mt-1 text-sm opacity-70">Academic evidence, child-well-being guidance, and official product descriptions.</p></div>
+      <div class="grid gap-3 md:grid-cols-2">
+        <a class="link link-primary" href="https://link.springer.com/article/10.1007/s11423-023-10337-7">Li, Hew &amp; Du (2024) · Gamification and intrinsic motivation meta-analysis</a>
+        <a class="link link-primary" href="https://eprints.whiterose.ac.uk/id/eprint/229807/">Murray, Horner &amp; Göbel (2025) · Spacing and retrieval in mathematics meta-analysis</a>
+        <a class="link link-primary" href="https://eric.ed.gov/?id=ED595322">Rohrer et al. (2019) · Interleaved mathematics cluster RCT</a>
+        <a class="link link-primary" href="https://pubmed.ncbi.nlm.nih.gov/27082020/">Fyfe &amp; Rittle-Johnson (2016) · Immediate feedback in children’s mathematics</a>
+        <a class="link link-primary" href="https://doi.org/10.1016/j.compedu.2014.02.008">Filsecker &amp; Hickey (2014) · External rewards in an elementary educational game</a>
+        <a class="link link-primary" href="https://doi.org/10.1145/3772318.3791046">CHI 2026 · How virtual-reward interpretation affects motivation</a>
+        <a class="link link-primary" href="https://www.unicef.org/innocenti/projects/responsible-innovation-technology-children">UNICEF Innocenti RITEC · Digital play and child well-being</a>
+        <a class="link link-primary" href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/age-appropriate-design-a-code-of-practice-for-online-services/13-nudge-techniques/">UK ICO · Age-appropriate nudge guidance</a>
+        <a class="link link-primary" href="https://www.prodigygame.com/main-en/prodigy-math">Prodigy Math · Official game features</a>
+        <a class="link link-primary" href="https://www.prodigygame.com/main-en/prodigy-newsroom/insideprodigy-how-our-game-team-made-learning-even-more-fun-with-treasure-track">Prodigy · Treasure Track design rationale</a>
+        <a class="link link-primary" href="https://www.khanacademy.org/kids/ela">Khan Academy Kids · Just-right activities and character guidance</a>
+        <a class="link link-primary" href="https://www.splashlearn.com/math-games">SplashLearn · Coins, animated pets, and personalized math games</a>
+        <a class="link link-primary" href="https://www.sciencedirect.com/science/article/pii/S0883035516310977">Caviola et al. · Time pressure, mathematics anxiety, and arithmetic performance</a>
+        <a class="link link-primary" href="https://www.sciencedirect.com/science/article/pii/S0022440523000158">Primary-school test anxiety · 20-year systematic review and meta-analysis</a>
+      </div>
+      <p class="text-xs opacity-60">Research findings are translated into PokeMath-specific design hypotheses. Session length, question mix, cadence, and milestone levels still require target-age playtesting.</p>
+    </section>
+
+    <footer class="pb-6 text-sm opacity-60">PokeMath · Reward and return-system research · Product design source: existing PokeMath HUD palette and progression decisions</footer>
+  </main>
+</body>
+</html>
