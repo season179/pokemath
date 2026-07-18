@@ -298,10 +298,10 @@ export class GameApp {
         fontSize: 26,
       });
       b.on(Node.EventType.TOUCH_START, () => this.world.pressDir(dir));
-      b.on(Node.EventType.TOUCH_END, () => {
-        this.world.releaseDir(dir);
-        this.world.tap();
-      });
+      // Release only stops movement. Dialog dismissal/travel choices live on
+      // the banner and its own buttons — a d-pad release must never confirm
+      // whatever a bump just opened.
+      b.on(Node.EventType.TOUCH_END, () => this.world.releaseDir(dir));
       b.on(Node.EventType.TOUCH_CANCEL, () => this.world.releaseDir(dir));
     };
     mk("up", 0, gap, "▲");
