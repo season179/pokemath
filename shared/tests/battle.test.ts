@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   Creature,
   SPECIES,
-  STARTER,
+  STARTERS,
   XP_PER_LEVEL,
   BOSS_RULES,
 } from "../creature.ts";
@@ -77,7 +77,7 @@ test("capture: resets HP and XP, keeps the rest", () => {
 });
 
 test("awardXp: levels at the threshold, grows stats, heals fully", () => {
-  const c = Creature.fromSpecies(STARTER);
+  const c = Creature.fromSpecies(STARTERS[2]);
   const before = { maxHp: c.maxHp, attack: c.attack };
   c.takeDamage(5);
   const r = c.awardXp(XP_PER_LEVEL);
@@ -90,7 +90,7 @@ test("awardXp: levels at the threshold, grows stats, heals fully", () => {
 });
 
 test("awardXp: multiple level-ups in one award, remainder kept", () => {
-  const c = Creature.fromSpecies(STARTER);
+  const c = Creature.fromSpecies(STARTERS[2]);
   const r = c.awardXp(XP_PER_LEVEL * 2 + 7);
   assert.equal(r.levelsGained, 2);
   assert.equal(c.level, 3);
@@ -98,7 +98,7 @@ test("awardXp: multiple level-ups in one award, remainder kept", () => {
 });
 
 test("awardXp: below the threshold no level is gained", () => {
-  const c = Creature.fromSpecies(STARTER);
+  const c = Creature.fromSpecies(STARTERS[2]);
   const r = c.awardXp(XP_PER_LEVEL - 1);
   assert.equal(r.levelsGained, 0);
   assert.equal(c.level, 1);
@@ -131,8 +131,8 @@ test("correctAnswerDamage: hard operations hit harder", () => {
 });
 
 test("boss final blow doubles the roll", () => {
-  const base = rollDamage(STARTER.attack, constRng(0.5));
-  assert.equal(base * BOSS_FINAL_BLOW_MULTIPLIER, rollDamage(STARTER.attack, constRng(0.5)) * 2);
+  const base = rollDamage(STARTERS[2].attack, constRng(0.5));
+  assert.equal(base * BOSS_FINAL_BLOW_MULTIPLIER, rollDamage(STARTERS[2].attack, constRng(0.5)) * 2);
 });
 
 test("rewards scale with the wild creature's max HP", () => {

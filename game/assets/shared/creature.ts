@@ -11,32 +11,73 @@ export interface CreatureState {
   level: number;
   xp: number;
   boss: boolean;
+  // Species identity, present on creatures created since starter selection.
+  // Older saves lack it; renderers must fall back to the color blob.
+  speciesId?: string;
+}
+
+// Licensed sprite cell: sheet path under the Worker's art route
+// (art/v1/pocket-creature-tamer/) plus the creature's cell rect in
+// top-left-origin pixels. Species without art render as placeholder blobs.
+export interface SpeciesArt {
+  readonly sheet: string;
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
 }
 
 export interface Species {
-  // Stable semantic identity for encounter rosters and (in save v2) the
-  // creature record. Independent of name/art, which can both change.
+  // Stable semantic identity for encounter rosters and the creature record.
+  // Independent of name/art, which can both change.
   readonly id: string;
   readonly name: string;
   readonly color: string;
   readonly maxHp: number;
   readonly attack: number;
+  readonly art?: SpeciesArt;
+}
+
+// The first-start choice: exactly one of these becomes the player's first
+// pet (StarterScreen → POST /api/save/new). Peer stats — no trap picks for
+// a seven-year-old: totals stay comparable, flavors differ. Art cells are
+// the stage-1 frames of licensed Pocket Creature Tamer family sheets
+// (144×48 rows of three 48×48 evolution stages) — see docs/art-assets.md.
+export const STARTERS: readonly Species[] = [
+  {
+    id: "addlepuff",
+    name: "Addlepuff",
+    color: "#f48fb1",
+    maxHp: 20,
+    attack: 4,
+    art: { sheet: "creatures/3evo/08/08.png", x: 0, y: 0, w: 48, h: 48 },
+  },
+  {
+    id: "subtractopus",
+    name: "Subtractopus",
+    color: "#9575cd",
+    maxHp: 17,
+    attack: 5,
+    art: { sheet: "creatures/3evo/11/11.png", x: 0, y: 0, w: 48, h: 48 },
+  },
+  {
+    id: "multiplybara",
+    name: "Multiplybara",
+    color: "#81c784",
+    maxHp: 22,
+    attack: 4,
+    art: { sheet: "creatures/3evo/13/13.png", x: 0, y: 0, w: 48, h: 48 },
+  },
+];
+
+export function isStarterId(value: unknown): value is string {
+  return typeof value === "string" && STARTERS.some((s) => s.id === value);
 }
 
 export const SPECIES: readonly Species[] = [
-  { id: "addlepuff", name: "Addlepuff", color: "#f48fb1", maxHp: 15, attack: 3 },
-  { id: "subtractopus", name: "Subtractopus", color: "#9575cd", maxHp: 17, attack: 4 },
   { id: "countasaur", name: "Countasaur", color: "#4db6ac", maxHp: 16, attack: 3 },
   { id: "digitell", name: "Digitell", color: "#ffb74d", maxHp: 14, attack: 4 },
 ];
-
-export const STARTER: Species = {
-  id: "multiplybara",
-  name: "Multiplybara",
-  color: "#81c784",
-  maxHp: 22,
-  attack: 5,
-};
 
 // Woolly Meadows preview roster (M2A / #8). Ordinary, catchable, stage-1 forms —
 // no boss, no Unique. Names are PROVISIONAL bilingual placeholders pending the
@@ -72,7 +113,7 @@ export const WOOLLY_RAM: Species = {
 // Every species by semantic id — the encounter engine resolves wild picks
 // through this rather than threading Species objects through region data.
 export const SPECIES_BY_ID: Readonly<Record<string, Species>> = Object.fromEntries(
-  [STARTER, ...SPECIES, WOOLLY_FLUFFBALL, WOOLLY_HARE, WOOLLY_RAM].map((s) => [s.id, s]),
+  [...STARTERS, ...SPECIES, WOOLLY_FLUFFBALL, WOOLLY_HARE, WOOLLY_RAM].map((s) => [s.id, s]),
 );
 
 // Every XP_PER_LEVEL points is a level: stat growth plus a full heal.
@@ -92,6 +133,7 @@ export class Creature {
   level: number;
   xp: number;
   boss: boolean;
+  speciesId: string | null;
 
   constructor(init: CreatureState) {
     this.name = init.name;
@@ -102,6 +144,7 @@ export class Creature {
     this.level = init.level;
     this.xp = init.xp;
     this.boss = init.boss;
+    this.speciesId = init.speciesId ?? null;
   }
 
   // A wild level-1 creature of the given species.
@@ -115,6 +158,7 @@ export class Creature {
       level: 1,
       xp: 0,
       boss: false,
+      speciesId: s.id,
     });
   }
 
@@ -128,6 +172,7 @@ export class Creature {
       level: BOSS_RULES.level,
       xp: 0,
       boss: true,
+      speciesId: s.id,
     });
   }
 
@@ -192,6 +237,9 @@ export class Creature {
       level: this.level,
       xp: this.xp,
       boss: this.boss,
+      // Kept absent (not null) for pre-speciesId creatures so their saved
+      // JSON round-trips byte-identical.
+      ...(this.speciesId !== null ? { speciesId: this.speciesId } : {}),
     };
   }
 

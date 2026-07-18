@@ -1,12 +1,14 @@
 // Main: the game's bootstrap component and the only component referenced
 // from main.scene. Everything else is constructed at runtime, code-first.
 // Boot is async: the Worker only serves this page to a signed-in session,
-// so boot loads the player's save (creating a starter save on first login)
-// and shows the name screen before the world if no name is set yet.
+// so boot loads the player's save and walks a brand-new player through
+// name entry, then starter choice, before the world appears.
 
 import { _decorator, Component } from "cc";
+import { type SaveState } from "./shared/index";
 import { GameApp } from "./src/GameApp";
 import { NameScreen } from "./src/NameScreen";
+import { StarterScreen } from "./src/StarterScreen";
 import { Persistence, type BootResult } from "./src/persistence";
 const { ccclass } = _decorator;
 
@@ -31,17 +33,32 @@ export class Main extends Component {
     if (result.playerName === null) {
       const screen = new NameScreen(persistence, null, (name) => {
         screen.root.destroy();
-        this.launch(result, persistence, name);
+        this.afterName(result, persistence, name);
       });
       this.node.addChild(screen.root);
       return;
     }
-    this.launch(result, persistence, result.playerName);
+    this.afterName(result, persistence, result.playerName);
   }
 
-  private launch(result: BootResult, persistence: Persistence, playerName: string) {
+  // Every returning player has a save; null means the starter was never
+  // chosen (brand-new account, or a refresh mid-choice on the last screen).
+  private afterName(result: BootResult, persistence: Persistence, playerName: string) {
     if (!this.node.isValid) return;
-    this.app = new GameApp(this.node, result.save, persistence, playerName);
+    if (result.save !== null) {
+      this.launch(result.save, persistence, playerName);
+      return;
+    }
+    const screen = new StarterScreen(persistence, (save) => {
+      screen.root.destroy();
+      this.launch(save, persistence, playerName);
+    });
+    this.node.addChild(screen.root);
+  }
+
+  private launch(save: SaveState, persistence: Persistence, playerName: string) {
+    if (!this.node.isValid) return;
+    this.app = new GameApp(this.node, save, persistence, playerName);
     this.app.start();
   }
 

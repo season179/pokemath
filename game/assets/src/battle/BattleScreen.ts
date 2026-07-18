@@ -17,7 +17,8 @@ import {
   xpReward,
 } from "../../shared/index";
 import { GameState } from "../state";
-import { colorFromHex, paintCreature } from "../creature-art";
+import { colorFromHex } from "../creature-art";
+import { makeCreaturePortrait } from "../creature-portrait";
 import { paintItemIcon, type ItemIconKind } from "../ui-icons";
 import {
   PALETTE,
@@ -292,11 +293,9 @@ export class BattleScreen {
   }
 
   private drawCreature(x: number, y: number, creature: Creature, size: number): void {
-    const node = new Node(creature.name);
-    node.parent = this.root;
+    const node = makeCreaturePortrait(this.root, creature, size);
+    node.name = creature.name;
     node.setPosition(x, y);
-    const g = node.addComponent(Graphics);
-    paintCreature(g, colorFromHex(creature.color), size, creature.boss);
   }
 
   private drawHpPanel(x: number, y: number, creature: Creature, showXp: boolean): void {

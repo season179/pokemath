@@ -2,10 +2,11 @@
 // Identity is a better-auth session cookie (HttpOnly — invisible to this
 // code); the Worker gates "/" so reaching the game at all implies a session.
 //
-// Boot loads the server save (the server creates a starter row on first
-// load). If a locally-cached save is marked dirty — a checkpoint that never
-// reached the server, e.g. wifi dropped or the session expired mid-play —
-// the cache wins and is pushed before play continues.
+// Boot loads the server save; a null save means the player hasn't chosen a
+// starter yet (Main shows the starter screen, which mints the save via
+// chooseStarter). If a locally-cached save is marked dirty — a checkpoint
+// that never reached the server, e.g. wifi dropped or the session expired
+// mid-play — the cache wins and is pushed before play continues.
 //
 // A 401 at any point means the session died; we send the player back to
 // /login. The dirty cache survives in localStorage and reconciles on the
@@ -17,7 +18,7 @@ const KEY_CACHE = "pokemath.save-cache";
 const KEY_DIRTY = "pokemath.save-dirty";
 
 export interface BootResult {
-  save: SaveState;
+  save: SaveState | null; // null → starter not chosen yet; show the starter screen
   playerName: string | null; // null → GameApp shows the name screen first
 }
 
@@ -42,6 +43,15 @@ export class Persistence {
       saveVersion: number;
       playerName: string | null;
     };
+    if (body.save === null) {
+      // Brand-new player: no save exists until a starter is chosen. Any
+      // cached save here is a leftover that can't belong to this account
+      // (sign-out clears the cache) — drop it rather than reconcile it.
+      this.version = body.saveVersion;
+      localStorage.removeItem(KEY_CACHE);
+      localStorage.removeItem(KEY_DIRTY);
+      return { save: null, playerName: body.playerName };
+    }
     if (!validateSaveState(body.save)) throw new Error("server sent invalid save");
     this.version = body.saveVersion;
 
@@ -54,6 +64,38 @@ export class Persistence {
 
     localStorage.setItem(KEY_CACHE, JSON.stringify(body.save));
     return { save: body.save, playerName: body.playerName };
+  }
+
+  /**
+   * First-run starter choice: the server mints the save (idempotently — an
+   * existing save is returned untouched). Returns the save to play, or a
+   * player-facing error message to show on the starter screen.
+   */
+  async chooseStarter(starterId: string): Promise<{ save: SaveState } | { error: string }> {
+    let res: Response;
+    try {
+      res = await fetch("/api/save/new", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ starter: starterId }),
+      });
+    } catch {
+      return { error: "Could not save your choice — check the internet.  暂时无法保存，请检查网络。" };
+    }
+    if (res.status === 401) {
+      this.redirectToLogin();
+      return { error: "signed out" };
+    }
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { error: body?.error ?? "Could not save your choice — please try again.  保存失败，请再试一次。" };
+    }
+    const body = (await res.json()) as { save: unknown; saveVersion: number };
+    if (!validateSaveState(body.save)) return { error: "server sent invalid save" };
+    this.version = body.saveVersion;
+    localStorage.setItem(KEY_CACHE, JSON.stringify(body.save));
+    return { save: body.save };
   }
 
   /** Set/change the in-game name. Returns an error message or null on success. */

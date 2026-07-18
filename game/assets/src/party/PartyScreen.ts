@@ -1,5 +1,5 @@
-import { Color, EventKeyboard, Graphics, KeyCode, Label, Node, UITransform } from "cc";
-import { colorFromHex, paintCreature } from "../creature-art";
+import { Color, EventKeyboard, KeyCode, Label, Node, UITransform } from "cc";
+import { makeCreaturePortrait } from "../creature-portrait";
 import { GameState } from "../state";
 import {
   PALETTE,
@@ -82,10 +82,8 @@ export class PartyScreen {
         lineWidth: active ? 3 : undefined,
       });
 
-      const portrait = new Node(`portrait-${index}`);
-      portrait.parent = row;
+      const portrait = makeCreaturePortrait(row, creature, 15);
       portrait.setPosition(-326, -2);
-      paintCreature(portrait.addComponent(Graphics), colorFromHex(creature.color), 15, creature.boss);
 
       const name = makeLabel(row, creature.name, -282, 20, { fontSize: 22, align: "left" });
       name.node.getComponent(UITransform)!.setContentSize(300, 28);
