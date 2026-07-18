@@ -113,7 +113,7 @@ export interface RegionMapDef {
 
 export interface RegionDef {
   readonly id: string;
-  /** Bilingual banner shown on arrival. */
+  /** Bilingual name shown on the persistent location plate, mini-map, and world map. */
   readonly title: string;
   /** Art pipeline: Harbor keeps its bespoke composition; meadow is char-driven. */
   readonly art: "harbor" | "meadow";
