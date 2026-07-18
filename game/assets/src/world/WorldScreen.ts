@@ -15,7 +15,6 @@ import {
   Sprite,
   SpriteFrame,
   Texture2D,
-  UIOpacity,
   UITransform,
   Vec3,
   tween,
@@ -123,7 +122,6 @@ export class WorldScreen {
   private playerFrames: Partial<Record<Direction, SpriteFrame>> = {};
   private fallbackLandmarks = new Node("fallback-landmarks");
   private hudLayer = new Node("huds");
-  private locationToast: Node | null = null;
 
   private px: number;
   private py: number;
@@ -200,7 +198,6 @@ export class WorldScreen {
     this.snapPlayer();
     this.resetCompanion();
     this.refreshHud();
-    this.buildRegionTitle();
     this.applyCamera();
     if (this.def.art === "harbor") void this.loadHarborArt();
     else void this.loadMeadowArt();
@@ -421,37 +418,6 @@ export class WorldScreen {
     label.node.getComponent(UITransform)!.setContentSize(670, 54);
     box.on(Node.EventType.TOUCH_END, () => this.tap());
     this.banner = box;
-  }
-
-  private buildRegionTitle() {
-    this.locationToast?.destroy();
-    const size = view.getVisibleSize();
-    const panel = makePanel(this.root, 0, size.height / 2 - 41, 360, 42, {
-      fill: new Color(255, 253, 245, 232),
-      stroke: PALETTE.panelStroke,
-      lineWidth: 3,
-    });
-    this.locationToast = panel;
-    makeLabel(panel, this.def.title, 0, 0, { fontSize: 16 });
-
-    setTimeout(() => {
-      if (!panel.isValid) return;
-      const reducedMotion = typeof window !== "undefined"
-        && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      if (reducedMotion) {
-        panel.destroy();
-        if (this.locationToast === panel) this.locationToast = null;
-        return;
-      }
-      const opacity = panel.addComponent(UIOpacity);
-      tween(opacity)
-        .to(0.25, { opacity: 0 })
-        .call(() => {
-          if (panel.isValid) panel.destroy();
-          if (this.locationToast === panel) this.locationToast = null;
-        })
-        .start();
-    }, 1750);
   }
 
   private snapPlayer() {
@@ -1059,7 +1025,27 @@ export class WorldScreen {
     makeLabel(mapBtn, "Map [M]", 0, -17, { fontSize: 9, color: PALETTE.sub });
     mapBtn.on(Node.EventType.TOUCH_END, this.actions.onMap);
 
+    this.buildLocationPlate();
     this.buildMiniMap();
+  }
+
+  /**
+   * Persistent top-center plate naming the current region. Part of the HUD so
+   * every region shows the same panel in the same place; SHRINK keeps long
+   * bilingual titles inside the fixed box instead of overflowing it.
+   */
+  private buildLocationPlate() {
+    const size = view.getVisibleSize();
+    const panel = makePanel(this.hudLayer, 0, size.height / 2 - 41, 360, 42, {
+      fill: new Color(255, 253, 245, 232),
+      stroke: PALETTE.panelStroke,
+      lineWidth: 3,
+    });
+    const title = makeLabel(panel, this.def.title, 0, 0, { fontSize: 16 });
+    title.horizontalAlign = Label.HorizontalAlign.CENTER;
+    title.enableWrapText = false;
+    title.overflow = Label.Overflow.SHRINK;
+    title.node.getComponent(UITransform)!.setContentSize(336, 24);
   }
 
   // --- mini-map (#30) ---
@@ -1223,10 +1209,6 @@ export class WorldScreen {
   refreshLayout() {
     this.refreshHud();
     this.applyCamera();
-    if (this.locationToast?.isValid) {
-      const size = view.getVisibleSize();
-      this.locationToast.setPosition(0, size.height / 2 - 41);
-    }
   }
 
   respawnHome() {
