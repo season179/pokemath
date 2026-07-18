@@ -1033,7 +1033,9 @@ export class WorldScreen {
     });
     const bagIcon = new Node("bag-icon");
     bagIcon.parent = bag;
+    bagIcon.setPosition(0, 4);
     paintBagIcon(bagIcon.addComponent(Graphics), 31);
+    makeLabel(bag, "Bag [B]", 0, -17, { fontSize: 9, color: PALETTE.sub });
     bag.on(Node.EventType.TOUCH_END, this.actions.onBag);
 
     // Visible desktop control that opens the world map (#30). The M key is
