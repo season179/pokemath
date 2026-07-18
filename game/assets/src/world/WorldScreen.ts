@@ -29,6 +29,7 @@ import {
   TILE,
   camOffset,
   canTraverseGateway,
+  coverScale,
   gatewayAt,
   gatewayNamed,
   gatewayNotice,
@@ -281,9 +282,14 @@ export class WorldScreen {
   private applyCamera() {
     const size = view.getVisibleSize();
     const pos = this.playerNode.position;
+    // Cover-scale: small maps zoom up until they fill the canvas (issue #38),
+    // then pan within the scaled map. Everything that must zoom is a child of
+    // mapNode; the HUD/mini-map/overlays are siblings and stay at scale 1.
+    const s = coverScale(this.w * TILE, this.h * TILE, size.width, size.height);
+    this.mapNode.setScale(s, s, 1);
     this.mapNode.setPosition(
-      camOffset(pos.x, this.w * TILE, size.width),
-      camOffset(pos.y, this.h * TILE, size.height),
+      camOffset(pos.x * s, this.w * TILE * s, size.width),
+      camOffset(pos.y * s, this.h * TILE * s, size.height),
       0,
     );
   }

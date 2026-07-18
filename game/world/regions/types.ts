@@ -171,3 +171,8 @@ export function camOffset(playerPx: number, mapPx: number, canvasPx: number): nu
   const max = -canvasPx / 2;
   return Math.min(max, Math.max(min, -playerPx));
 }
+
+/** Smallest uniform scale ≥ 1 at which the map covers the whole canvas. */
+export function coverScale(mapW: number, mapH: number, canvasW: number, canvasH: number): number {
+  return Math.max(1, canvasW / mapW, canvasH / mapH);
+}
