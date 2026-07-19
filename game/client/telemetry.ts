@@ -14,6 +14,7 @@
 // game/assets/src/client/ by tools/sync-shared.mjs.
 
 import {
+  MAX_BATCH_JSON_BYTES,
   MAX_EVENTS_PER_BATCH,
   MAX_QUEUED_EVENTS,
   validateTelemetryEvent,
@@ -115,7 +116,7 @@ export class Telemetry implements TelemetrySink {
     if (this.sending || this.closed || this.queue.length === 0) return;
     this.sending = true;
     try {
-      const batch = this.queue.slice(0, MAX_EVENTS_PER_BATCH);
+      const batch = this.takeBatch();
       const status = await this.post(batch, false);
       if (status === null) return; // network error — keep queued
       if (status === 200 || status === 400) {
@@ -130,12 +131,34 @@ export class Telemetry implements TelemetrySink {
   /** Best-effort flush during pagehide — keepalive, never awaited. */
   flushOnUnload(): void {
     if (this.queue.length === 0) return;
-    const batch = this.queue.slice(0, MAX_EVENTS_PER_BATCH);
+    const batch = this.takeBatch();
     void this.post(batch, true).then((status) => {
       // The page may already be gone; if it isn't, reconcile the queue so a
       // refresh doesn't resend what the server accepted.
       if (status === 200 || status === 400) this.dropSent(batch);
     });
+  }
+
+  /**
+   * Take the head of the queue, bounded by BOTH the event count and the
+   * serialized envelope size. The count cap alone can produce a batch the
+   * server 413s (100 events × 512B props ≈ 4× the byte cap), and a 413 is
+   * retryable — an over-byte batch would fail forever and starve the queue
+   * behind it.
+   */
+  private takeBatch(): ClientTelemetryEvent[] {
+    const envelopeOverhead = '{"events":[]}'.length;
+    let bytes = envelopeOverhead;
+    const batch: ClientTelemetryEvent[] = [];
+    for (const event of this.queue) {
+      if (batch.length >= MAX_EVENTS_PER_BATCH) break;
+      // +1 for the comma between array elements.
+      const size = JSON.stringify(event).length + 1;
+      if (batch.length > 0 && bytes + size > MAX_BATCH_JSON_BYTES) break;
+      batch.push(event);
+      bytes += size;
+    }
+    return batch;
   }
 
   private dropSent(batch: ClientTelemetryEvent[]): void {

@@ -5,7 +5,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { MAX_EVENTS_PER_BATCH, MAX_QUEUED_EVENTS } from "../../shared/telemetry.ts";
+import {
+  MAX_BATCH_JSON_BYTES,
+  MAX_EVENTS_PER_BATCH,
+  MAX_QUEUED_EVENTS,
+} from "../../shared/telemetry.ts";
 import { Telemetry } from "../client/telemetry.ts";
 
 class FakeStorage {
@@ -95,15 +99,42 @@ test("401/5xx keep the queue; a 400 (client bug) drops the bad batch", async () 
   assert.equal(telemetry.pending, 0);
 });
 
-test("flush sends at most one batch", async () => {
+test("flush sends at most MAX_EVENTS_PER_BATCH events", async () => {
   const { telemetry, calls } = make(200);
+  // The leanest event, so the count cap bites before the byte budget does.
   for (let i = 0; i < MAX_EVENTS_PER_BATCH + 20; i++) {
-    telemetry.emit("question_answered", CORRECT);
+    telemetry.emit("session_ended", { reason: "sign_out", duringBattle: false });
   }
   await telemetry.flush();
   const body = JSON.parse(calls[0]) as { events: unknown[] };
   assert.equal(body.events.length, MAX_EVENTS_PER_BATCH);
   assert.equal(telemetry.pending, 20);
+});
+
+test("batches are byte-budgeted — a full queue never triggers a server 413", async () => {
+  const { telemetry, calls } = make(200);
+  // The fattest event the registry allows: every optional prop set.
+  const fat = {
+    battle: "wild",
+    operation: "a".repeat(32),
+    correct: true,
+    topic: "1234.56.78",
+    tp: 6,
+    step: 7,
+    steps: 8,
+  };
+  for (let i = 0; i < MAX_EVENTS_PER_BATCH; i++) telemetry.emit("question_answered", fat);
+
+  await telemetry.flush();
+  const body = calls[0];
+  assert.ok(body.length <= MAX_BATCH_JSON_BYTES, `batch was ${body.length} bytes`);
+  const sent = (JSON.parse(body) as { events: unknown[] }).events;
+  assert.ok(sent.length < MAX_EVENTS_PER_BATCH, "byte budget must cut the batch");
+  assert.equal(telemetry.pending, MAX_EVENTS_PER_BATCH - sent.length);
+
+  // The remainder drains on the next checkpoint instead of starving.
+  await telemetry.flush();
+  assert.equal(telemetry.pending, 0);
 });
 
 test("the queue caps at MAX_QUEUED_EVENTS, oldest first", () => {

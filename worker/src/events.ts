@@ -39,15 +39,18 @@ export async function ingestEvents(request: Request, userId: string, env: Env): 
   if (!parsed) return json({ error: "invalid event batch" }, 400);
 
   const receivedAt = new Date().toISOString();
-  for (const event of parsed.events) {
+  if (parsed.events.length > 0) {
     // INSERT OR IGNORE: client retries (offline queue flushes) can resend an
-    // id; the first write wins and the event is never double-counted.
-    await env.DB.prepare(
-      "INSERT OR IGNORE INTO events (user_id, event_id, name, occurred_at, received_at, props_json) " +
-        "VALUES (?, ?, ?, ?, ?, ?)",
-    )
-      .bind(userId, event.id, event.name, event.at, receivedAt, JSON.stringify(event.props))
-      .run();
+    // id; the first write wins and the event is never double-counted. One
+    // D1 batch round trip for the whole flush, not one per event.
+    await env.DB.batch(
+      parsed.events.map((event) =>
+        env.DB.prepare(
+          "INSERT OR IGNORE INTO events (user_id, event_id, name, occurred_at, received_at, props_json) " +
+            "VALUES (?, ?, ?, ?, ?, ?)",
+        ).bind(userId, event.id, event.name, event.at, receivedAt, JSON.stringify(event.props)),
+      ),
+    );
   }
   return json({ accepted: parsed.events.length, dropped: parsed.dropped });
 }

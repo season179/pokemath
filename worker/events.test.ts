@@ -23,6 +23,12 @@ type EventRow = {
 
 class FakeD1 {
   events = new Map<string, EventRow>();
+  batches = 0;
+
+  async batch(statements: { run(): Promise<{ meta: { changes: number } }> }[]) {
+    this.batches++;
+    return Promise.all(statements.map((s) => s.run()));
+  }
 
   prepare(sql: string) {
     const db = this;
@@ -161,6 +167,43 @@ test("oversized batches are refused before parsing", async () => {
   const db = new FakeD1();
   const res = await ingestEvents(batchRequest([], 17 * 1024), USER_ID, envOf(db));
   assert.equal(res.status, 413);
+});
+
+test("an oversized DECODED body is 413 even without a content-length header", async () => {
+  const db = new FakeD1();
+  // A streamed body carries no content-length; the size cap must bite on
+  // the decoded payload, not the header.
+  const padded = JSON.stringify({ events: [], pad: "x".repeat(17 * 1024) });
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(padded));
+      controller.close();
+    },
+  });
+  const req = new Request("https://game.pokemath.fun/api/events", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: stream,
+    // @ts-expect-error undici requires duplex for stream bodies
+    duplex: "half",
+  });
+  assert.equal(req.headers.get("content-length"), null);
+  const res = await ingestEvents(req, USER_ID, envOf(db));
+  assert.equal(res.status, 413);
+});
+
+test("ingest writes the whole batch in one D1 batch round trip", async () => {
+  const db = new FakeD1();
+  await ingestEvents(
+    batchRequest([
+      event("aaaaaaaa-1111-4111-8111-111111111111"),
+      event("bbbbbbbb-2222-4222-8222-222222222222"),
+    ]),
+    USER_ID,
+    envOf(db),
+  );
+  assert.equal(db.batches, 1);
+  assert.equal(db.events.size, 2);
 });
 
 test("retried flushes are idempotent on (user, event id)", async () => {

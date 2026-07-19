@@ -119,6 +119,9 @@ export class GameApp {
   start() {
     this.enableCanvasKeyboardFocus();
     this.watchPageHide();
+    // Events left over from a crashed/offline session upload right away
+    // instead of waiting for the first battle exit.
+    void this.telemetry.flush();
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     view.on("canvas-resize", this.onViewResize, this);
