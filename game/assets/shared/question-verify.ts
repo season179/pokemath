@@ -4,6 +4,9 @@
 // re-derives the answer from `expression`, enforces the locked Standard-1
 // scope (numbers ≤ 100, `+ −` only, single-step with repeated addition
 // permitted), and checks that authored distractors are valid MCQ options.
+// True-false items (#11) express their claim as a comparison
+// (`E = E`, `E > E`, `E < E` — each side a Std-1 arithmetic expression) and
+// the re-derived truth value (1 = 对/✓, 0 = 错/✗) must equal the answer.
 //
 // The scope rules come from docs/curriculum/standard-1-sjkc-math.md §2
 // (hard constraints). Misconception *labels* on distractors are review
@@ -13,7 +16,12 @@
 // This is a dev/test tool: it is not imported by the game or the worker, and
 // ships no runtime cost to players.
 
-import type { Question } from "./question-engine";
+import {
+  TRUE_FALSE_FORM,
+  TRUTH_FALSE,
+  TRUTH_TRUE,
+  type Question,
+} from "./question-engine";
 import { chineseNumeral, type BilingualValue } from "./question-v2";
 
 export type Severity = "error" | "warn";
@@ -30,6 +38,8 @@ export interface VerifyOptions {
   maxNumber?: number;
   // How many authored distractors a question must carry when it carries any.
   // The current UI is a 4-option MCQ (answer + 3), so the default is 3.
+  // True-false questions always require exactly 1 (the opposite truth
+  // value), regardless of this option.
   distractorCount?: number;
 }
 
@@ -136,21 +146,85 @@ export function evaluateExpression(raw: string): number {
   return parseExpression(raw).value;
 }
 
+export type TruthComparator = "=" | ">" | "<";
+
+/** A true-false claim (#11): two Std-1 expressions joined by one comparator,
+ * e.g. "7 > 8" (false → 0) or "5 + 4 = 9" (true → 1). `value` is the truth
+ * encoding; operands/operators flatten both sides for the scope checks. */
+export interface ParsedTruthExpression extends ParsedExpression {
+  comparator: TruthComparator;
+  left: ParsedExpression;
+  right: ParsedExpression;
+}
+
+/**
+ * Parse a true-false comparison claim. Each side must independently satisfy
+ * the Standard-1 expression grammar (`+ −` only, repeated addition allowed),
+ * and exactly one comparator (`=`, `>`, `<` — the Std-1 comparison
+ * vocabulary) may appear. Throws on anything else.
+ */
+export function parseTruthExpression(raw: string): ParsedTruthExpression {
+  if (typeof raw !== "string" || raw.trim() === "") {
+    throw new Error(`expression is empty`);
+  }
+  const expr = raw.replace(/[−–]/g, "-").replace(/\s+/g, " ").trim();
+  const marks = [...expr].filter((c) => c === "=" || c === ">" || c === "<");
+  if (marks.length !== 1) {
+    throw new Error(
+      `truth expression "${raw}" must contain exactly one comparator (=, >, <), got ${marks.length}`,
+    );
+  }
+  const at = expr.search(/[=<>]/);
+  const comparator = expr[at] as TruthComparator;
+  const leftRaw = expr.slice(0, at).trim();
+  const rightRaw = expr.slice(at + 1).trim();
+  if (leftRaw === "" || rightRaw === "") {
+    throw new Error(`truth expression "${raw}" needs a value on both sides of "${comparator}"`);
+  }
+  const left = parseExpression(leftRaw);
+  const right = parseExpression(rightRaw);
+  const truth =
+    comparator === "=" ? left.value === right.value
+      : comparator === ">" ? left.value > right.value
+        : left.value < right.value;
+  return {
+    value: truth ? 1 : 0,
+    operands: [...left.operands, ...right.operands],
+    operators: [...left.operators, ...right.operators],
+    comparator,
+    left,
+    right,
+  };
+}
+
 /**
  * Independently verify a single Standard-1 question. Returns any findings;
  * an empty array means the item passes every mechanical check.
  */
 export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[] {
   const max = opts.maxNumber ?? DEFAULT_MAX;
-  const wantDistractors = opts.distractorCount ?? DEFAULT_DISTRACTORS;
+  const answerForm = (q as { answer_form?: string }).answer_form;
+  const trueFalse = answerForm === TRUE_FALSE_FORM;
+  // True-false declares exactly one distractor (the opposite truth value);
+  // numeric forms default to the 4-option MCQ shape (answer + 3).
+  const wantDistractors = trueFalse ? 1 : (opts.distractorCount ?? DEFAULT_DISTRACTORS);
   const findings: Finding[] = [];
   const here = (severity: Severity, code: string, message: string) =>
     findings.push({ severity, code, message });
 
   // --- answer is independently re-derived from the expression ---
+  // True-false expressions are comparison claims (parseTruthExpression);
+  // everything else keeps the arithmetic grammar.
   let parsed: ParsedExpression;
+  let truthSides: [ParsedExpression, ParsedExpression] | null = null;
   try {
-    parsed = parseExpression(q.expression);
+    if (trueFalse) {
+      const truth = parseTruthExpression(q.expression);
+      parsed = truth;
+      truthSides = [truth.left, truth.right];
+    } else {
+      parsed = parseExpression(q.expression);
+    }
   } catch (e) {
     here("error", "expression-parse", (e as Error).message);
     return findings; // nothing else is meaningful without a value
@@ -171,21 +245,46 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
   if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer > max) {
     here("error", "answer-out-of-range", `answer ${q.answer} outside [0, ${max}]`);
   }
+  if (trueFalse && q.answer !== TRUTH_TRUE && q.answer !== TRUTH_FALSE) {
+    here(
+      "error",
+      "truth-answer-domain",
+      `true-false answer must be 1 (对/true) or 0 (错/false), got ${q.answer}`,
+    );
+  }
+  // A truth claim's sides are intermediate values the answer check cannot
+  // bound (unlike a numeric item, whose answer IS the computed value), so
+  // each side must independently stay inside the scope.
+  for (const side of truthSides ?? []) {
+    if (side.value < 0 || side.value > max) {
+      here(
+        "error",
+        "side-out-of-range",
+        `expression "${q.expression}" has a side equal to ${side.value}, outside [0, ${max}]`,
+      );
+    }
+  }
 
   // --- single-step rule (repeated addition IS permitted at this level) ---
   // Pure `+` chains of any length are 连加 / ×-readiness and allowed. A lone
   // `+` or `−` is a single step. Anything with two or more operators that
   // includes subtraction (e.g. `10 − 3 − 2`, `5 + 5 − 3`) is multi-step.
-  const ops = parsed.operators;
-  if (ops.length >= 2 && ops.some((o) => o === "-")) {
-    here(
-      "error",
-      "multi-step",
-      `expression "${q.expression}" chains subtraction or mixes +/− (multi-step)`,
-    );
+  // For a truth claim the rule applies per side: each side is its own
+  // computation, and two different single-step sides (e.g. `7 + 1 = 9 − 1`)
+  // do not chain into one multi-step computation.
+  for (const run of truthSides ?? [parsed]) {
+    const runOps = run.operators;
+    if (runOps.length >= 2 && runOps.some((o) => o === "-")) {
+      here(
+        "error",
+        "multi-step",
+        `expression "${q.expression}" chains subtraction or mixes +/− (multi-step)`,
+      );
+    }
   }
 
   // --- operation label matches the operators that appear ---
+  const ops = parsed.operators;
   const expected = expectOperation(ops);
   if (expected && q.operation !== expected) {
     here(
@@ -215,6 +314,13 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
       }
       if (x.value < 0 || x.value > max) {
         here("error", "distractor-out-of-range", `distractor[${i}] = ${x.value} outside [0, ${max}]`);
+      }
+      if (trueFalse && x.value !== TRUTH_TRUE && x.value !== TRUTH_FALSE) {
+        here(
+          "error",
+          "distractor-non-truth",
+          `distractor[${i}] = ${x.value} is not a truth value (1 or 0)`,
+        );
       }
       if (x.value === q.answer) {
         here("error", "distractor-equals-answer", `distractor[${i}] = ${x.value} equals the answer`);

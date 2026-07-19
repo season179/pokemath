@@ -114,6 +114,30 @@ test("QuestionRound: judges the picked choice", () => {
   assert.ok(!round.judge(wrong));
 });
 
+test("QuestionRound: true-false serves the fixed ✓/✗ pair, never shuffled (#11)", () => {
+  const trueFalse: Question = {
+    ...plain,
+    operation: "counting",
+    expression: "7 > 8",
+    answer: 0,
+    answer_form: "true-false",
+    distractors: [{ value: 1, strategy: "more-fewer-flip" }],
+  };
+  for (const rng of [rngSeq(0), rngSeq(0.99), rngSeq(0.25, 0.75)]) {
+    const round = new QuestionRound(turnsOf(trueFalse)[0], rng);
+    assert.deepEqual(round.choices, [1, 0], "✓ (1) always precedes ✗ (0)");
+    assert.ok(round.judge(0));
+    assert.ok(!round.judge(1));
+  }
+  // The pair is closed: even without authored distractors there is no
+  // near-miss synthesis on truth values.
+  const bare = new QuestionRound(
+    turnsOf({ ...trueFalse, distractors: undefined })[0],
+    rngSeq(0.5),
+  );
+  assert.deepEqual(bare.choices, [1, 0]);
+});
+
 test("sample bank matches its declared schema", () => {
   for (const q of SAMPLE_BANK.questions) {
     assert.ok(q.id > 0 && q.question_zh && q.question_en && q.operation);

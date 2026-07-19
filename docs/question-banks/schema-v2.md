@@ -52,14 +52,14 @@ Unknown envelope fields are rejected.
 | `item_format` | `"objective"` | item shape (style doc §B); v2 serves numeric objective rounds only |
 | `format_type` | one of the style doc §A ids (e.g. `count-write`, `number-bond`, `word-single`, `pattern-continue`, `round-ten`) | worksheet format the item models |
 | `presentation` | `plain`, `picture`, `story`, `figure:ten-frame`, `figure:number-bond`, `figure:number-line`, `figure:clock`, `figure:abacus`, `figure:coins`, `figure:shapes`, `figure:pictograph`, `figure:objects`, `figure:balance`, `figure:calendar`, `figure:grid`, `figure:table` | how the item is shown |
-| `answer_form` | `"numeral"`, `"count"`, `"chinese-word"` | the numeric objective forms v2 serves. Circle/true-false (#11) and ordering (#12) extend this list with their renderers |
+| `answer_form` | `"numeral"`, `"count"`, `"chinese-word"`, `"circle"`, `"true-false"` | the objective forms v2 serves (see below). Ordering (#12) extends this list with its renderer |
 | `answer_unit` | `"none"`, `"RM"`, `"sen"` | display unit; `"none"` keeps counts out of currency |
 | `operation` | `"counting"`, `"addition"`, `"subtraction"` | Std-1 hard constraints: no × ÷ |
-| `expression` | non-empty string, e.g. `"70 + 3"`, `"8"` | machine-checkable arithmetic (a bare numeral for counting items) |
-| `answer` | non-negative integer | the correct choice |
+| `expression` | non-empty string, e.g. `"70 + 3"`, `"8"`; for true-false a comparison claim, e.g. `"7 > 8"` | machine-checkable arithmetic (a bare numeral for counting items) |
+| `answer` | non-negative integer; for true-false only `1` (对/✓) or `0` (错/✗) | the correct choice |
 | `bilingual` | `{ "numeral": "<answer digits>", "zh_word": "<中文>" }` | the answer as numeral and Chinese word (`"18"` / `"十八"`) |
 | `question_zh` / `question_en` | non-empty strings | bilingual prompt |
-| `distractors` | exactly 3 `{ "value", "strategy" }` | authored wrong choices; `strategy` is one of the style doc §D misconception ids |
+| `distractors` | exactly 3 `{ "value", "strategy" }`; exactly 1 for true-false | authored wrong choices; `strategy` is one of the style doc §D misconception ids |
 | `table` | optional object of finite numbers | supporting data table |
 
 ## Rules the parser enforces (structural)
@@ -67,29 +67,59 @@ Unknown envelope fields are rejected.
 - **Unknown fields are rejected**, including `steps` — Standard 1 items are
   single-step, so v2 has no `steps` field. Legacy multi-step items still
   serve through the v1 adapter (below).
-- `distractors`: exactly 3 choices; each `value` a non-negative integer; all
-  distinct and none equal to `answer`; each `strategy` one of the §D ids:
+- `distractors`: for the numeric forms (including `circle`), exactly 3
+  choices; each `value` a non-negative integer; all distinct and none equal
+  to `answer`; each `strategy` one of the §D ids:
   `off-by-one-count`, `count-all-vs-add`, `wrong-operation`, `raw-operand`,
   `no-carry-concat`, `digit-reversal`, `place-value-slip`, `more-fewer-flip`,
   `next-vs-between`, `clock-hand-swap`, `word-operator-scramble`,
   `money-denom-miscount`.
 - `bilingual.numeral` must equal `String(answer)` — the numeral is the
   answer's identity in string form.
-- `answer_form` accepts only the three numeric values above. `circle`,
-  `tick`, and `ordering` are rejected until #11/#12 ship their renderers —
-  do not generate them yet.
+- `answer_form` accepts the five values above. `ordering` is rejected until
+  #12 ships its renderer — do not generate it yet.
 - Every error names its path, e.g. `question 4.distractors[1].strategy must
   be one of: …`.
+
+### The `circle` answer form (#11)
+
+The worksheet 圈出 form: the prompt carries a figure or values and the child
+circles one of the declared options. The wire contract is the numeric one
+above (answer + 3 authored choices); the runtime serves exactly those four
+selections, shuffled, with a circle-specific hint.
+
+### The `true-false` answer form (#11)
+
+The worksheet 对的画✓，错的打✗ form: the child judges a statement 对/错.
+Because the serving contract is numeric, the truth value is encoded:
+
+- `answer`: `1` = 对/✓ (the statement is true), `0` = 错/✗ (false).
+- `distractors`: exactly **1** choice — the opposite truth value. The served
+  round is the closed pair `[✓, ✗]` in that fixed order, never shuffled.
+- `expression` is a **comparison claim**: `E = E`, `E > E`, or `E < E`,
+  where each side is a Standard-1 arithmetic expression (`+ −` only, e.g.
+  `"7 > 8"`, `"5 + 4 = 9"`, `"9 - 1 < 12"`). The verifier re-derives the
+  truth value from it, so a flipped ✓/✗ answer fails mechanically.
+- `operation` labels the arithmetic *inside* the claim: `"counting"` when
+  both sides are bare numerals (`"7 > 8"` compares counts; no arithmetic is
+  performed), `"addition"` / `"subtraction"` when the claim contains that
+  operator (`"5 + 4 = 9"` → `"addition"`).
+- `bilingual` follows the same rules as every form: `numeral` is the
+  answer's digits (`"1"` / `"0"`) and `zh_word` the derived Chinese number
+  word (`"一"` / `"零"`). The judgment words 对/错 are a closed universal
+  pair rendered by the runtime — they are not per-item data, so they do not
+  live in `bilingual`.
 
 ## Rules the verifier enforces (content, authoring/CI)
 
 `shared/question-verify.ts` stays the authoring gate (#14 hardens it): it
-re-derives the answer from `expression`, enforces the scope (numbers ≤ 100,
-`+ −` only, single-step), and — new with v2 — flags `bilingual` mismatches:
-a wrong `numeral` is an error, and a `zh_word` that differs from the derived
-`chineseNumeral(answer)` reading warns with the suggestion (the gloss is a
-translation; a human reviews variants). The trust boundary never re-derives
-content.
+re-derives the answer from `expression` — for true-false, by evaluating the
+comparison claim (each side must independently stay in scope and single-
+step) — enforces the scope (numbers ≤ 100, `+ −` only, single-step), and
+flags `bilingual` mismatches: a wrong `numeral` is an error, and a `zh_word`
+that differs from the derived `chineseNumeral(answer)` reading warns with
+the suggestion (the gloss is a translation; a human reviews variants). The
+trust boundary never re-derives content.
 
 ## Curriculum-profile gating
 
@@ -203,6 +233,130 @@ served; under `original_dskp_extra` both are.
         { "value": 14, "strategy": "off-by-one-count" },
         { "value": 12, "strategy": "raw-operand" },
         { "value": 20, "strategy": "next-vs-between" }
+      ]
+    }
+  ]
+}
+```
+
+### Valid: circle and true-false items (#11)
+
+A circle item (the child circles one of the four declared values) and a
+true-false item (the child judges the statement; the answer encodes 1 = ✓,
+0 = ✗, and the single distractor is the opposite truth value).
+
+<!-- example: valid -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.example-objective",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": { "numeral": "8", "zh_word": "八" },
+      "question_zh": "圈出正确的答案：🦆🦆🦆🦆🦆🦆🦆🦆 共有几只鸭子？",
+      "question_en": "Circle the correct answer: how many ducks are there?",
+      "distractors": [
+        { "value": 7, "strategy": "off-by-one-count" },
+        { "value": 9, "strategy": "off-by-one-count" },
+        { "value": 10, "strategy": "off-by-one-count" }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "7 > 8",
+      "answer": 0,
+      "bilingual": { "numeral": "0", "zh_word": "零" },
+      "question_zh": "对的画 ✓，错的画 ✗：7 比 8 大",
+      "question_en": "Mark ✓ for true and ✗ for false: 7 is greater than 8",
+      "distractors": [
+        { "value": 1, "strategy": "more-fewer-flip" }
+      ]
+    }
+  ]
+}
+```
+
+### Invalid: true-false with numeric-form distractors
+
+A true-false item declares exactly one distractor — the opposite truth
+value — not the numeric forms' three choices.
+
+<!-- example: invalid: /question 2\.distractors must contain exactly 1 choice \(the opposite truth value\) for answer_form "true-false"/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.bad",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": { "numeral": "8", "zh_word": "八" },
+      "question_zh": "圈出正确的答案：🦆🦆🦆🦆🦆🦆🦆🦆 共有几只鸭子？",
+      "question_en": "Circle the correct answer: how many ducks are there?",
+      "distractors": [
+        { "value": 7, "strategy": "off-by-one-count" },
+        { "value": 9, "strategy": "off-by-one-count" },
+        { "value": 10, "strategy": "off-by-one-count" }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "7 > 8",
+      "answer": 0,
+      "bilingual": { "numeral": "0", "zh_word": "零" },
+      "question_zh": "对的画 ✓，错的画 ✗：7 比 8 大",
+      "question_en": "Mark ✓ for true and ✗ for false: 7 is greater than 8",
+      "distractors": [
+        { "value": 1, "strategy": "more-fewer-flip" },
+        { "value": 7, "strategy": "raw-operand" },
+        { "value": 9, "strategy": "raw-operand" }
       ]
     }
   ]

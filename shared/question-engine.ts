@@ -51,6 +51,10 @@ export interface Question {
   distractors?: Distractor[];
   // Display unit for the numeric answer/choices. See AnswerUnit.
   answer_unit?: AnswerUnit;
+  // Answer-form marker (schema v2 vocabulary, question-v2.ts). Optional here:
+  // legacy v1 banks omit it and keep numeric MCQ serving. The engine reads it
+  // for exactly one serving rule — see chooseOptions.
+  answer_form?: string;
 }
 
 export interface QuestionBankData {
@@ -165,6 +169,16 @@ export function formatAnswer(value: number, unit?: AnswerUnit): string {
   return `RM ${digits}`; // "RM" and undefined (legacy) both prefix RM
 }
 
+// True-false answer form (#11): the answer is encoded 1 = 对/✓ (true),
+// 0 = 错/✗ (false) so the numeric QuestionRound contract (choices, judge)
+// serves it unchanged. The option set is a closed pair served in
+// conventional worksheet order (✓ before ✗) — never shuffled, never
+// near-miss generated. The literal mirrors the question-v2.ts vocabulary;
+// the engine deliberately does not import the v2 module (v2 layers on top).
+export const TRUE_FALSE_FORM = "true-false";
+export const TRUTH_TRUE = 1;
+export const TRUTH_FALSE = 0;
+
 // One answer round presented to the player: a turn plus its choices.
 // Scenes keep the round, render `choices`, and report `judge(picked)`.
 export class QuestionRound {
@@ -186,6 +200,9 @@ export class QuestionRound {
 // fall back to the generic scaled near-miss generator. Authored options are
 // shuffled so the correct answer's position is not fixed by authoring order.
 function chooseOptions(turn: QuestionTurn, rng: () => number): number[] {
+  if (turn.question.answer_form === TRUE_FALSE_FORM) {
+    return [TRUTH_TRUE, TRUTH_FALSE];
+  }
   const authored = turn.question.distractors;
   if (authored && authored.length > 0) {
     return shuffle([turn.answer, ...authored.map((d) => d.value)], rng);

@@ -13,6 +13,7 @@
 import { artContentType, artKeyFromPath } from "./art-path.ts";
 import { buildAuth } from "./auth.ts";
 import { handleApi, json } from "./api.ts";
+import { purgeOldEvents } from "./events.ts";
 import { LOGIN_HTML } from "./login-page.ts";
 
 export default {
@@ -53,6 +54,13 @@ export default {
     }
 
     return env.ASSETS.fetch(request);
+  },
+
+  // Daily retention purge for learning telemetry (#24): events older than
+  // TELEMETRY_RETENTION_DAYS are deleted so play data never accumulates
+  // beyond the documented window. Cron is configured in wrangler.jsonc.
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(purgeOldEvents(env));
   },
 } satisfies ExportedHandler<Env>;
 

@@ -25,6 +25,8 @@
     }
   ],
   "observability": { "enabled": true },
+  // Daily telemetry retention purge (#24) → scheduled() in src/index.ts.
+  "triggers": { "crons": ["17 3 * * *"] },
   "vars": {
     "BETTER_AUTH_URL": "https://game.pokemath.fun",
     // "development" enables the email/password provider for local testing

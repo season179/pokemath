@@ -15,6 +15,7 @@ import { ShopScreen } from "./shop/ShopScreen";
 import { FieldGuideScreen } from "./guide/FieldGuideScreen";
 import { SanctuaryScreen } from "./sanctuary/SanctuaryScreen";
 import { GameState } from "./state";
+import { Telemetry } from "./client/telemetry";
 import { Direction, isEncounterRegion, isOpenRegion } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { WorldMapScreen } from "./world/WorldMapScreen";
@@ -63,6 +64,9 @@ export class GameApp {
   private canvasElement: HTMLCanvasElement | null = null;
   private canvasFocusHandler: (() => void) | null = null;
   private canvasBlurHandler: (() => void) | null = null;
+  // Learning-quality events (#24): queued offline, flushed on checkpoints.
+  private telemetry = new Telemetry();
+  private pageHideHandler: (() => void) | null = null;
 
   constructor(
     private canvasNode: Node,
@@ -114,6 +118,10 @@ export class GameApp {
 
   start() {
     this.enableCanvasKeyboardFocus();
+    this.watchPageHide();
+    // Events left over from a crashed/offline session upload right away
+    // instead of waiting for the first battle exit.
+    void this.telemetry.flush();
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     view.on("canvas-resize", this.onViewResize, this);
@@ -152,10 +160,36 @@ export class GameApp {
     if (this.canvasElement && this.canvasBlurHandler) {
       this.canvasElement.removeEventListener("blur", this.canvasBlurHandler);
     }
+    if (this.pageHideHandler && typeof window !== "undefined") {
+      window.removeEventListener("pagehide", this.pageHideHandler);
+    }
     this.canvasElement = null;
     this.canvasFocusHandler = null;
     this.canvasBlurHandler = null;
+    this.pageHideHandler = null;
     this.world.releaseAll();
+  }
+
+  // Every save checkpoint doubles as a telemetry flush point (#24). Flushes
+  // are fire-and-forget — a failed send stays queued for the next checkpoint.
+  private checkpoint(): void {
+    this.persistence.checkpoint(this.state.toSave());
+    void this.telemetry.flush();
+  }
+
+  // Voluntary stopping (#24): closing/navigating away is a session end. The
+  // event fires whether or not a battle is mid-flow — duringBattle is what
+  // the report segments on. Best-effort: keepalive, never awaited.
+  private watchPageHide(): void {
+    if (typeof window === "undefined" || this.pageHideHandler) return;
+    this.pageHideHandler = () => {
+      this.telemetry.emit("session_ended", {
+        reason: "page_unload",
+        duringBattle: this.screen === "battle",
+      });
+      this.telemetry.flushOnUnload();
+    };
+    window.addEventListener("pagehide", this.pageHideHandler);
   }
 
   update(dt: number) {
@@ -179,14 +213,14 @@ export class GameApp {
     // when the player runs. Checkpoint only when the guide actually changed:
     // a repeat sighting must not churn a save version per battle.
     if (wild.speciesId && this.state.markSeenEntry(wild.speciesId)) {
-      this.persistence.checkpoint(this.state.toSave());
+      this.checkpoint();
     }
     this.screen = "battle";
     this.hideWorld();
     this.battle = new BattleScreen(this.state, wild, bank, {
       onExit: () => this.endBattle(false),
       onRespawn: () => this.endBattle(true),
-    });
+    }, this.telemetry);
     this.canvasNode.addChild(this.battle.root);
   }
 
@@ -194,7 +228,7 @@ export class GameApp {
     this.battle?.root.destroy();
     this.battle = null;
     this.returnToWorld(respawn);
-    this.persistence.checkpoint(this.state.toSave());
+    this.checkpoint();
   }
 
   private startShop(): void {
@@ -212,7 +246,7 @@ export class GameApp {
       onBack: () => this.endParty(),
       onSwitch: () => {
         this.world.refreshHud();
-        this.persistence.checkpoint(this.state.toSave());
+        this.checkpoint();
       },
     });
     this.canvasNode.addChild(this.party.root);
@@ -282,7 +316,7 @@ export class GameApp {
     this.sanctuary = new SanctuaryScreen(this.state, {
       onBack: () => this.endSanctuary(),
       onChanged: () => {
-        this.persistence.checkpoint(this.state.toSave());
+        this.checkpoint();
       },
     });
     this.canvasNode.addChild(this.sanctuary.root);
@@ -303,7 +337,7 @@ export class GameApp {
     this.shop?.root.destroy();
     this.shop = null;
     this.returnToWorld(false);
-    this.persistence.checkpoint(this.state.toSave());
+    this.checkpoint();
   }
 
   private returnToWorld(respawn: boolean): void {
@@ -410,8 +444,8 @@ export class GameApp {
     if (this.screen !== "world" || this.nameScreen) return;
     this.screen = "signout";
     this.hideWorld();
-    this.persistence.checkpoint(this.state.toSave());
-    this.signOutScreen = new SignOutScreen(this.persistence, () => this.endSignOut());
+    this.checkpoint();
+    this.signOutScreen = new SignOutScreen(this.persistence, () => this.endSignOut(), this.telemetry);
     this.canvasNode.addChild(this.signOutScreen.root);
   }
 

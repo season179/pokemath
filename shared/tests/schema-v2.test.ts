@@ -31,7 +31,7 @@ import {
   gateQuestionsByProfile,
   servesProfile,
 } from "../curriculum.ts";
-import { verifyQuestion } from "../question-verify.ts";
+import { parseTruthExpression, verifyQuestion } from "../question-verify.ts";
 import { SAMPLE_BANK } from "../question-bank.ts";
 
 // --- fixtures ---------------------------------------------------------------
@@ -109,6 +109,64 @@ function validV2Bank(): Record<string, unknown> {
           { value: 12, strategy: "raw-operand" },
           { value: 20, strategy: "next-vs-between" },
         ],
+      },
+    ],
+  };
+}
+
+/**
+ * The #11 objective forms: a `circle` item (numeric options, unchanged wire
+ * rules) and a `true-false` item (answer 1 = 对/✓ or 0 = 错/✗, exactly one
+ * distractor — the opposite truth value).
+ */
+function validObjectiveBank(): Record<string, unknown> {
+  return {
+    schema_version: 2,
+    bank_id: "std1.objective-fixture",
+    version: 1,
+    source: "shared/tests/schema-v2.test.ts",
+    currency: "RM",
+    profile: "dpk3_2026_core",
+    questions: [
+      {
+        id: 1,
+        topic: "4.1",
+        tp_level: 1,
+        profile: "dpk3_2026_core",
+        item_format: "objective",
+        format_type: "count-circle",
+        presentation: "picture",
+        answer_form: "circle",
+        answer_unit: "none",
+        operation: "counting",
+        expression: "8",
+        answer: 8,
+        bilingual: { numeral: "8", zh_word: "八" },
+        question_zh: "圈出正确的答案：🦆🦆🦆🦆🦆🦆🦆🦆 共有几只鸭子？",
+        question_en: "Circle the correct answer: how many ducks are there?",
+        distractors: [
+          { value: 7, strategy: "off-by-one-count" },
+          { value: 9, strategy: "off-by-one-count" },
+          { value: 10, strategy: "off-by-one-count" },
+        ],
+      },
+      {
+        id: 2,
+        topic: "4.1",
+        tp_level: 2,
+        profile: "dpk3_2026_core",
+        item_format: "objective",
+        format_type: "true-false",
+        presentation: "plain",
+        answer_form: "true-false",
+        answer_unit: "none",
+        operation: "counting",
+        expression: "7 > 8",
+        answer: 0,
+        bilingual: { numeral: "0", zh_word: "零" },
+        question_zh: "对的画 ✓，错的画 ✗：7 比 8 大",
+        question_en: "Mark ✓ for true and ✗ for false: 7 is greater than 8",
+        distractors: [{ value: 1, strategy: "more-fewer-flip" }],
       },
     ],
   };
@@ -381,9 +439,9 @@ test("v2 wire: malformed questions fail with labeled diagnostics", () => {
     ["item_format beyond objective", (b) => {
       (b.questions as Array<Record<string, unknown>>)[0].item_format = "fill-blank";
     }, /question 1\.item_format must be one of: objective/],
-    ["answer_form beyond numeric (lands with #11/#12)", (b) => {
-      (b.questions as Array<Record<string, unknown>>)[0].answer_form = "circle";
-    }, /question 1\.answer_form must be one of: numeral, count, chinese-word/],
+    ["answer_form beyond the serveable objective forms (#12)", (b) => {
+      (b.questions as Array<Record<string, unknown>>)[0].answer_form = "ordering";
+    }, /question 1\.answer_form must be one of: numeral, count, chinese-word, circle, true-false/],
     ["bad operation", (b) => {
       (b.questions as Array<Record<string, unknown>>)[0].operation = "multiplication";
     }, /question 1\.operation must be one of: counting, addition, subtraction/],
@@ -444,6 +502,165 @@ test("v2 wire: malformed envelopes fail with labeled diagnostics", () => {
     () => parseQuestionBankV2Data({ ...validV2Bank(), version: 0 }),
     /positive integer version/,
   );
+});
+
+// --- objective answer forms: circle and true-false (#11) ---------------------
+
+test("v2 wire: circle and true-false banks parse", () => {
+  const bank = parseQuestionBankV2Data(validObjectiveBank());
+  const [circle, trueFalse] = bank.questions;
+  assert.equal(circle.answer_form, "circle");
+  assert.equal(circle.distractors?.length, 3);
+  assert.equal(trueFalse.answer_form, "true-false");
+  assert.equal(trueFalse.answer, 0);
+  assert.deepEqual(trueFalse.distractors, [{ value: 1, strategy: "more-fewer-flip" }]);
+});
+
+test("v2 wire: malformed true-false questions fail with labeled diagnostics", () => {
+  type Mutation = (bank: ReturnType<typeof validObjectiveBank>) => void;
+  const cases: Array<[string, Mutation, RegExp]> = [
+    ["truth answer outside 0/1", (b) => {
+      (b.questions as Array<Record<string, unknown>>)[1].answer = 2;
+      (b.questions as Array<Record<string, unknown>>)[1].bilingual = { numeral: "2", zh_word: "二" };
+    }, /question 2\.answer must be 1 \(对\/true\) or 0 \(错\/false\) for answer_form "true-false"/],
+    ["numeric distractor count on a truth item", (b) => {
+      (b.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[1]
+        .distractors.push({ value: 7, strategy: "raw-operand" }, { value: 9, strategy: "raw-operand" });
+    }, /question 2\.distractors must contain exactly 1 choice \(the opposite truth value\) for answer_form "true-false"/],
+    ["distractor outside the truth domain", (b) => {
+      (b.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[1]
+        .distractors[0].value = 7;
+    }, /question 2\.distractors\[0\]\.value must be 1 or 0 \(the opposite truth value\) for answer_form "true-false"/],
+    ["distractor repeats the answer instead of opposing it", (b) => {
+      (b.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[1]
+        .distractors[0].value = 0;
+    }, /question 2 answer and distractors must be unique/],
+  ];
+  for (const [name, mutate, pattern] of cases) {
+    const bank = validObjectiveBank();
+    mutate(bank);
+    assert.throws(() => parseQuestionBankV2Data(bank), pattern, name);
+  }
+});
+
+test("v2 JSON Schema: objective forms validate; weakened variants do not", () => {
+  assert.equal(validateV2Schema(validObjectiveBank()), true, ajv.errorsText(validateV2Schema.errors));
+
+  const truthWithThree = validObjectiveBank();
+  (truthWithThree.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[1]
+    .distractors.push({ value: 7, strategy: "raw-operand" }, { value: 9, strategy: "raw-operand" });
+  assert.equal(validateV2Schema(truthWithThree), false, "true-false caps distractors at 1");
+
+  const truthAnswerTwo = validObjectiveBank();
+  (truthAnswerTwo.questions as Array<Record<string, unknown>>)[1].answer = 2;
+  assert.equal(validateV2Schema(truthAnswerTwo), false, "true-false answer is bounded to 0/1");
+
+  const circleWithTwo = validObjectiveBank();
+  (circleWithTwo.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[0]
+    .distractors.pop();
+  assert.equal(validateV2Schema(circleWithTwo), false, "circle keeps the 3-choice rule");
+});
+
+test("serving: circle rounds offer exactly the declared selections", () => {
+  const bank = parseQuestionBankV2Data(validObjectiveBank());
+  const circle = bank.questions[0];
+  const round = new QuestionRound(turnsOf(circle)[0], mulberry32(11));
+  assert.deepEqual(
+    [...round.choices].sort((a, b) => a - b),
+    [7, 8, 9, 10],
+    "a circle round serves the authored answer + 3 declared choices, nothing else",
+  );
+  assert.equal(round.judge(8), true);
+  assert.equal(round.judge(7), false);
+});
+
+test("serving: true-false rounds offer the fixed ✓/✗ pair under any rng", () => {
+  const bank = parseQuestionBankV2Data(validObjectiveBank());
+  const trueFalse = bank.questions[1];
+  for (const seed of [1, 42, 20260720]) {
+    const round = new QuestionRound(turnsOf(trueFalse)[0], mulberry32(seed));
+    assert.deepEqual(round.choices, [1, 0], "✓ always precedes ✗; never shuffled");
+    assert.equal(round.judge(0), true, "the statement 7 > 8 is false");
+    assert.equal(round.judge(1), false);
+  }
+});
+
+test("verifyQuestion: valid circle and true-false items verify clean", () => {
+  const bank = parseQuestionBankV2Data(validObjectiveBank());
+  assert.deepEqual(verifyQuestion(bank.questions[0]), [], JSON.stringify(verifyQuestion(bank.questions[0])));
+  assert.deepEqual(verifyQuestion(bank.questions[1]), [], JSON.stringify(verifyQuestion(bank.questions[1])));
+});
+
+test("verifyQuestion: true-false content rules", () => {
+  const bank = parseQuestionBankV2Data(validObjectiveBank());
+  const base = bank.questions[1];
+
+  const flipped: QuestionV2 = { ...base, answer: 1 };
+  assert.ok(
+    verifyQuestion(flipped).some(
+      (f) => f.severity === "error" && f.code === "answer-mismatch",
+    ),
+    "a flipped truth answer is caught by re-deriving the comparison",
+  );
+
+  const wrongLabel: QuestionV2 = { ...base, operation: "addition" };
+  assert.ok(
+    verifyQuestion(wrongLabel).some(
+      (f) => f.severity === "error" && f.code === "operation-mismatch",
+    ),
+    "a bare comparison labels operation counting",
+  );
+
+  const arithmeticClaim: QuestionV2 = {
+    ...base,
+    operation: "addition",
+    expression: "5 + 4 = 9",
+    answer: 1,
+    bilingual: { numeral: "1", zh_word: "一" },
+    distractors: [{ value: 0, strategy: "wrong-operation" }],
+  };
+  assert.deepEqual(verifyQuestion(arithmeticClaim), [], "an arithmetic claim labels by its operator");
+
+  const multiStepSide: QuestionV2 = { ...base, expression: "10 - 3 - 2 > 4" };
+  assert.ok(
+    verifyQuestion(multiStepSide).some((f) => f.code === "multi-step"),
+    "a chained-subtraction side is multi-step even in a comparison",
+  );
+
+  const outOfScopeSide: QuestionV2 = { ...base, expression: "99 + 99 > 100" };
+  assert.ok(
+    verifyQuestion(outOfScopeSide).some((f) => f.code === "side-out-of-range"),
+    "a side value beyond 100 is flagged even though the operands are in scope",
+  );
+
+  const threeDistractors: QuestionV2 = {
+    ...base,
+    distractors: [
+      { value: 1, strategy: "more-fewer-flip" },
+      { value: 7, strategy: "raw-operand" },
+      { value: 9, strategy: "raw-operand" },
+    ],
+  };
+  const findings = verifyQuestion(threeDistractors);
+  assert.ok(findings.some((f) => f.code === "distractor-count"), JSON.stringify(findings));
+  assert.ok(findings.some((f) => f.code === "distractor-non-truth"), JSON.stringify(findings));
+});
+
+test("parseTruthExpression: comparison claims evaluate to the truth encoding", () => {
+  assert.deepEqual(
+    { ...parseTruthExpression("7 > 8"), left: undefined, right: undefined },
+    { value: 0, operands: [7, 8], operators: [], comparator: ">", left: undefined, right: undefined },
+  );
+  assert.equal(parseTruthExpression("5 + 4 = 9").value, 1);
+  assert.equal(parseTruthExpression("9 = 5 + 4").value, 1, "either side may carry the arithmetic");
+  assert.equal(parseTruthExpression("5 + 4 = 8").value, 0);
+  assert.equal(parseTruthExpression("9 − 1 < 12").value, 1, "unicode minus normalizes");
+  assert.equal(parseTruthExpression("10 < 10").value, 0);
+  assert.throws(() => parseTruthExpression("7 > 8 > 9"), /exactly one comparator/);
+  assert.throws(() => parseTruthExpression("7 8"), /exactly one comparator/);
+  assert.throws(() => parseTruthExpression("7 > = 8"), /exactly one comparator/);
+  assert.throws(() => parseTruthExpression("> 8"), /both sides/);
+  assert.throws(() => parseTruthExpression("7 > 8 × 2"), /unsupported operator/);
 });
 
 // --- version dispatch at the trust boundary -----------------------------------
