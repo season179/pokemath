@@ -150,13 +150,28 @@ export class Telemetry implements TelemetrySink {
     const envelopeOverhead = '{"events":[]}'.length;
     let bytes = envelopeOverhead;
     const batch: ClientTelemetryEvent[] = [];
+    const poisoned: ClientTelemetryEvent[] = [];
     for (const event of this.queue) {
       if (batch.length >= MAX_EVENTS_PER_BATCH) break;
       // +1 for the comma between array elements.
       const size = JSON.stringify(event).length + 1;
+      if (size > MAX_BATCH_JSON_BYTES) {
+        // A single event that can NEVER fit would 413-retry forever and
+        // starve the queue behind it — drop the poison. Impossible while
+        // the registry caps props at 512B (pinned by a shared test); this
+        // guard keeps a future registry loosening from re-opening the hole.
+        poisoned.push(event);
+        continue;
+      }
       if (batch.length > 0 && bytes + size > MAX_BATCH_JSON_BYTES) break;
       batch.push(event);
       bytes += size;
+    }
+    if (poisoned.length > 0) {
+      console.warn(`telemetry: dropped ${poisoned.length} over-sized event(s)`);
+      const dropped = new Set(poisoned.map((e) => e.id));
+      this.queue = this.queue.filter((e) => !dropped.has(e.id));
+      this.persist();
     }
     return batch;
   }

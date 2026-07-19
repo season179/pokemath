@@ -289,8 +289,9 @@ export class BattleScreen {
     this.say(["Got away safely!"], this.actions.onExit);
   }
 
-  // One terminal outcome per battle. defeat is emitted at the all-fainted
-  // moment in wildAttack via emitOutcome("defeated") — see below.
+  // One terminal outcome per battle, guaranteed by the guard. The four
+  // endings: won (giveRewards), captured (throwBall), fled (runAway),
+  // defeated (all-fainted branch of wildAttack above).
   private emitOutcome(outcome: "won" | "captured" | "fled" | "defeated"): void {
     if (this.outcomeEmitted) return;
     this.outcomeEmitted = true;

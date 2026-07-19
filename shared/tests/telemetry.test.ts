@@ -7,6 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  MAX_BATCH_JSON_BYTES,
   MAX_EVENTS_PER_BATCH,
   MAX_PROPS_JSON_BYTES,
   TELEMETRY_EVENTS,
@@ -140,4 +141,23 @@ test("retention and caps stay at their documented values", () => {
   // docs/learning-events.md states these numbers; change both together.
   assert.equal(TELEMETRY_RETENTION_DAYS, 90);
   assert.ok(MAX_EVENTS_PER_BATCH <= 100);
+});
+
+test("a maximally fat VALID event always fits inside one batch", () => {
+  // The client's takeBatch drops any single event larger than the batch byte
+  // cap as un-sendable poison. That guard must never fire for an event the
+  // registry accepts — this pins the invariant by building the fattest event
+  // the registry allows (props right at the 512B cap) and checking its size.
+  const topic = "9".repeat(MAX_PROPS_JSON_BYTES); // digits pass the topic regex
+  const fatProps = { battle: "wild", operation: "addition", correct: true, topic };
+  // Trim the topic until props fit under the cap: the fattest valid props.
+  while (JSON.stringify(fatProps).length > MAX_PROPS_JSON_BYTES) {
+    fatProps.topic = fatProps.topic.slice(0, -1);
+  }
+  const fat = { ...base, name: "question_answered", props: fatProps };
+  assert.equal(validateTelemetryEvent(fat), null);
+  assert.ok(
+    JSON.stringify(fat).length + 1 < MAX_BATCH_JSON_BYTES,
+    "a valid event must fit one batch, or the poison guard would eat it",
+  );
 });

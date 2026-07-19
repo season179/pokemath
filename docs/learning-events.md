@@ -61,9 +61,11 @@ land first.
 
 1. **Client** (`game/client/telemetry.ts`, mirrored to
    `game/assets/src/client/`): validates → queues in localStorage
-   (`pokemath.events`, capped at 500, oldest drops first) → flushes up to
-   100 events per batch alongside every save checkpoint and best-effort on
-   `pagehide` (`keepalive`). Event ids are client-minted UUIDs.
+   (`pokemath.events`, capped at 500, oldest drops first) → flushes batches
+   alongside every save checkpoint, once at boot, and best-effort on
+   `pagehide` (`keepalive`). Each batch is bounded by BOTH the 100-event
+   count cap and the 16 KB serialized byte cap, so a valid queue can never
+   build a batch the server would 413. Event ids are client-minted UUIDs.
 2. **Worker** (`worker/src/events.ts`): `POST /api/events` (session-gated)
    re-validates every event, drops individually invalid ones
    (`{accepted, dropped}`), and `INSERT OR IGNORE`s on `(user_id, event_id)`
