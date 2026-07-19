@@ -134,7 +134,10 @@ mouse; area tables still weight it below each area's anchor species. And
 `woolly/ram` appears in both Woolly Meadows and the Stones: roster §2 has it
 drifting into the pasture near the Hundred Stones while §8 has it grazing
 between the stones themselves — matching the shipped preview, whose Woolly
-Meadows table (`fluffball 65 / hare 27 / ram 8`) already includes it.
+Meadows table (`fluffball 65 / hare 27 / ram 8`) already includes it. Finally,
+the Festival column shows only its anchor (`meadow/petalfae` at dusk): per roster §7 the
+Festival also draws "spillover from everywhere," which the code tables express
+as a share of the island-wide common pool, not as extra rows here.
 
 Numeric weights are set per area when the tables land in code (post-approval);
 the preview's Woolly Meadows weights above are the only ones shipped so far,
