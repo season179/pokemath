@@ -1,9 +1,8 @@
 # Meadow species naming slate — for one-batch review (issue #4)
 
-**Status: PROPOSED, awaiting Season's approval.** This is the single bilingual
-naming slate asked for in
-[#4](https://github.com/season179/pokemath/issues/4) and in
-[meadow-isle.md](meadow-isle.md)'s open question on bilingual naming. It covers
+**Status: APPROVED (2026-07-19).** Season merged this slate as PR #53; merge
+is approval. Implemented in the species registry (`shared/creature.ts`,
+`shared/habitats.ts`).
 the three preview species with provisional names (Fluffball, Balltail Hare,
 Woolly Ram), the provisional starter name (Sproutkit), all remaining planned
 Meadow families from the island roster, and the guardian.

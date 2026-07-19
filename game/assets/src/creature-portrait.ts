@@ -19,7 +19,7 @@ export interface PortraitSubject {
 export function makeCreaturePortrait(parent: Node, subject: PortraitSubject, size: number): Node {
   const node = new Node("creature-portrait");
   node.parent = parent;
-  const art = subject.speciesId ? SPECIES_BY_ID[subject.speciesId]?.art : undefined;
+  const art = subject.speciesId ? SPECIES_BY_ID[subject.speciesId]?.artRef : undefined;
   if (!art) {
     paintCreature(node.addComponent(Graphics), colorFromHex(subject.color), size, subject.boss);
     return node;
