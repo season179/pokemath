@@ -10,10 +10,15 @@ and solve change questions when buying supplies.
 - ✅ Phase 1 — Cocos Creator gameplay-parity port
 - ✅ Phase 2 — Cloudflare Workers + D1 saves — **live at
   [game.pokemath.fun](https://game.pokemath.fun)**
-- ⏸️ Phase 3+ — being replanned: AI-generated questions (see
-  [`ROADMAP.md`](ROADMAP.md))
+- ✅ Kids Playtest Preview (Woolly Meadows) — shipped and verified in live
+  playtest (2026-07-18)
+- 🚧 Meadow Isle build-out in progress — plan of record:
+  [`docs/islands/meadow-isle.md`](docs/islands/meadow-isle.md); work sequence
+  and live status: tracker issue #27.
 
-See [`ROADMAP.md`](ROADMAP.md) for the long-term plan and completion evidence.
+See [`ROADMAP.md`](ROADMAP.md) for the long-term plan history and completion
+evidence; see [`docs/islands/meadow-isle.md`](docs/islands/meadow-isle.md) for
+what is being built now.
 
 ## Requirements
 

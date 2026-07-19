@@ -1,0 +1,26 @@
+# pokemath — agent guide
+
+## Never
+
+- No `Co-Authored-By` or AI attribution in commits — write messages like a human.
+- Never rename a shipped `speciesId` (grandfathered: `woolly/*`, `cloudhorn`, `lumentail`, `sproutkit`). `nameZh` resolves from the registry at render time; it is never saved.
+- Never edit a shipped question bank in place — banks are immutable versioned JSON under `game/assets/resources/question-banks/`; add a new version.
+- No compat shims. Season accepts data loss at this stage; migrate on read/write via `normalizeSave`.
+- No runtime dependencies; validators are hand-rolled.
+- Browser automation: `agent-browser` only, never Playwright.
+
+## Process
+
+- Issues carry a work mode. HITL ends at Season's review — his merge IS the approval. AFK carries through to merge/deploy per its acceptance criteria. Merge with `gh pr merge --merge`.
+- Declare your touch set and check `gh pr list` before starting; parallel agents work in separate worktrees.
+- Plan of record: `docs/islands/meadow-isle.md`. Work sequence + DAG: issue #27. Acceptance criteria live on each issue — read the issue itself.
+
+## Gotchas
+
+- Import extensions: explicit `.ts` in `shared/` and `worker/`, omitted in `game/`. Type-stripping is erase-only — no enums or namespaces.
+- After editing `shared/`, run `npm run sync` and commit the synced copies.
+- Gates before PR: `npm test` and `npm run typecheck` pass.
+- Cocos headless build exits 36 on success.
+- Fresh worktrees show `Cannot find module 'cc'` typecheck errors until the editor generates declarations — environmental, not yours.
+- Deploy: `cd worker && npx wrangler deploy`; when worker and client both change, deploy the worker first. Prod: <https://game.pokemath.fun>.
+- Release-gate smoke check: `docs/preview-smoke-check.md`.

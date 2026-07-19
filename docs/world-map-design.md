@@ -1,6 +1,9 @@
 # World Map Design — 7 Islands
 
-**Status: DRAFT — brainstorm capture, by no means final.** (2026-07-17)
+**Status: Partially shipped.** World map, mini-map, and region locking are
+live (#29, #30, 2026-07-18); Meadow Isle has its own approved plan
+([`islands/meadow-isle.md`](islands/meadow-isle.md)). Everything else below
+remains brainstorm capture, by no means final. (Drafted 2026-07-17)
 
 ## Core idea
 
