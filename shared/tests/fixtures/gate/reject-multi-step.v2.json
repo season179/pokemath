@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-multi-step.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 3 - 2",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "篮子里有 10 个苹果，吃了 3 个，又送给朋友 2 个，还剩几个？",
+      "question_en": "There were 10 apples; 3 were eaten and 2 given away. How many are left?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}

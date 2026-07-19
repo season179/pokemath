@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-money-mixed-exchange.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "picture",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "25",
+      "answer": 25,
+      "bilingual": {
+        "numeral": "25",
+        "zh_word": "二十五"
+      },
+      "question_zh": "一张 RM5 纸币相等于多少枚 20 sen 硬币？",
+      "question_en": "How many 20-sen coins are equal in value to one RM5 note?",
+      "distractors": [
+        {
+          "value": 20,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 24,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 26,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}

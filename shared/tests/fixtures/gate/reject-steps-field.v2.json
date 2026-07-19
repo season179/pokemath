@@ -1,0 +1,52 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-steps-field.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "5 + 2",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "先有 5 只羊，又来了 2 只，共有几只？",
+      "question_en": "There were 5 sheep and 2 more came. How many now?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        }
+      ],
+      "steps": [
+        {
+          "prompt_zh": "5 + 2",
+          "prompt_en": "5 + 2",
+          "expression": "5 + 2",
+          "answer": 7
+        }
+      ]
+    }
+  ]
+}

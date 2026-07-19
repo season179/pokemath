@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-operation-mismatch.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "5 + 3",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "5 + 3 = ___",
+      "question_en": "5 + 3 = ___",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}

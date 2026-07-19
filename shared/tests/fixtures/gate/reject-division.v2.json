@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-division.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 ÷ 2",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "10 ÷ 2 = ___",
+      "question_en": "10 ÷ 2 = ___",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 2,
+          "strategy": "raw-operand"
+        }
+      ]
+    }
+  ]
+}
