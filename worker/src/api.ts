@@ -10,13 +10,21 @@
 // shows the starter screen and calls POST /api/save/new.
 // Concurrency: integer version counter, compare-and-swap in one UPDATE.
 // All routes 401 without a valid session cookie.
+//
+// Save versioning (#3): the wire format is save v2. Every payload that crosses
+// this boundary — a stored row on read, a client write, a fresh mint — passes
+// through `normalizeSave`: a v1 (Woolly preview) payload is migrated to v2,
+// a v2 payload is validated and passed through, anything else is rejected.
+// This deploys BEFORE any client writes v2, so no v1 save is left behind.
 
 import {
-  createNewGame,
+  createNewGameV2,
   isStarterId,
+  MAX_SAVE_JSON_BYTES_V2,
+  normalizeSave,
+  SaveMigrationError,
   SPECIES_BY_ID,
-  validateSaveState,
-  MAX_SAVE_JSON_BYTES,
+  type SaveStateV2,
 } from "../../shared/index.ts";
 import type { Auth } from "./auth.ts";
 
@@ -58,8 +66,19 @@ async function loadSave(userId: string, env: Env): Promise<Response> {
     .bind(userId)
     .first<{ payload_json: string; version: number }>();
   if (row) {
+    let save;
+    try {
+      // Migrate-on-read: a v1 row is served as v2; the row itself is
+      // rewritten on the next successful PUT.
+      save = normalizeSave(JSON.parse(row.payload_json));
+    } catch (err) {
+      if (err instanceof SaveMigrationError) {
+        return json({ error: "stored save is unreadable" }, 500);
+      }
+      throw err;
+    }
     return json({
-      save: JSON.parse(row.payload_json),
+      save,
       saveVersion: row.version,
       playerName: player.playerName,
     });
@@ -75,7 +94,7 @@ async function createSave(request: Request, userId: string, env: Env): Promise<R
   const starterId = isRecord(body) ? body.starter : null;
   if (!isStarterId(starterId)) return json({ error: "unknown starter" }, 400);
 
-  const save = createNewGame(SPECIES_BY_ID[starterId]);
+  const save = createNewGameV2(SPECIES_BY_ID[starterId]);
   await env.DB.prepare(
     "INSERT INTO saves (user_id, payload_json, version, updated_at) VALUES (?, ?, 1, ?) " +
       "ON CONFLICT (user_id) DO NOTHING",
@@ -94,13 +113,23 @@ async function createSave(request: Request, userId: string, env: Env): Promise<R
 async function storeSave(request: Request, userId: string, env: Env): Promise<Response> {
   const body = await readJson(request);
   if (!isRecord(body)) return json({ error: "invalid body" }, 400);
-  const { save, baseVersion } = body as { save?: unknown; baseVersion?: unknown };
+  const { save: rawSave, baseVersion } = body as { save?: unknown; baseVersion?: unknown };
   if (typeof baseVersion !== "number" || !Number.isInteger(baseVersion)) {
     return json({ error: "baseVersion required" }, 400);
   }
-  if (!validateSaveState(save)) return json({ error: "invalid save payload" }, 400);
+  let save: SaveStateV2;
+  try {
+    // Migrate-on-write: a v1 (preview) payload converges to v2; a v2 payload
+    // is validated as-is; anything else is rejected at the trust boundary.
+    save = normalizeSave(rawSave);
+  } catch (err) {
+    if (err instanceof SaveMigrationError) {
+      return json({ error: "invalid save payload" }, 400);
+    }
+    throw err;
+  }
   const payload = JSON.stringify(save);
-  if (payload.length > MAX_SAVE_JSON_BYTES) return json({ error: "save too large" }, 400);
+  if (payload.length > MAX_SAVE_JSON_BYTES_V2) return json({ error: "save too large" }, 400);
 
   const result = await env.DB.prepare(
     "UPDATE saves SET payload_json = ?, version = version + 1, updated_at = ? WHERE user_id = ? AND version = ?",
