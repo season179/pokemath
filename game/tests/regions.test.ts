@@ -23,7 +23,7 @@ import {
   regionH,
   regionW,
   tileAt,
-  topicForRegion,
+  topicsForRegion,
 } from "../world/regions/index.ts";
 import type { GatewayDef, RegionDef } from "../world/regions/index.ts";
 import { MEADOW_HABITATS, SPECIES_BY_ID, habitatFor } from "../../shared/index.ts";
@@ -255,14 +255,16 @@ test("encounter scope: every habitat-table region is encounter-capable; Dock is 
   }
 });
 
-test("topic arcs: encounter regions serve their own curriculum topic (#19)", () => {
-  assert.equal(topicForRegion("meadow/woolly"), "4.1");
-  assert.equal(topicForRegion("meadow/ticktock"), "4.4");
+test("topic arcs: encounter regions serve their own curriculum topics (#18/#19)", () => {
+  assert.deepEqual(topicsForRegion("meadow/woolly"), ["4.1"]);
+  assert.deepEqual(topicsForRegion("meadow/ticktock"), ["4.4"]);
+  // The orchard arc battles from two merged topics: arithmetic + money.
+  assert.deepEqual(topicsForRegion("meadow/orchard"), ["4.2", "4.3"]);
   // Regions without an arc yet keep the Woolly default, and the harbor
   // (never encounter-capable) defaults harmlessly too.
-  assert.equal(topicForRegion("meadow/orchard"), DEFAULT_REGION_TOPIC);
-  assert.equal(topicForRegion("harbor"), DEFAULT_REGION_TOPIC);
-  // Every mapped topic is a real region with encounters.
+  assert.deepEqual(topicsForRegion("meadow/festival"), [DEFAULT_REGION_TOPIC]);
+  assert.deepEqual(topicsForRegion("harbor"), [DEFAULT_REGION_TOPIC]);
+  // Every mapped region hosts encounters.
   for (const id of Object.keys(REGION_TOPICS)) {
     assert.ok(isEncounterRegion(id), `topic-mapped region ${id} must host encounters`);
   }

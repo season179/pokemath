@@ -23,7 +23,7 @@ import {
   TICKTOCK_ARC_WINS,
   isEncounterRegion,
   isOpenRegion,
-  topicForRegion,
+  topicsForRegion,
 } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { WorldMapScreen } from "./world/WorldMapScreen";
@@ -51,12 +51,27 @@ const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
   [KeyCode.KEY_D]: "right",
 };
 
+/**
+ * An arc region serving several topics battles from one merged bank (the
+ * island plan's area topic-weights, M5). Question ids are renumbered on the
+ * in-memory copy: versioned banks each number their questions from 1, and
+ * QuestionBank.pick avoids immediate repeats by id.
+ */
+function mergeBanks(banks: readonly QuestionBank[]): QuestionBank {
+  const questions = banks.flatMap((bank) => bank.data.questions);
+  return new QuestionBank({
+    ...banks[0].data,
+    questions: questions.map((q, id) => ({ ...q, id: id + 1 })),
+  });
+}
+
 export class GameApp {
   private state: GameState;
   // Routed Std-1 banks (#13), one per curriculum topic, loaded async from
-  // versioned JSON. Each region's encounters serve the bank for ITS topic
-  // (topicForRegion, #19): Woolly asks 4.1, Ticktock asks 4.4. Battles in a
-  // region stay closed until its topic's bank loads; we never fall back to
+  // versioned JSON. Each region's encounters serve the banks for ITS topics
+  // (topicsForRegion, #19; merged when an arc serves several, #18): Woolly
+  // asks 4.1, Ticktock asks 4.4, Appledore asks 4.2+4.3. Battles in a
+  // region stay closed until its topics' banks load; we never fall back to
   // the Year-4 SAMPLE_BANK (#8 forbids it).
   private banks = new Map<string, QuestionBank>();
   private loadingTopics = new Set<string>();
@@ -128,9 +143,10 @@ export class GameApp {
     this.canvasNode.addChild(this.world.root);
     this.showPlayerName();
     this.screen = "world";
-    // Region arcs (#19): the destination's encounters serve its own topic's
-    // bank — start loading it now so tall grass is ready when the child is.
-    void this.loadBankFor(topicForRegion(regionId));
+    // Region arcs (#18/#19): the destination's encounters serve its own
+    // topics' banks — start loading them now so tall grass is ready when
+    // the child is.
+    topicsForRegion(regionId).forEach((topic) => void this.loadBankFor(topic));
   }
 
   start() {
@@ -144,15 +160,24 @@ export class GameApp {
     view.on("canvas-resize", this.onViewResize, this);
     view.on("design-resolution-changed", this.onViewResize, this);
     this.showPlayerName();
-    // Load the routed Std-1 bank for the starting region's topic so
-    // encounters can start. If any manifest/bank boundary fails, that
-    // topic's encounters stay off (see loadBankFor).
-    void this.loadBankFor(topicForRegion(this.world.regionId));
+    // Load the routed Std-1 banks for the starting region's topics so
+    // encounters can start. If any manifest/bank boundary fails, those
+    // topics' encounters stay off (see loadBankFor).
+    topicsForRegion(this.world.regionId).forEach((topic) => void this.loadBankFor(topic));
   }
 
-  /** The bank the current region's battles serve, or null until loaded. */
+  /**
+   * The bank the current region's battles serve, or null until every topic
+   * its arc needs has loaded (no partial-topic battles). An arc serving
+   * several topics battles from one merged bank (#18).
+   */
   private bankForCurrentRegion(): QuestionBank | null {
-    return this.banks.get(topicForRegion(this.world.regionId)) ?? null;
+    const topics = topicsForRegion(this.world.regionId);
+    const banks = topics
+      .map((topic) => this.banks.get(topic))
+      .filter((bank): bank is QuestionBank => bank !== undefined);
+    if (banks.length !== topics.length) return null;
+    return banks.length === 1 ? banks[0] : mergeBanks(banks);
   }
 
   private async loadBankFor(topic: string): Promise<void> {
