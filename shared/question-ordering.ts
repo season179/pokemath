@@ -31,11 +31,13 @@ export function isOrdering(q: Question): boolean {
 
 /** One served tile: the declared item with its display text resolved.
  * Numeric ordering leaves labels unauthored — tiles show the numeral, as on
- * a worksheet; `forward` events carry their bilingual labels from the bank. */
+ * a worksheet; `forward` events carry their bilingual labels from the bank
+ * (`labeled` records which face the tile shows). */
 export interface OrderingTile {
   value: number;
   labelZh: string;
   labelEn: string;
+  labeled: boolean;
 }
 
 function tileOf(item: QuestionSequenceItem): OrderingTile {
@@ -43,6 +45,7 @@ function tileOf(item: QuestionSequenceItem): OrderingTile {
     value: item.value,
     labelZh: item.label_zh ?? String(item.value),
     labelEn: item.label_en ?? String(item.value),
+    labeled: item.label_zh !== undefined || item.label_en !== undefined,
   };
 }
 

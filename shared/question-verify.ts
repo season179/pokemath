@@ -356,33 +356,19 @@ function verifyOrdering(
 }
 
 /**
- * Independently verify a single Standard-1 question. Returns any findings;
- * an empty array means the item passes every mechanical check.
+ * The arithmetic-expression verification path (every form except ordering):
+ * re-derives the answer from `expression` — true-false claims via
+ * parseTruthExpression, everything else via the arithmetic grammar — then
+ * enforces scope, the single-step rule, and the operation label. Returns
+ * false when the expression cannot be parsed (the caller stops there:
+ * nothing else is meaningful without a value).
  */
-export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[] {
-  const max = opts.maxNumber ?? DEFAULT_MAX;
-  const answerForm = (q as { answer_form?: string }).answer_form;
-  const trueFalse = answerForm === TRUE_FALSE_FORM;
-  const ordering = answerForm === ORDERING_FORM;
-  // True-false declares exactly one distractor (the opposite truth value);
-  // ordering serves its sequence tiles instead of MCQ choices (zero
-  // distractors); numeric forms default to the 4-option MCQ shape (+3).
-  const wantDistractors = ordering
-    ? 0
-    : trueFalse
-      ? 1
-      : (opts.distractorCount ?? DEFAULT_DISTRACTORS);
-  const findings: Finding[] = [];
-  const here = (severity: Severity, code: string, message: string) =>
-    findings.push({ severity, code, message });
-
-  // --- answer is independently re-derived from the expression ---
-  // True-false expressions are comparison claims (parseTruthExpression);
-  // ordering declares its order in `sequence` (verifyOrdering owns that
-  // path); everything else keeps the arithmetic grammar.
-  if (ordering) {
-    verifyOrdering(q, max, here);
-  } else {
+function verifyExpression(
+  q: Question,
+  max: number,
+  trueFalse: boolean,
+  here: (severity: Severity, code: string, message: string) => void,
+): boolean {
   let parsed: ParsedExpression;
   let truthSides: [ParsedExpression, ParsedExpression] | null = null;
   try {
@@ -395,7 +381,7 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
     }
   } catch (e) {
     here("error", "expression-parse", (e as Error).message);
-    return findings; // nothing else is meaningful without a value
+    return false;
   }
   const computed = parsed.value;
   if (computed !== q.answer) {
@@ -461,7 +447,39 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
       `expression "${q.expression}" implies operation "${expected}", but field is "${q.operation}"`,
     );
   }
-  } // end non-ordering expression checks
+  return true;
+}
+
+/**
+ * Independently verify a single Standard-1 question. Returns any findings;
+ * an empty array means the item passes every mechanical check.
+ */
+export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[] {
+  const max = opts.maxNumber ?? DEFAULT_MAX;
+  const answerForm = (q as { answer_form?: string }).answer_form;
+  const trueFalse = answerForm === TRUE_FALSE_FORM;
+  const ordering = answerForm === ORDERING_FORM;
+  // True-false declares exactly one distractor (the opposite truth value);
+  // ordering serves its sequence tiles instead of MCQ choices (zero
+  // distractors); numeric forms default to the 4-option MCQ shape (+3).
+  const wantDistractors = ordering
+    ? 0
+    : trueFalse
+      ? 1
+      : (opts.distractorCount ?? DEFAULT_DISTRACTORS);
+  const findings: Finding[] = [];
+  const here = (severity: Severity, code: string, message: string) =>
+    findings.push({ severity, code, message });
+
+  // --- answer is independently re-derived from the expression ---
+  // True-false expressions are comparison claims (parseTruthExpression);
+  // ordering declares its order in `sequence` (verifyOrdering owns that
+  // path); everything else keeps the arithmetic grammar.
+  if (ordering) {
+    verifyOrdering(q, max, here);
+  } else if (!verifyExpression(q, max, trueFalse, here)) {
+    return findings; // nothing else is meaningful without a value
+  }
 
   // --- authored distractors (validity only; strategy labels are reviewed) ---
   const d = q.distractors;

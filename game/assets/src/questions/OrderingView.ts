@@ -65,7 +65,8 @@ export class OrderingView {
     const hit = digits.find(([top, pad]) => key === top || key === pad);
     if (hit) {
       const index = orderingKeyIndex(hit[2]);
-      if (index >= 0 && index < this.round.tray.length) this.place(index);
+      if (index < 0 || index >= this.round.tray.length) return false;
+      this.place(index);
       return true;
     }
     if (key === KeyCode.BACKSPACE) {
@@ -130,7 +131,7 @@ export class OrderingView {
   /** One tile's face: labeled tiles (events) render bilingually, numeric
    * tiles show the numeral, as on a worksheet. */
   private paintTile(node: Node, tile: OrderingTile): void {
-    if (tile.labelZh === String(tile.value) && tile.labelEn === tile.labelZh) {
+    if (!tile.labeled) {
       makeLabel(node, tile.labelZh, 0, 0, { fontSize: 24 });
       return;
     }

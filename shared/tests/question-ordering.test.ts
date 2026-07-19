@@ -201,6 +201,7 @@ test("serving: the tray offers exactly the declared tiles, shuffled", () => {
   assert.equal(round.complete, false);
   // Numeric tiles render the numeral, as on a worksheet.
   assert.equal(round.tray[0].labelZh, String(round.tray[0].value));
+  assert.equal(round.tray[0].labeled, false);
 });
 
 test("serving: forward tiles carry their bilingual labels", () => {
@@ -208,6 +209,7 @@ test("serving: forward tiles carry their bilingual labels", () => {
   const wakeUp = round.tray.find((tile) => tile.value === 1);
   assert.equal(wakeUp?.labelZh, "起床");
   assert.equal(wakeUp?.labelEn, "wake up");
+  assert.equal(wakeUp?.labeled, true);
 });
 
 test("serving: placing and returning tiles moves them between tray and slots", () => {
