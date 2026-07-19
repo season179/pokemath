@@ -9,6 +9,7 @@ export * from "./curriculum.ts";
 export * from "./question-v2.ts";
 export * from "./question-v2-validate.ts";
 export * from "./question-v2-adapt.ts";
+export * from "./question-objective.ts";
 export * from "./creature.ts";
 export * from "./encounters.ts";
 export * from "./battle-rules.ts";

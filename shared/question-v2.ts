@@ -9,8 +9,9 @@
 //
 // Two shapes, one contract:
 // - WIRE (authored JSON, parsed by question-v2-validate.ts): strict. Every
-//   v2 field is required, distractors are 3 authored misconception choices,
-//   and `steps` is gone — Standard 1 is single-step by scope.
+//   v2 field is required, distractors are authored misconception choices
+//   (3 for the numeric forms, 1 opposite truth value for true-false), and
+//   `steps` is gone — Standard 1 is single-step by scope.
 // - RUNTIME (this module's types): what the engine and the v1 adapter hold.
 //   `distractors`/`answer_unit`/`steps`/`table` stay optional so adapted
 //   legacy banks keep their exact v1 serving behavior (engine near-misses,
@@ -80,10 +81,14 @@ export const QUESTION_PRESENTATIONS = [
 ] as const;
 export type QuestionPresentation = (typeof QUESTION_PRESENTATIONS)[number];
 
-/** Answer form (style doc §E), restricted to the numeric objective forms v2
- * can serve as a 4-choice numeric round. `circle`/true-false (#11) and
- * `ordering` (#12) extend this list with their renderers. */
-export const QUESTION_ANSWER_FORMS = ["numeral", "count", "chinese-word"] as const;
+/** Answer form (style doc §E). The numeric forms (`numeral`, `count`,
+ * `chinese-word`) serve 4-choice numeric rounds. `circle` (#11) is the
+ * worksheet 圈出 objective form: the child circles one of the declared
+ * values (same numeric round, circle presentation). `true-false` (#11)
+ * judges a statement 对/错: the answer is encoded 1 = ✓, 0 = ✗ and serves
+ * the fixed ✓/✗ option pair (see question-engine.ts). `ordering` (#12)
+ * extends this list with its renderer. */
+export const QUESTION_ANSWER_FORMS = ["numeral", "count", "chinese-word", "circle", "true-false"] as const;
 export type QuestionAnswerForm = (typeof QUESTION_ANSWER_FORMS)[number];
 
 /** Misconception menu for authored distractors (style doc §D). The wire

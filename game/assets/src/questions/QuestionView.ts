@@ -1,8 +1,17 @@
 // Shared Cocos renderer/controller for one QuestionRound. Battle and shop
 // both use it; the pure answer logic remains in shared/question-engine.ts.
+// Form-aware labels, hints, keyboard mapping, and feedback live in
+// shared/question-objective.ts (#11): pointer taps and digit keys both land
+// on choose(index), so the Cocos layer stays a thin renderer.
 
 import { Color, KeyCode, Label, Node } from "cc";
-import { QuestionRound, formatAnswer } from "../../shared/index";
+import {
+  QuestionRound,
+  formatAnswer,
+  formatObjectiveChoice,
+  objectiveHint,
+  objectiveKeyIndex,
+} from "../../shared/index";
 import { PALETTE, makeButton, makeLabel, makePanel, makeWrappedLabel } from "../ui";
 
 export class QuestionView {
@@ -24,14 +33,16 @@ export class QuestionView {
   }
 
   handleKey(key: KeyCode): boolean {
-    const keys = [
-      [KeyCode.DIGIT_1, KeyCode.NUM_1],
-      [KeyCode.DIGIT_2, KeyCode.NUM_2],
-      [KeyCode.DIGIT_3, KeyCode.NUM_3],
-      [KeyCode.DIGIT_4, KeyCode.NUM_4],
+    const keys: Array<[KeyCode, KeyCode, string]> = [
+      [KeyCode.DIGIT_1, KeyCode.NUM_1, "1"],
+      [KeyCode.DIGIT_2, KeyCode.NUM_2, "2"],
+      [KeyCode.DIGIT_3, KeyCode.NUM_3, "3"],
+      [KeyCode.DIGIT_4, KeyCode.NUM_4, "4"],
     ];
-    const index = keys.findIndex(([top, pad]) => key === top || key === pad);
-    if (index < 0) return false;
+    const hit = keys.find(([top, pad]) => key === top || key === pad);
+    if (!hit) return false;
+    const index = objectiveKeyIndex(hit[2]);
+    if (index < 0 || index >= this.round.choices.length) return false;
     this.choose(index);
     return true;
   }
@@ -96,14 +107,14 @@ export class QuestionView {
         y,
         w: 390,
         h: 62,
-        label: formatAnswer(v, q.answer_unit),
+        label: formatObjectiveChoice(q, v),
         color: new Color(84, 110, 122, 255),
         fontSize: 21,
         onTap: () => this.choose(i),
       });
     });
 
-    const hint = makeLabel(this.root, "Pick the right answer / 选出正确答案", 0, -260, {
+    const hint = makeLabel(this.root, objectiveHint(q), 0, -260, {
       fontSize: 15,
       color: PALETTE.sub,
     });
