@@ -77,15 +77,15 @@ function validV2Bank(): Record<string, unknown> {
         answer_form: "count",
         answer_unit: "none",
         operation: "counting",
-        expression: "8",
-        answer: 8,
-        bilingual: { numeral: "8", zh_word: "八" },
-        question_zh: "数一数，共有几只羊？",
-        question_en: "Count the sheep. How many are there?",
+        expression: "18",
+        answer: 18,
+        bilingual: { numeral: "18", zh_word: "十八" },
+        question_zh: "数一数，共有几朵花？",
+        question_en: "Count the flowers. How many are there?",
         distractors: [
-          { value: 7, strategy: "off-by-one-count" },
-          { value: 9, strategy: "off-by-one-count" },
-          { value: 10, strategy: "raw-operand" },
+          { value: 17, strategy: "off-by-one-count" },
+          { value: 19, strategy: "off-by-one-count" },
+          { value: 81, strategy: "digit-reversal" },
         ],
       },
       {
@@ -293,6 +293,13 @@ test("adapter: never mutates the source bank", () => {
   assert.equal(JSON.stringify(LEGACY_SAMPLE_V1), before);
 });
 
+test("adapter: output owns its objects (no aliasing of the source bank)", () => {
+  const adapted = adaptQuestionBankV1ToV2(WOOLLY_V1);
+  adapted.questions[0].distractors![0].value = 999;
+  assert.notEqual(WOOLLY_V1.questions[0].distractors?.[0].value, 999);
+  assert.equal(WOOLLY_V1.questions[0].distractors?.length, 3);
+});
+
 test("adapter: rejects unknown profiles and underivable bilingual values", () => {
   const badProfile: Question = {
     ...LEGACY_SAMPLE_V1.questions[0],
@@ -326,7 +333,7 @@ test("v2 wire: a valid bank parses with every field explicit", () => {
   assert.equal(q1.format_type, "count-write");
   assert.equal(q1.presentation, "picture");
   assert.equal(q1.answer_form, "count");
-  assert.deepEqual(q1.bilingual, { numeral: "8", zh_word: "八" });
+  assert.deepEqual(q1.bilingual, { numeral: "18", zh_word: "十八" });
   assert.equal(q1.distractors?.length, 3);
   assert.equal(bank.profile, "dpk3_2026_core");
 });
@@ -384,15 +391,15 @@ test("v2 wire: malformed questions fail with labeled diagnostics", () => {
       (b.questions as Array<Record<string, unknown>>)[0].answer = -1;
     }, /question 1\.answer must be non-negative/],
     ["numeral must be the answer's digits", (b) => {
-      (b.questions as Array<Record<string, unknown>>)[0].bilingual = { numeral: "08", zh_word: "八" };
-    }, /question 1\.bilingual\.numeral must be the answer's digits \("8"\), got "08"/],
+      (b.questions as Array<Record<string, unknown>>)[0].bilingual = { numeral: "018", zh_word: "十八" };
+    }, /question 1\.bilingual\.numeral must be the answer's digits \("18"\), got "018"/],
     ["bad distractor strategy", (b) => {
       (b.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[0]
         .distractors[0].strategy = "random-guess";
     }, /question 1\.distractors\[0\]\.strategy must be one of/],
     ["distractor equals answer", (b) => {
       (b.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[0]
-        .distractors[0].value = 8;
+        .distractors[0].value = 18;
     }, /question 1 answer and distractors must be unique/],
     ["negative distractor", (b) => {
       (b.questions as Array<{ distractors: Array<Record<string, unknown>> }>)[0]

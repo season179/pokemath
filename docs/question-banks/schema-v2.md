@@ -172,15 +172,15 @@ served; under `original_dskp_extra` both are.
       "answer_form": "count",
       "answer_unit": "none",
       "operation": "counting",
-      "expression": "8",
-      "answer": 8,
-      "bilingual": { "numeral": "8", "zh_word": "八" },
-      "question_zh": "数一数，共有几只羊？\n🐑🐑🐑🐑🐑🐑🐑🐑",
-      "question_en": "Count the sheep. How many are there?",
+      "expression": "18",
+      "answer": 18,
+      "bilingual": { "numeral": "18", "zh_word": "十八" },
+      "question_zh": "数一数，共有几朵花？\n🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸",
+      "question_en": "Count the flowers. How many are there?",
       "distractors": [
-        { "value": 7, "strategy": "off-by-one-count" },
-        { "value": 9, "strategy": "off-by-one-count" },
-        { "value": 10, "strategy": "raw-operand" }
+        { "value": 17, "strategy": "off-by-one-count" },
+        { "value": 19, "strategy": "off-by-one-count" },
+        { "value": 81, "strategy": "digit-reversal" }
       ]
     },
     {
@@ -240,15 +240,15 @@ makes the curriculum metadata mandatory, it cannot be silently omitted.
       "profile": "dpk3_2026_core",
       "answer_unit": "none",
       "operation": "counting",
-      "expression": "8",
-      "answer": 8,
-      "bilingual": { "numeral": "8", "zh_word": "八" },
-      "question_zh": "数一数，共有几只羊？",
-      "question_en": "Count the sheep. How many are there?",
+      "expression": "18",
+      "answer": 18,
+      "bilingual": { "numeral": "18", "zh_word": "十八" },
+      "question_zh": "数一数，共有几朵花？",
+      "question_en": "Count the flowers. How many are there?",
       "distractors": [
-        { "value": 7, "strategy": "off-by-one-count" },
-        { "value": 9, "strategy": "off-by-one-count" },
-        { "value": 10, "strategy": "raw-operand" }
+        { "value": 17, "strategy": "off-by-one-count" },
+        { "value": 19, "strategy": "off-by-one-count" },
+        { "value": 81, "strategy": "digit-reversal" }
       ]
     }
   ]
@@ -280,15 +280,15 @@ reviews stay uniform.
       "answer_form": "count",
       "answer_unit": "none",
       "operation": "counting",
-      "expression": "8",
-      "answer": 8,
-      "bilingual": { "numeral": "8", "zh_word": "八" },
-      "question_zh": "数一数，共有几只羊？",
-      "question_en": "Count the sheep. How many are there?",
+      "expression": "18",
+      "answer": 18,
+      "bilingual": { "numeral": "18", "zh_word": "十八" },
+      "question_zh": "数一数，共有几朵花？",
+      "question_en": "Count the flowers. How many are there?",
       "distractors": [
-        { "value": 7, "strategy": "off-by-one-count" },
-        { "value": 9, "strategy": "off-by-one-count" },
-        { "value": 10, "strategy": "random-guess" }
+        { "value": 17, "strategy": "off-by-one-count" },
+        { "value": 19, "strategy": "off-by-one-count" },
+        { "value": 81, "strategy": "random-guess" }
       ]
     }
   ]

@@ -19,8 +19,6 @@
 
 import type { CurriculumProfile } from "./curriculum.ts";
 import type {
-  AnswerUnit,
-  Distractor,
   Question,
   QuestionBankData,
   VersionedQuestionBankData,

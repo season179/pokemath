@@ -45,7 +45,7 @@ function adaptProfile(value: string | undefined, label: string): CurriculumProfi
   return value;
 }
 
-/** Lift one legacy question. Never mutates the input. */
+/** Lift one legacy question. Never mutates — or aliases — the input. */
 export function adaptV1Question(q: Question): QuestionV2 {
   const profile = adaptProfile(q.profile, `question ${q.id}.profile`);
   let zhWord: string;
@@ -58,8 +58,11 @@ export function adaptV1Question(q: Question): QuestionV2 {
   }
   const counting = q.operation === "counting";
   const stepped = q.steps !== undefined && q.steps.length > 0;
+  // Deep-copy so the adapted bank owns its objects outright: legacy steps,
+  // tables, and distractors must never alias the source bank's sub-objects.
+  const owned = structuredClone(q);
   return {
-    ...q,
+    ...owned,
     topic: q.topic ?? LEGACY_TOPIC,
     tp_level: q.tp_level ?? LEGACY_TP_LEVEL,
     profile,
