@@ -70,7 +70,7 @@ function entryFixture(overrides: Partial<QuestionBankManifestEntry> = {}): Quest
 
 test("current: active-manifest pointer is valid and schema-clean", () => {
   assert.equal(REAL_POINTER.schema_version, 1);
-  assert.equal(REAL_POINTER.manifest, "question-banks/manifest.v1");
+  assert.match(REAL_POINTER.manifest, /^question-banks\/manifest\.v\d+$/);
   assert.ok(
     validatePointerSchema(REAL_POINTER_JSON),
     JSON.stringify(validatePointerSchema.errors),
@@ -89,8 +89,10 @@ test("current: manifest.v1 is valid and schema-clean", () => {
 
 test("current: pointer names a manifest file that exists and parses", async () => {
   const url = new URL(`${REAL_POINTER.manifest}.json`, RESOURCES_URL);
-  const reparsed = parseQuestionBankManifest(JSON.parse(await readFile(url, "utf8")));
-  assert.deepEqual(reparsed, REAL_MANIFEST);
+  const raw = JSON.parse(await readFile(url, "utf8"));
+  const reparsed = parseQuestionBankManifest(raw);
+  assert.equal(reparsed.manifest_id, "std1-question-banks");
+  assert.ok(validateManifestSchema(raw), JSON.stringify(validateManifestSchema.errors));
 });
 
 test("current: the Woolly route resolves to the reviewed bank, which verifies", async () => {

@@ -1,8 +1,8 @@
 {
   "tool": "tools/validate-question-bank.mjs",
-  "generatedAt": "2026-07-19T15:25:50.405Z",
-  "source": "std1.appledore-arithmetic-4.2-tp2-3-s18.candidate.json",
-  "sha256": "300602fdc771e4407b0710ff77a3996703680cfe70d93713ce1b14d59b20700b",
+  "generatedAt": "2026-07-19T23:29:54.256Z",
+  "source": "std1.appledore-arithmetic.v1.json",
+  "sha256": "f1b5464fa269f1fd833ad0c7a7454bc4706ab86a1dd82ab52b1a8b56d900f733",
   "accept": true,
   "report": {
     "bankId": "std1.appledore-arithmetic",

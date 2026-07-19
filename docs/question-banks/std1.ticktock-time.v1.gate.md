@@ -4,8 +4,8 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.ticktock-time` v1 · schema v2 · 24 questions
-**Source:** [std1.ticktock-time-4.4-tp1-4-s19.candidate.json](../../game/assets/resources/question-banks/std1/std1.ticktock-time-4.4-tp1-4-s19.candidate.json)
-**Content SHA-256:** `b75b1ac18f889984e0498754ba8cce8d897fb5c901611edca06e7c99dcfcebf0`
+**Source:** [std1.ticktock-time.v1.json](../../game/assets/resources/question-banks/std1/std1.ticktock-time.v1.json)
+**Content SHA-256:** `b4cacb5291ffece84d9d5fd3b0ab1e4703868e96e9be37598c5bee99cd4561b2`
 
 ## Corpus checklist
 

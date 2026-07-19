@@ -4,8 +4,8 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.appledore-arithmetic` v1 · schema v2 · 20 questions
-**Source:** [std1.appledore-arithmetic-4.2-tp2-3-s18.candidate.json](../../game/assets/resources/question-banks/std1/std1.appledore-arithmetic-4.2-tp2-3-s18.candidate.json)
-**Content SHA-256:** `300602fdc771e4407b0710ff77a3996703680cfe70d93713ce1b14d59b20700b`
+**Source:** [std1.appledore-arithmetic.v1.json](../../game/assets/resources/question-banks/std1/std1.appledore-arithmetic.v1.json)
+**Content SHA-256:** `f1b5464fa269f1fd833ad0c7a7454bc4706ab86a1dd82ab52b1a8b56d900f733`
 
 ## Corpus checklist
 

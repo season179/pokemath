@@ -4,8 +4,8 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.appledore-money` v1 · schema v2 · 20 questions
-**Source:** [std1.appledore-money-4.3-tp2-3-s81.candidate.json](../../game/assets/resources/question-banks/std1/std1.appledore-money-4.3-tp2-3-s81.candidate.json)
-**Content SHA-256:** `d5a5c13f89c92f3fd43ce806e5ec9266fddc4e2102ab55a3300b4b2f392cd9ef`
+**Source:** [std1.appledore-money.v1.json](../../game/assets/resources/question-banks/std1/std1.appledore-money.v1.json)
+**Content SHA-256:** `0ba61878673e426a7dfcee328068952dad22d67f5f7ebcb25c3ffdec3027c3fe`
 
 ## Corpus checklist
 

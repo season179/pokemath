@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "manifest_id": "std1-question-banks",
+  "version": 3,
+  "source": "Issue #15 import: std1.appledore-arithmetic-4.2-tp2-3-s18.candidate.json → std1.appledore-arithmetic v1 (20 approved of 20; decisions: std1.appledore-arithmetic-4.2-tp2-3-s18.decisions.json)",
+  "entries": [
+    {
+      "grade": "std1",
+      "topic": "4.1",
+      "tp_min": 1,
+      "tp_max": 2,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.woolly-meadows",
+      "version": 1,
+      "path": "question-banks/std1/woolly-meadows.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.4",
+      "tp_min": 1,
+      "tp_max": 4,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.ticktock-time",
+      "version": 1,
+      "path": "question-banks/std1/std1.ticktock-time.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.2",
+      "tp_min": 2,
+      "tp_max": 3,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.appledore-arithmetic",
+      "version": 1,
+      "path": "question-banks/std1/std1.appledore-arithmetic.v1"
+    }
+  ]
+}
