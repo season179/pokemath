@@ -3,9 +3,10 @@
 // (sanity-check server responses). Hand-rolled: no runtime deps.
 
 import type { BagState, SaveState, TeamState } from "./save-types.ts";
+import { MAX_TEAM_SIZE } from "./save-types.ts";
 import type { CreatureState } from "./creature.ts";
 
-export const MAX_TEAM_SIZE = 6;
+export { MAX_TEAM_SIZE };
 export const MAX_SAVE_JSON_BYTES = 16 * 1024;
 
 const MAX_STAT = 100_000; // generous ceilings — reject garbage, not progress
