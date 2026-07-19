@@ -60,7 +60,9 @@ export function adaptV1Question(q: Question): QuestionV2 {
   const stepped = q.steps !== undefined && q.steps.length > 0;
   // Deep-copy so the adapted bank owns its objects outright: legacy steps,
   // tables, and distractors must never alias the source bank's sub-objects.
-  const owned = structuredClone(q);
+  // Legacy banks never carry a declared ordering sequence (#12) — the v1
+  // wire rejects unknown fields — so omit it from the runtime v2 view.
+  const { sequence: _sequence, ...owned } = structuredClone(q);
   return {
     ...owned,
     topic: q.topic ?? LEGACY_TOPIC,

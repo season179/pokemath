@@ -55,6 +55,9 @@ export interface Question {
   // legacy v1 banks omit it and keep numeric MCQ serving. The engine reads it
   // for exactly one serving rule — see chooseOptions.
   answer_form?: string;
+  // Declared ordering sequence (answer_form "ordering", #12). Never present
+  // on legacy banks; served by question-ordering.ts, not QuestionRound.
+  sequence?: QuestionSequence;
 }
 
 export interface QuestionBankData {
@@ -178,6 +181,26 @@ export function formatAnswer(value: number, unit?: AnswerUnit): string {
 export const TRUE_FALSE_FORM = "true-false";
 export const TRUTH_TRUE = 1;
 export const TRUTH_FALSE = 0;
+
+// Ordering answer form (#12): the question declares a sequence of tiles in
+// their CORRECT order plus a direction (ascending/descending values, or
+// "forward" for event/pattern order). The engine never serves ordering
+// rounds — the tray/slot interaction lives in question-ordering.ts — but
+// the Question record carries the declaration so turns flow it through.
+// The direction vocabulary is a v2 wire concern (question-v2.ts
+// ORDERING_DIRECTIONS); structurally the engine only requires the shape.
+export const ORDERING_FORM = "ordering";
+
+export interface QuestionSequenceItem {
+  value: number; // numeric identity; the tile text for numeric ordering
+  label_zh?: string; // tile text; required by the wire for "forward" events
+  label_en?: string;
+}
+
+export interface QuestionSequence {
+  direction: string; // wire constrains to ORDERING_DIRECTIONS (question-v2.ts)
+  items: QuestionSequenceItem[]; // declared in correct order; serving shuffles
+}
 
 // One answer round presented to the player: a turn plus its choices.
 // Scenes keep the round, render `choices`, and report `judge(picked)`.

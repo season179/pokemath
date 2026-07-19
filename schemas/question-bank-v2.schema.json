@@ -154,8 +154,8 @@
           ]
         },
         "answer_form": {
-          "description": "Objective forms v2 serves: the numeric forms plus circle/true-false (#11); ordering (#12) extends this",
-          "enum": ["numeral", "count", "chinese-word", "circle", "true-false"]
+          "description": "Objective forms v2 serves: the numeric forms, circle/true-false (#11), and ordering (#12)",
+          "enum": ["numeral", "count", "chinese-word", "circle", "true-false", "ordering"]
         },
         "answer_unit": { "enum": ["none", "RM", "sen"] },
         "operation": {
@@ -174,6 +174,10 @@
         "distractors": {
           "type": "array",
           "items": { "$ref": "#/$defs/distractor" }
+        },
+        "sequence": {
+          "description": "Declared order for answer_form ordering (#12): items in their CORRECT order plus the direction. Forbidden on every other form. The parser additionally enforces unique values.",
+          "$ref": "#/$defs/ordering-sequence"
         }
       },
       "allOf": [
@@ -200,10 +204,83 @@
                 "description": "Exactly one choice: the opposite truth value (the parser enforces oppositeness)"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "answer_form": { "enum": ["numeral", "count", "chinese-word", "circle"] }
+            },
+            "required": ["answer_form"]
+          },
+          "then": {
+            "properties": {
+              "distractors": {
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "The numeric forms serve a 4-choice round: answer + 3 authored choices"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "answer_form": { "const": "ordering" } },
+            "required": ["answer_form"]
+          },
+          "then": {
+            "required": ["sequence"],
+            "properties": {
+              "distractors": {
+                "maxItems": 0,
+                "description": "Ordering serves the sequence tiles, not MCQ choices: the list stays empty"
+              }
+            }
           },
           "else": {
+            "not": { "required": ["sequence"] }
+          }
+        }
+      ]
+    },
+    "ordering-sequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction", "items"],
+      "properties": {
+        "direction": {
+          "description": "ascending/descending order numeric values; forward orders events or pattern stages (labels carry the content)",
+          "enum": ["ascending", "descending", "forward"]
+        },
+        "items": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "description": "Tiles in their CORRECT order (serving shuffles); values must be unique (parser-enforced)",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value"],
             "properties": {
-              "distractors": { "minItems": 3, "maxItems": 3 }
+              "value": { "type": "integer", "minimum": 0 },
+              "label_zh": { "type": "string", "minLength": 1 },
+              "label_en": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "direction": { "const": "forward" } },
+            "required": ["direction"]
+          },
+          "then": {
+            "description": "Forward events/patterns carry bilingual tile labels",
+            "properties": {
+              "items": {
+                "items": { "required": ["value", "label_zh", "label_en"] }
+              }
             }
           }
         }

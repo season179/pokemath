@@ -439,9 +439,9 @@ test("v2 wire: malformed questions fail with labeled diagnostics", () => {
     ["item_format beyond objective", (b) => {
       (b.questions as Array<Record<string, unknown>>)[0].item_format = "fill-blank";
     }, /question 1\.item_format must be one of: objective/],
-    ["answer_form beyond the serveable objective forms (#12)", (b) => {
-      (b.questions as Array<Record<string, unknown>>)[0].answer_form = "ordering";
-    }, /question 1\.answer_form must be one of: numeral, count, chinese-word, circle, true-false/],
+    ["answer_form beyond the serveable forms", (b) => {
+      (b.questions as Array<Record<string, unknown>>)[0].answer_form = "match";
+    }, /question 1\.answer_form must be one of: numeral, count, chinese-word, circle, true-false, ordering/],
     ["bad operation", (b) => {
       (b.questions as Array<Record<string, unknown>>)[0].operation = "multiplication";
     }, /question 1\.operation must be one of: counting, addition, subtraction/],
