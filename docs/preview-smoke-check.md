@@ -1,10 +1,11 @@
-# Desktop preview smoke check — Harbor ⇄ Woolly route
+# Desktop preview smoke check — Harbor ⇄ Meadow ring route
 
-A repeatable, desktop-only smoke check for the reduced kids-playtest preview
-route. It boots the real Cocos web build in a browser at a 1280×720 desktop
-viewport and verifies ferry confirmation, region banners, the two preview
-locks, the mini-map and world map, keyboard movement, the return trip, and a
-clean browser console.
+A repeatable, desktop-only smoke check for the Meadow Isle world route. It
+boots the real Cocos web build in a browser at a 1280×720 desktop viewport
+and verifies ferry confirmation, region banners, the open ring gates (#9
+lifted the #29 preview locks; the expansion pockets stay sealed), a real
+wild battle in a newly opened region, the mini-map and world map, keyboard
+movement, the return trip, and a clean browser console.
 
 It is a **release gate**: run it (or have a coding agent run it) before
 shipping any change that touches the world, regions, art loading, the maps,
@@ -12,6 +13,10 @@ or the worker's static/R2 serving. Every step is spelled out so a weaker
 agent can execute it without reverse-engineering map coordinates — the
 mini-map itself is the navigation aid, and exact tile coordinates are given
 only as troubleshooting references.
+
+History: created for the kids-playtest preview (#2); the route was extended
+in M2B (#9) when the #29 gates opened — Dock south now walks into Pattern
+Gardens and Woolly north into Ticktock Knoll.
 
 Related: [`docs/local-testing.md`](local-testing.md) (dev auth),
 [`docs/art-assets.md`](art-assets.md) (R2), [`README.md`](../README.md)
@@ -246,19 +251,21 @@ taplabel() { local p px py; p=$(agent-browser --session "$SN" eval "(function(){
 
 Movement is one tile per discrete keypress (Arrow keys **or** WASD).
 Coordinates are validated `tile (x, y)`, row 0 at the top; the mini-map
-(you = white dot, green dot = open exit, amber ring = sealed, blue dot =
-ferry captain) is the visual aid.
+(you = white dot, green dot = open exit, grey ring = reserved pocket, blue
+dot = ferry captain; amber "sealed" rings return only when a future island
+locks a wired gate) is the visual aid.
 
-> **Three operational rules.** (1) **Gate notices and NPC dialogs pause the
-> world** — while a bilingual "opens later" notice or an NPC chat is open,
-> `WorldScreen.update()` ignores all input, so dismiss it (tap the notice
-> itself, or `Space`) before the next move. (2) **Arrival banners persist**:
-> since #42 the bilingual area plate stays on screen (no fade), so `tp` can
-> assert it any time after travel — no rush. (3) **Tall grass can start a
-> wild battle** — since #8, stepping onto a `g` tile in Woolly Meadows rolls
-> an encounter (~20 % per step). The route below stays off tall grass, so a
-> clean run never battles; if a battle does start (route drift), flee with
-> **Escape**, then resume from the last checkpoint.
+> **Three operational rules.** (1) **Pocket notices and NPC dialogs pause the
+> world** — while a bilingual "opens later"/rustle notice or an NPC chat is
+> open, `WorldScreen.update()` ignores all input, so dismiss it (tap the
+> notice itself, or `Space`) before the next move. (2) **Arrival banners
+> persist**: since #42 the bilingual area plate stays on screen (no fade), so
+> `tp` can assert it any time after travel — no rush. (3) **Tall grass can
+> start a wild battle** — since #8 stepping onto a `g` tile rolls an
+> encounter (~20 % per step), and since #9 every monster region has grass.
+> The route below deliberately enters grass exactly once (the §5b Gardens
+> battle) and otherwise stays off tall grass; if a battle starts by route
+> drift, flee with **Escape**, then resume from the last checkpoint.
 
 ### 5a. Harbor → Meadow Dock (explicit ferry confirmation)
 
@@ -281,70 +288,135 @@ agent-browser --session "$SN" screenshot /tmp/smoke/02-meadow-dock.png
 ```
 
 Assert `region: "meadow/dock"` and toast `MEADOW DOCK · 青草码头`. Dock is
-**transit-only** (no encounters); its mini-map shows a green east exit (open
-→ Woolly) and an amber south exit (sealed → Pattern Gardens).
+**transit-only** (no encounters); since #9 its mini-map shows two green
+exits — east (→ Woolly) and south (→ Pattern Gardens) — plus grey rings for
+the reserved pockets.
 
-### 5b. Dock south gate (sealed), then east to Woolly
+### 5b. Dock south gate → Pattern Gardens (open since #9) and a real wild battle
 
-Prove the south gate is locked. From the ferry arrival `(2, 12)`:
+The #29 seal is lifted: the south gate **travels** now. From the ferry
+arrival `(2, 12)` walk to the gate tile `(12, 15)`:
 
 ```bash
-mv ArrowUp 4; mv ArrowRight 10; mv ArrowDown 7; agent-browser --session "$SN" wait 400
-ck meadow/dock || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/04b-dock-south-locked.png
+mv ArrowUp 4; mv ArrowRight 10; mv ArrowDown 7; agent-browser --session "$SN" wait 1100   # <1500
+ck meadow/gardens || exit 1; tp "PATTERN GARDENS" || exit 1
+agent-browser --session "$SN" screenshot /tmp/smoke/03-gardens.png
 ```
 
-Assert the bilingual notice and that you **stay in Dock** (player lands on
-`(12, 15)`):
+Assert `region: "meadow/gardens"` and toast `PATTERN GARDENS · 图案花园`,
+arrival `(8, 1)`.
 
-> This path opens in a later update — adventure in Woolly Meadows for now!
-> 这条路稍后开放，先在羊毛草原冒险吧！
+**A wild battle in a newly opened region (issue #9).** Every monster region
+now hosts its own habitat table — prove it live. The grass patch beside the
+arrival (rows 3–5, x9–13) rolls an encounter ~20 % per step. Define the
+battle detector, step onto the grass, then pace one grass column until a
+battle starts (column pacing keeps the post-flee tile deterministic):
 
-Dismiss it, then take the open east exit at `(23, 8)` to Woolly:
+```bash
+# Battle detector: PASS when the battle screen node exists and is active.
+inbattle() { local got; got=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let b=null;(function w(n){if(n.name==='battle')b=n;if(n.children)for(const c of n.children)w(c);})(s);return b&&b.active?'PASS':'FAIL';})()"); got=${got//\"/}; [[ "$got" == PASS ]]; }
+
+mv ArrowDown 1; mv ArrowRight 1; mv ArrowDown 1                          # (8,1) → (9,3): first grass tile
+steps=0
+until inbattle || (( steps >= 40 )); do
+  mv ArrowDown 1; inbattle && break                                      # (9,4) roll
+  mv ArrowUp 1                                                           # (9,3) roll
+  steps=$((steps+2))
+done
+inbattle || { echo "FAIL: no wild encounter after ${steps} grass steps in Pattern Gardens"; exit 1; }
+agent-browser --session "$SN" wait 600
+agent-browser --session "$SN" screenshot /tmp/smoke/04-gardens-battle.png
+```
+
+Assert the battle screen is up against a Gardens-table species (Mothling /
+Balltail Hare / Pufftail — all ordinary, all calm). Then **flee cleanly**:
+Space advances the intro, Escape runs, Space dismisses "Got away safely!":
+
+```bash
+agent-browser --session "$SN" press Space;  agent-browser --session "$SN" wait 600   # intro → menu
+agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 600   # flee
+agent-browser --session "$SN" press Space;  agent-browser --session "$SN" wait 900   # "Got away safely!" → world
+inbattle && { echo "FAIL: battle did not close after fleeing"; exit 1; }
+ck meadow/gardens || exit 1
+```
+
+Walk back to the dock through the north gate. The flee tile is `(9, 3)` or
+`(9, 4)`; `ArrowUp 3` normalises both to `(9, 1)`:
+
+```bash
+mv ArrowUp 3; mv ArrowLeft 1; mv ArrowUp 1; agent-browser --session "$SN" wait 1100   # via gate (8,0)
+ck meadow/dock || exit 1; tp "MEADOW DOCK" || exit 1
+```
+
+**Pockets stay sealed.** The #9 lift opened only the wired ring gates — the
+reserved expansion pockets keep their rustle notice. From the dock arrival
+`(12, 14)`, walk to the north pocket `(8, 0)`:
+
+```bash
+mv ArrowUp 6; mv ArrowLeft 4; mv ArrowUp 8; agent-browser --session "$SN" wait 400
+ck meadow/dock || exit 1
+agent-browser --session "$SN" screenshot /tmp/smoke/04b-dock-pocket-locked.png
+```
+
+Assert the bilingual rustle notice and that you **stay in Dock** (player
+lands on `(8, 0)`):
+
+> The bushes rustle… something is in there, but the way isn't open yet.
+> 树丛沙沙响……这条路还没开。
+
+Dismiss it, then take the east exit `(23, 8)` to Woolly:
 
 ```bash
 agent-browser --session "$SN" press Space       # dismiss the notice
-mv ArrowUp 7; mv ArrowRight 11; agent-browser --session "$SN" wait 1100   # <1500
+mv ArrowDown 8; mv ArrowRight 15; agent-browser --session "$SN" wait 1100   # <1500
 ck meadow/woolly || exit 1; tp "WOOLLY MEADOWS" || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/03-woolly.png
+agent-browser --session "$SN" screenshot /tmp/smoke/05-woolly.png
 ```
 
-Assert `region: "meadow/woolly"` and toast `WOOLLY MEADOWS · 羊毛草原`.
+Assert `region: "meadow/woolly"` and toast `WOOLLY MEADOWS · 羊毛草原`,
+arrival `(1, 10)`.
 
-### 5c. Woolly north gate (sealed), mini-map, and world map
+### 5c. Woolly north gate → Ticktock Knoll (open since #9), mini-map, and world map
 
-Prove the north gate is locked. From the Woolly arrival `(1, 10)`:
+The Woolly north gate **travels** now. From the Woolly arrival `(1, 10)`:
 
 ```bash
-mv ArrowUp 8; mv ArrowRight 15; mv ArrowUp 2; agent-browser --session "$SN" wait 450   # via row 2: avoids the row-1 tall grass
-ck meadow/woolly || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/04-woolly-north-locked.png
+mv ArrowUp 8; mv ArrowRight 15; mv ArrowUp 2; agent-browser --session "$SN" wait 1100   # via row 2: avoids the row-1 tall grass
+ck meadow/ticktock || exit 1; tp "TICKTOCK KNOLL" || exit 1
+agent-browser --session "$SN" screenshot /tmp/smoke/06-ticktock.png
 ```
 
-Assert the same bilingual notice, no travel (player lands on `(16, 0)`).
-Dismiss, then verify the **mini-map tracks the player** (move in a walkable
-direction; the white dot moves at the region's mini-scale — ≈ 0.0885 here):
+Assert `region: "meadow/ticktock"` and toast `TICKTOCK KNOLL · 滴答山丘`,
+arrival `(1, 8)`. Then walk back through the west gate to Woolly:
 
 ```bash
-agent-browser --session "$SN" press Space       # dismiss notice
-mv ArrowDown 3
-agent-browser --session "$SN" screenshot /tmp/smoke/05-minimap-tracks.png
+mv ArrowLeft 1; agent-browser --session "$SN" wait 1100
+ck meadow/woolly || exit 1; tp "WOOLLY MEADOWS" || exit 1
+```
+
+Arrival `(16, 1)`. Verify the **mini-map tracks the player** (move in a
+walkable direction; the white dot moves at the region's mini-scale —
+≈ 0.0885 here):
+
+```bash
+mv ArrowDown 3                                                            # → (16, 4)
+agent-browser --session "$SN" screenshot /tmp/smoke/07-minimap-tracks.png
 ```
 
 **World map.** Open with M and assert the overlay renders from the region
-registry — every area a bilingual node, open vs locked, plus a legend and the
-current-region caption:
+registry — every area a bilingual node, **all of them open since #9 (no
+padlocks anywhere)**, plus a legend and the current-region caption:
 
 ```bash
 agent-browser --session "$SN" press KeyM; agent-browser --session "$SN" wait 900
 ck meadow/woolly || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/06-worldmap-open-M.png   # capture WHILE open
+agent-browser --session "$SN" screenshot /tmp/smoke/08-worldmap-open-M.png   # capture WHILE open
 ```
 
 Assert `World Map · 世界地图`, the "Informational — explore on foot or by
-ferry" subtitle, Harbor/Dock/Woolly open, Ticktock/Orchard/Festival/Barn/
-Pattern Gardens locked (padlock) + Hundred Stones guardian, and a caption
-`… · You are here! 你在这里！`.
+ferry" subtitle, Harbor shown as home hub, Dock as transit, and Woolly/
+Ticktock/Orchard/Festival/Barn/Pattern Gardens + the Hundred Stones guardian
+ground all open (no padlock icons), and a caption `… · You are here! 你在这里！`.
 
 Movement **pauses** while open (press arrows — no-op) and there is **no fast
 travel** — tapping any node only changes the caption. Exercise every control
@@ -353,7 +425,7 @@ travel** — tapping any node only changes the caption. Exercise every control
 
 ```bash
 mv ArrowDown 3                                                          # no-op while open
-tapnode "node-meadow/gardens"                                          # locked node → caption only, no travel
+tapnode "node-meadow/gardens"                                          # open node → caption only, no travel
 ck meadow/woolly || exit 1                                                       # region unchanged
 agent-browser --session "$SN" wait 400
 agent-browser --session "$SN" press KeyM; agent-browser --session "$SN" wait 500   # close via M
@@ -362,20 +434,21 @@ taplabel "Close"; agent-browser --session "$SN" wait 500               # close v
 agent-browser --session "$SN" press KeyM;   agent-browser --session "$SN" wait 800   # reopen
 agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 500   # close via Esc
 ck meadow/woolly || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/07-worldmap-closed.png
+agent-browser --session "$SN" screenshot /tmp/smoke/09-worldmap-closed.png
 ```
 
-Assert the caption after the locked-node tap reads `PATTERN GARDENS · 图案花园
-· Opens in a later update. 稍后开放。` and the URL/region never changed.
+Assert the caption after the open-node tap reads `PATTERN GARDENS · 图案花园
+· Open — wild creatures about! 开放——野外出没！` and the URL/region never
+changed.
 
 ### 5d. Return: Woolly → Dock → Harbor
 
-You are near `(16, 3)`. Walk to the west exit `(0, 10)` back to Dock:
+You are near `(16, 4)`. Walk to the west exit `(0, 10)` back to Dock:
 
 ```bash
-mv ArrowDown 7; mv ArrowLeft 16; agent-browser --session "$SN" wait 1100   # <1500
+mv ArrowDown 6; mv ArrowLeft 16; agent-browser --session "$SN" wait 1100   # <1500
 ck meadow/dock || exit 1; tp "MEADOW DOCK" || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/09-back-to-dock.png
+agent-browser --session "$SN" screenshot /tmp/smoke/10-back-to-dock.png
 ```
 
 Assert `region: "meadow/dock"`, toast `MEADOW DOCK · 青草码头`, arrival
@@ -387,7 +460,7 @@ mv ArrowLeft 17; mv ArrowDown 5; agent-browser --session "$SN" wait 400    # tra
 agent-browser --session "$SN" press Space       # Go → Harbor
 agent-browser --session "$SN" wait 1000          # <1500
 ck harbor || exit 1; tp "HARBOR TOWN" || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/10-back-to-harbor.png
+agent-browser --session "$SN" screenshot /tmp/smoke/11-back-to-harbor.png
 ```
 
 Assert `region: "harbor"`, toast `HARBOR TOWN · 港湾镇`, arrival `(9, 10)`.
@@ -404,9 +477,9 @@ close and re-open via the HUD chip (pointer), and close via the Back button:
 ```bash
 agent-browser --session "$SN" press KeyG; agent-browser --session "$SN" wait 800
 tp "Field Guide" || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/11-guide-open-G.png
+agent-browser --session "$SN" screenshot /tmp/smoke/12-guide-open-G.png
 mv ArrowRight 2; mv ArrowDown 1                                       # cursor moves; detail strip updates
-agent-browser --session "$SN" screenshot /tmp/smoke/12-guide-cursor.png
+agent-browser --session "$SN" screenshot /tmp/smoke/13-guide-cursor.png
 agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 500   # close via Esc
 taplabel "Guide"; agent-browser --session "$SN" wait 800                # reopen via the HUD chip (pointer)
 taplabel "Back";  agent-browser --session "$SN" wait 500                # close via the Back button (pointer)
@@ -423,7 +496,7 @@ agent-browser --session "$SN" press ArrowUp; agent-browser --session "$SN" wait 
 tp "Keeper Flo" || exit 1                                             # greeting banner
 agent-browser --session "$SN" press Space; agent-browser --session "$SN" wait 900   # dismiss → Sanctuary opens
 tp "Harbor Sanctuary" || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/13-sanctuary.png
+agent-browser --session "$SN" screenshot /tmp/smoke/14-sanctuary.png
 ```
 
 Assert the header counts (`Team n/6 · Resting m`), team rows tagged `Team
@@ -442,7 +515,7 @@ curl -s -b /tmp/dev-cookies.txt http://localhost:8799/api/save | node -e 'let d=
 agent-browser --session "$SN" press Enter; agent-browser --session "$SN" wait 800   # toggle back
 agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 500   # close
 ck harbor || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/14-sanctuary-closed.png
+agent-browser --session "$SN" screenshot /tmp/smoke/15-sanctuary-closed.png
 ```
 
 The save assertion is the criterion: `teamIds[≤6]` all reference owned
@@ -483,18 +556,22 @@ check passed with any box unchecked.
 - [ ] **2 — No on-screen d-pad; Arrow + WASD move** — `00-boot.png` has no
       directional pad (only the mini-map lower-left); §5 Arrow-key moves
       changed the player tile, and WASD too (`KeyD`/`KeyW` shifted the dot).
-- [ ] **3 — Ferry confirm Harbor→transit Dock→Woolly + bilingual banners** —
-      `01..03` show the Go! dialog and the three bilingual **arrival toasts**
-      (`tp` non-empty after a <1500 ms wait).
-- [ ] **4 — Dock→Gardens and Woolly→Ticktock locked + bilingual notice** —
-      `04b` (Dock south `(12,15)`) and `04` (Woolly north `(16,0)`) show the
-      bilingual "opens later" notice and no travel.
+- [ ] **3 — Ferry confirm Harbor→Dock + the open ring gates + bilingual
+      banners** — `01..06` show the Go! dialog and the bilingual **arrival
+      toasts** for Dock, Pattern Gardens (Dock south gate, open since #9),
+      Woolly, and Ticktock Knoll (Woolly north gate, open since #9) — `tp`
+      non-empty after a <1500 ms wait, each gate walked **both** ways.
+- [ ] **4 — Pockets stay sealed; a real wild battle fires in a newly opened
+      region** — `04b` (Dock north pocket `(8,0)`) shows the bilingual
+      rustle notice and no travel; `04` shows a live wild battle from the
+      Pattern Gardens habitat table, fled cleanly back to the world.
 - [ ] **5 — Mini-map tracks player; world map opens/closes; no fast travel** —
-      `05` shows the dot moving; `06` captured while `mapOpen`; movement
-      paused while open; locked-node tap (`node-meadow/gardens`) gave a
-      caption only; opened via **M** and the **HUD Map button**, closed via
-      **M**, **Esc**, and the **Close button**.
-- [ ] **6 — Return via Dock, sail home** — `09..10` show the Dock then Harbor
+      `07` shows the dot moving; `08` captured while open with **every node
+      open (no padlocks since #9)**; movement paused while open; an
+      open-node tap (`node-meadow/gardens`) gave the `Open — wild creatures
+      about!` caption only; opened via **M** and the **HUD Map button**,
+      closed via **M**, **Esc**, and the **Close button**.
+- [ ] **6 — Return via Dock, sail home** — `10..11` show the Dock then Harbor
       arrival toasts after the return trip.
 - [ ] **7 — Console gate + R2 setup documented** — `console.txt`/`errors.txt`
       classified per §6 with zero unexpected errors; §0/§2 cover the local
@@ -507,10 +584,10 @@ check passed with any box unchecked.
 ## 8. Recording a successful run
 
 - **Date and commit SHA:** `git rev-parse --short HEAD` at run time.
-- **Artifacts:** `/tmp/smoke/00..10` (+ the toast/lock/map shots), `console.txt`,
+- **Artifacts:** `/tmp/smoke/00..15` (+ the toast/pocket/map shots), `console.txt`,
   `errors.txt`.
 - **Result line**, e.g.
-  `PASS 2026-07-18 <sha> — Harbor⇄Woolly loop clean; console = LoadScene only; 0 world-art errors.`
+  `PASS 2026-07-19 <sha> — Harbor⇄Meadow ring clean; gardens battle fled; console = LoadScene only; 0 world-art errors.`
 
 Post the summary (and link the artifacts) in the issue or PR that ships the
 change. A run is only valid from a clean build of the commit under test.
