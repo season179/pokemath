@@ -4,7 +4,7 @@
 
 import { Color, EventKeyboard, Input, KeyCode, Label, Node, UITransform, input, view } from "cc";
 import { Creature, QuestionBank, type SaveStateV2 } from "../shared/index";
-import { loadQuestionBank } from "./questions/loadQuestionBank";
+import { loadRoutedQuestionBank } from "./questions/loadQuestionBankManifest";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
 import { SignOutScreen } from "./SignOutScreen";
@@ -45,9 +45,10 @@ const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
 
 export class GameApp {
   private state: GameState;
-  // The reviewed Standard-1 Woolly bank (#6), loaded async from versioned JSON.
-  // Battles stay closed until it loads; we never fall back to the Year-4
-  // SAMPLE_BANK (#8 forbids it in Woolly).
+  // The approved Std-1 bank for Woolly encounters (#13: routed via the
+  // active manifest), loaded async from versioned JSON. Battles stay closed
+  // until it loads; we never fall back to the Year-4 SAMPLE_BANK (#8 forbids
+  // it in Woolly).
   private bank: QuestionBank | null = null;
   private screen: Screen = "world";
   private world: WorldScreen;
@@ -127,23 +128,29 @@ export class GameApp {
     view.on("canvas-resize", this.onViewResize, this);
     view.on("design-resolution-changed", this.onViewResize, this);
     this.showPlayerName();
-    // Load the reviewed Std-1 bank so Woolly encounters can start. If the Cocos
-    // resource path isn't resolving yet, encounters stay off (see loadBank).
+    // Load the routed Std-1 bank so Woolly encounters can start. If any
+    // manifest/bank boundary fails, encounters stay off (see loadBank).
     void this.loadBank();
   }
 
   private async loadBank(): Promise<void> {
     try {
-      // Cocos resources.load path: relative to assets/resources, no extension.
-      // The reviewed bank lives at resources/question-banks/std1/woolly-meadows.v1.json.
-      this.bank = await loadQuestionBank("question-banks/std1/woolly-meadows.v1");
+      // Routed loading (#13): the active manifest picks the approved bank
+      // version for this curriculum slice — battle code never names a bank
+      // file, and a bad batch is rolled back at the manifest, not here.
+      this.bank = await loadRoutedQuestionBank({
+        grade: "std1",
+        topic: "4.1",
+        profile: this.state.curriculumProfile,
+      });
     } catch (error) {
-      // The reviewed Std-1 bank is required for any Woolly battle; we never
+      // The routed Std-1 bank is required for any Woolly battle; we never
       // fall back to the Year-4 SAMPLE_BANK (#8 forbids it). If this fails,
-      // confirm the bank JSON is loadable via Cocos resources (its resource
-      // path/bundle), then encounters will enable.
+      // check the active-manifest pointer, the manifest it names, and the
+      // bank reference it resolves to — encounters enable once all three
+      // load and verify.
       console.error(
-        "[pokemath] Could not load the reviewed Std-1 Woolly bank; encounters stay off.",
+        "[pokemath] Could not load the routed Std-1 Woolly bank; encounters stay off.",
         error,
       );
     }

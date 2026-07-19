@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pokemath.fun/schemas/question-bank-manifest-pointer-v1.schema.json",
+  "title": "PokeMath active question-bank manifest pointer v1",
+  "description": "The operator's rollback lever (M3, #13): names the active approval manifest by Cocos resources path. Repointing this file at the previous manifest restores it without touching immutable bank artifacts. The runtime parser (shared/question-bank-manifest.ts, parseActiveManifestPointer) is the authority; this schema mirrors it for editors and CI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "manifest": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Cocos resources path of the active manifest, no extension (e.g. question-banks/manifest.v1)."
+    }
+  }
+}

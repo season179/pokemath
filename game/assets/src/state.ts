@@ -114,6 +114,11 @@ export class GameState {
     return this.fieldGuide.map((e) => ({ ...e, variants: [...e.variants] }));
   }
 
+  /** The child's curriculum profile (save v2); gates which questions serve. */
+  get curriculumProfile(): CurriculumProfile {
+    return this.profile;
+  }
+
   /** Team roster as creatureIds (aligned with `team`). */
   get teamIdList(): string[] {
     return [...this.teamIds];
