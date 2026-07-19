@@ -12,13 +12,24 @@ import { BattleScreen } from "./battle/BattleScreen";
 import { BagScreen } from "./bag/BagScreen";
 import { PartyScreen } from "./party/PartyScreen";
 import { ShopScreen } from "./shop/ShopScreen";
+import { FieldGuideScreen } from "./guide/FieldGuideScreen";
+import { SanctuaryScreen } from "./sanctuary/SanctuaryScreen";
 import { GameState } from "./state";
 import { Direction, isEncounterRegion, isOpenRegion } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { WorldMapScreen } from "./world/WorldMapScreen";
 import { PALETTE, makeLabel, makePanel } from "./ui";
 
-type Screen = "world" | "party" | "bag" | "battle" | "shop" | "map" | "signout";
+type Screen =
+  | "world"
+  | "party"
+  | "bag"
+  | "battle"
+  | "shop"
+  | "map"
+  | "signout"
+  | "guide"
+  | "sanctuary";
 
 const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
   [KeyCode.ARROW_UP]: "up",
@@ -44,6 +55,8 @@ export class GameApp {
   private battle: BattleScreen | null = null;
   private shop: ShopScreen | null = null;
   private map: WorldMapScreen | null = null;
+  private guide: FieldGuideScreen | null = null;
+  private sanctuary: SanctuaryScreen | null = null;
   private nameChip: Node | null = null;
   private nameScreen: NameScreen | null = null;
   private signOutScreen: SignOutScreen | null = null;
@@ -75,6 +88,8 @@ export class GameApp {
     onEncounter: (wild) => this.startBattle(wild),
     encounterReady: () => this.bank !== null,
     onMap: () => this.openMap(),
+    onGuide: () => this.startGuide(),
+    onSanctuary: () => this.startSanctuary(),
   };
 
   // Swap the world to another region, arriving through the named gateway.
@@ -160,6 +175,13 @@ export class GameApp {
       console.warn("Ignoring encounter: the reviewed Std-1 bank has not loaded yet.");
       return;
     }
+    // Meeting a wild friend counts as "seen" in the Field Guide (#5) — even
+    // when the player runs. Checkpoint now so the discovery survives closing
+    // the game mid-battle.
+    if (wild.speciesId) {
+      this.state.markSeenEntry(wild.speciesId);
+      this.persistence.checkpoint(this.state.toSave());
+    }
     this.screen = "battle";
     this.hideWorld();
     this.battle = new BattleScreen(this.state, wild, bank, {
@@ -232,6 +254,44 @@ export class GameApp {
   private endMap(): void {
     this.map?.root.destroy();
     this.map = null;
+    this.returnToWorld(false);
+  }
+
+  // Field Guide (#5): a read-only overlay like the world map — opening it
+  // pauses world movement; closing returns without respawning.
+  private startGuide(): void {
+    if (this.screen !== "world" || this.nameScreen) return;
+    this.screen = "guide";
+    this.hideWorld();
+    this.guide = new FieldGuideScreen(this.state, { onBack: () => this.endGuide() });
+    this.canvasNode.addChild(this.guide.root);
+  }
+
+  private endGuide(): void {
+    this.guide?.root.destroy();
+    this.guide = null;
+    this.returnToWorld(false);
+  }
+
+  // Harbor Sanctuary (#5): opened by Keeper Flo in Harbor Town. Every
+  // accepted team edit checkpoints immediately and refreshes the world HUD
+  // (the lead companion may have changed).
+  private startSanctuary(): void {
+    if (this.screen !== "world" || this.nameScreen) return;
+    this.screen = "sanctuary";
+    this.hideWorld();
+    this.sanctuary = new SanctuaryScreen(this.state, {
+      onBack: () => this.endSanctuary(),
+      onChanged: () => {
+        this.persistence.checkpoint(this.state.toSave());
+      },
+    });
+    this.canvasNode.addChild(this.sanctuary.root);
+  }
+
+  private endSanctuary(): void {
+    this.sanctuary?.root.destroy();
+    this.sanctuary = null;
     this.returnToWorld(false);
   }
 
@@ -396,6 +456,14 @@ export class GameApp {
       this.map?.handleKeyDown(e);
       return;
     }
+    if (this.screen === "guide") {
+      this.guide?.handleKeyDown(e);
+      return;
+    }
+    if (this.screen === "sanctuary") {
+      this.sanctuary?.handleKeyDown(e);
+      return;
+    }
     if (this.screen === "signout") {
       this.signOutScreen?.handleKeyDown(e);
       return;
@@ -405,6 +473,7 @@ export class GameApp {
     if (e.keyCode === KeyCode.KEY_P && this.screen === "world") this.startParty();
     else if (e.keyCode === KeyCode.KEY_B && this.screen === "world") this.startBag();
     else if (e.keyCode === KeyCode.KEY_M && this.screen === "world") this.openMap();
+    else if (e.keyCode === KeyCode.KEY_G && this.screen === "world") this.startGuide();
     else if (dir && this.screen === "world") this.world.pressDir(dir);
     else if ((e.keyCode === KeyCode.SPACE || e.keyCode === KeyCode.ENTER) && this.screen === "world") {
       this.world.tap();

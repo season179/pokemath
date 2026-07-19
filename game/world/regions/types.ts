@@ -59,6 +59,11 @@ export interface NpcDef {
    * and stay hidden so the world map draws the real ring, not a Dock star.
    */
   readonly sailKind?: "ferry" | "shortcut";
+  /**
+   * If set, dismissing this NPC's dialog opens a full screen instead of
+   * just closing the banner (the Harbor Sanctuary keeper, issue #5).
+   */
+  readonly opens?: "sanctuary";
 }
 
 export type TileHandler = "heal" | "shop" | "workshop";

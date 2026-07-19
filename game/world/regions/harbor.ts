@@ -14,7 +14,7 @@ export const HARBOR: RegionDef = {
     "T.XXXXT.XXXXX.XXXX.T",
     "T.XXXX..XXXXX.XXXX.T",
     "T...H.....P....S...T",
-    "TT..p.....p....p..TT",
+    "TT.Np.....p....p..TT",
     "T.ppppNpppppppppNp.T",
     "T.........p.N......T",
     "T.T....T.dd..T...T.T",
@@ -45,6 +45,17 @@ export const HARBOR: RegionDef = {
       name: "Mina",
       message: "I like watching the waves. There are no wild creatures inside Harbor Town.",
       characterSheet: "characters/character_4/character04-sheet.png",
+    },
+    {
+      // The Harbor Sanctuary (issue #5): the physical place to inspect
+      // storage and change the active team. Her dialog opens the screen.
+      x: 3,
+      y: 5,
+      name: "Keeper Flo",
+      message:
+        "Welcome to the Sanctuary! Come see all your friends and pick your team. 欢迎来到保育园！来看看你的伙伴们，挑一挑队伍吧！",
+      characterSheet: "characters/character_8/character08-sheet.png",
+      opens: "sanctuary",
     },
     {
       x: 9,

@@ -65,8 +65,8 @@ export interface LocationState {
 
 // Field Guide state (Unknown → Seen → Caught). Unknown is the absent entry;
 // met-in-the-wild is "seen"; owned-now-or-ever is "caught". `variants` lists
-// discovered non-normal palette ids. The Field Guide UI is M2B; M1.5 ships the
-// state and seeds it from migrated owned creatures.
+// discovered palette ids ("normal" and/or "alt"). The Field Guide UI is the
+// Harbor Sanctuary slice (issue #5); M1.5 shipped the state itself.
 export type FieldGuideStatus = "seen" | "caught";
 
 export interface FieldGuideEntryState {
@@ -157,9 +157,8 @@ export interface CaptureResult {
  * Add a freshly-caught creature to the collection. If the active party has
  * room (< MAX_TEAM_SIZE) the creature joins the party; otherwise it goes to
  * owned storage. Either way the creature is KEPT — Meadow never rejects a
- * successful ordinary capture (issue #3). The Harbor Sanctuary UI to inspect
- * storage and swap the active party lands in M2B; the storage mechanic itself
- * is M1.5.
+ * successful ordinary capture (issue #3). The Harbor Sanctuary UI that
+ * inspects storage and swaps the active party shipped with issue #5.
  */
 export function captureCreature(
   save: SaveStateV2,
@@ -179,6 +178,32 @@ export function captureCreature(
     save: { ...save, ownedCreatures, teamIds, fieldGuide },
     outcome: teamFull ? "sent-to-storage" : "joined-team",
   };
+}
+
+/**
+ * Mark a species seen in the Field Guide (met in the wild — a battle start
+ * counts, even if the player runs). Never upgrades to "caught" (markCaught
+ * owns that) and never downgrades a caught entry; a newly-discovered variant
+ * is recorded on either status. Like markCaught: idempotent, never mutates
+ * its input, and returns the SAME reference when there is nothing to change.
+ */
+export function markSeen(
+  fieldGuide: FieldGuideEntryState[],
+  speciesId: string,
+  variant: string,
+): FieldGuideEntryState[] {
+  const existing = fieldGuide.find((e) => e.speciesId === speciesId);
+  if (!existing) {
+    return [...fieldGuide, { speciesId, status: "seen", variants: dedupeVariants([variant]) }];
+  }
+  if (existing.variants.includes(variant)) {
+    return fieldGuide; // already recorded — avoid a needless new array
+  }
+  return fieldGuide.map((e) =>
+    e.speciesId === speciesId
+      ? { ...e, variants: dedupeVariants([...e.variants, variant]) }
+      : e,
+  );
 }
 
 /**
@@ -208,5 +233,36 @@ export function markCaught(
 }
 
 function dedupeVariants(variants: readonly string[]): string[] {
-  return [...new Set(variants)];
+  // No spreading of Set literals: the Cocos bundler lowers an iterable
+  // spread to `[].concat(iterable)`, which wraps a Set as a single element
+  // instead of iterating it — variants silently corrupted into [{}] in the
+  // shipped bundle (Node tests can't see it; bundler-safe.test.ts guards it).
+  return variants.filter((variant, index) => variants.indexOf(variant) === index);
+}
+
+// --- Team edits (Harbor Sanctuary, issue #5) ---
+
+/**
+ * Replace the active team wholesale — the Sanctuary's membership edit.
+ * Throws on an invalid roster (the UI guards these BEFORE calling, so a
+ * throw means a caller bug, matching captureCreature's discipline):
+ * 1..MAX_TEAM_SIZE ids, no duplicates, every id owned. The active leader
+ * keeps the lead while still on the team; otherwise leadership moves to the
+ * first member. `starterCreatureId` is identity, not team state — never
+ * touched here. Returns a new save; the input is not mutated.
+ */
+export function setTeam(save: SaveStateV2, teamIds: readonly string[]): SaveStateV2 {
+  if (teamIds.length < 1) throw new Error("setTeam: the team needs at least one creature");
+  if (teamIds.length > MAX_TEAM_SIZE) {
+    throw new Error(`setTeam: a team holds at most ${MAX_TEAM_SIZE} creatures`);
+  }
+  if (new Set(teamIds).size !== teamIds.length) {
+    throw new Error("setTeam: duplicate creatureId in the team");
+  }
+  const ownedIds = new Set(save.ownedCreatures.map((c) => c.creatureId));
+  for (const id of teamIds) {
+    if (!ownedIds.has(id)) throw new Error(`setTeam: creature ${id} is not owned`);
+  }
+  const activeTeamId = teamIds.includes(save.activeTeamId) ? save.activeTeamId : teamIds[0];
+  return { ...save, teamIds: [...teamIds], activeTeamId };
 }

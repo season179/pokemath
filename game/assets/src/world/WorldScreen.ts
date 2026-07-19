@@ -44,7 +44,7 @@ import {
 import { Creature, pickEncounter, rollEncounter } from "../../shared/index";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
-import { paintBagIcon, paintMapIcon } from "../ui-icons";
+import { paintBagIcon, paintGuideIcon, paintMapIcon } from "../ui-icons";
 import { colorFromHex } from "../creature-art";
 import { makeCreaturePortrait } from "../creature-portrait";
 import { loadPixelTexture, pixelFrame } from "../remote-art";
@@ -103,6 +103,10 @@ export interface WorldActions {
   encounterReady: () => boolean;
   /** Open the informational world map overlay (M key / HUD button). */
   onMap: () => void;
+  /** Open the Field Guide overlay (G key / HUD button, issue #5). */
+  onGuide: () => void;
+  /** Open the Harbor Sanctuary (Keeper Flo's dialog, issue #5). */
+  onSanctuary: () => void;
 }
 
 export class WorldScreen {
@@ -139,6 +143,9 @@ export class WorldScreen {
   private buffered: Direction | null = null;
   private banner: Node | null = null;
   private pendingSail: { to: string; arrive: string | null } | null = null;
+  // Set while an "opens a screen" NPC banner is up: dismissing the banner
+  // (tap / Space / Enter) fires this once — Keeper Flo opens the Sanctuary.
+  private pendingOpen: (() => void) | null = null;
 
   // Mini-map geometry (#30): the route is drawn once per region; only the
   // player dot moves each frame.
@@ -236,6 +243,10 @@ export class WorldScreen {
         const sail = this.pendingSail;
         this.pendingSail = null;
         this.actions.onTravel(sail.to, sail.arrive);
+      } else if (this.pendingOpen) {
+        const open = this.pendingOpen;
+        this.pendingOpen = null;
+        open();
       }
       return;
     }
@@ -369,6 +380,10 @@ export class WorldScreen {
       return;
     }
     this.showNotice(`${npc.name}: ${npc.message}`);
+    if (npc.opens === "sanctuary") {
+      // Dismissing the greeting (tap or Space/Enter) opens the Sanctuary.
+      this.pendingOpen = () => this.actions.onSanctuary();
+    }
   }
 
   // Travel NPCs offer an explicit choice: bumping the captain or a guide
@@ -376,6 +391,7 @@ export class WorldScreen {
   private showTravelDialog(npc: NpcDef) {
     this.releaseAll();
     this.pendingSail = null;
+    this.pendingOpen = null;
     this.banner?.destroy();
     const box = makePanel(this.root, 0, -226, 720, 104, {
       fill: PALETTE.panel,
@@ -427,6 +443,7 @@ export class WorldScreen {
   showNotice(text: string) {
     this.releaseAll();
     this.pendingSail = null;
+    this.pendingOpen = null;
     this.banner?.destroy();
     const box = makePanel(this.root, 0, -238, 720, 78, {
       fill: PALETTE.panel,
@@ -1042,6 +1059,27 @@ export class WorldScreen {
     paintMapIcon(mapIcon.addComponent(Graphics), 30);
     makeLabel(mapBtn, "Map [M]", 0, -17, { fontSize: 9, color: PALETTE.sub });
     mapBtn.on(Node.EventType.TOUCH_END, this.actions.onMap);
+
+    // Field Guide HUD chip (#5) — same family as Bag/Map; the G key is the
+    // keyboard equivalent, routed by GameApp.
+    const guideBtn = makePanel(
+      this.hudLayer,
+      size.width / 2 - 167,
+      size.height / 2 - 47,
+      54,
+      54,
+      {
+        fill: new Color(255, 253, 245, 230),
+        stroke: PALETTE.panelStroke,
+        lineWidth: 3,
+      },
+    );
+    const guideIcon = new Node("guide-icon");
+    guideIcon.parent = guideBtn;
+    guideIcon.setPosition(0, 4);
+    paintGuideIcon(guideIcon.addComponent(Graphics), 30);
+    makeLabel(guideBtn, "Guide [G]", 0, -17, { fontSize: 9, color: PALETTE.sub });
+    guideBtn.on(Node.EventType.TOUCH_END, this.actions.onGuide);
 
     this.buildLocationPlate();
     this.buildMiniMap();

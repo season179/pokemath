@@ -393,6 +393,62 @@ agent-browser --session "$SN" screenshot /tmp/smoke/10-back-to-harbor.png
 Assert `region: "harbor"`, toast `HARBOR TOWN · 港湾镇`, arrival `(9, 10)`.
 The loop is complete.
 
+### 5e. Field Guide and Harbor Sanctuary (issue #5)
+
+From the Harbor arrival `(9, 10)`. **Field Guide first** — open with G,
+assert the grid renders from save v2 (caught species show portrait + `Caught
+收服` + a filled normal-variant dot; seen-only show `Seen 见过`; unmet show a
+silhouette + `???` + `Unknown 未知` + hollow dots), arrow-key the cursor, then
+close and re-open via the HUD chip (pointer), and close via the Back button:
+
+```bash
+agent-browser --session "$SN" press KeyG; agent-browser --session "$SN" wait 800
+tp "Field Guide" || exit 1
+agent-browser --session "$SN" screenshot /tmp/smoke/11-guide-open-G.png
+mv ArrowRight 2; mv ArrowDown 1                                       # cursor moves; detail strip updates
+agent-browser --session "$SN" screenshot /tmp/smoke/12-guide-cursor.png
+agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 500   # close via Esc
+taplabel "Guide"; agent-browser --session "$SN" wait 800                # reopen via the HUD chip (pointer)
+taplabel "Back";  agent-browser --session "$SN" wait 500                # close via the Back button (pointer)
+ck harbor || exit 1
+```
+
+**Sanctuary.** Keeper Flo stands west of the homes at `(3, 5)`; bump her from
+`(3, 6)`, then dismiss her greeting — that opens the Sanctuary (the same
+banner pattern as the captains):
+
+```bash
+mv ArrowUp 1; mv ArrowLeft 6; mv ArrowUp 3                            # stand at (3, 6), below Flo
+agent-browser --session "$SN" press ArrowUp; agent-browser --session "$SN" wait 400   # bump → greeting
+tp "Keeper Flo" || exit 1                                             # greeting banner
+agent-browser --session "$SN" press Space; agent-browser --session "$SN" wait 900   # dismiss → Sanctuary opens
+tp "Harbor Sanctuary" || exit 1
+agent-browser --session "$SN" screenshot /tmp/smoke/13-sanctuary.png
+```
+
+Assert the header counts (`Team n/6 · Resting m`), team rows tagged `Team
+队伍` with the leader starred `★ Leading 领队`, storage rows tagged `Resting
+休息中`. Toggle the last row with the keyboard and confirm the edit
+**persists to the server save**; a seventh add on a full team shows the
+bilingual "team is full" hint, and removing the last member shows the
+"at least one friend" guard — both leave the save untouched. (A fresh
+§3 save has only the starter, so the toggle exercises the last-member
+guard; a save with storage rows exercises a real swap. Both are valid.)
+
+```bash
+for ((i=0;i<9;i++)); do agent-browser --session "$SN" press ArrowDown; done   # cursor → last row (clamps)
+agent-browser --session "$SN" press Enter; agent-browser --session "$SN" wait 800   # toggle membership
+curl -s -b /tmp/dev-cookies.txt http://localhost:8799/api/save | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const s=JSON.parse(d).save;const ids=new Set(s.ownedCreatures.map(c=>c.creatureId));if(!s.teamIds.every(id=>ids.has(id))||new Set(s.teamIds).size!==s.teamIds.length||!s.teamIds.includes(s.activeTeamId)||!ids.has(s.starterCreatureId))process.exit(1);console.log("save OK: team",s.teamIds.length,"owned",s.ownedCreatures.length)})' || exit 1
+agent-browser --session "$SN" press Enter; agent-browser --session "$SN" wait 800   # toggle back
+agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 500   # close
+ck harbor || exit 1
+agent-browser --session "$SN" screenshot /tmp/smoke/14-sanctuary-closed.png
+```
+
+The save assertion is the criterion: `teamIds[≤6]` all reference owned
+creatures with no duplicates, `activeTeamId ∈ teamIds`, and
+`starterCreatureId` still references an owned creature.
+
 ---
 
 ## 6. Console gate (criterion 7)

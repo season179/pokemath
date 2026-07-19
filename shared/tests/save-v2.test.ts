@@ -11,6 +11,8 @@ import {
   captureCreature,
   createNewGameV2,
   markCaught,
+  markSeen,
+  setTeam,
   type OwnedCreatureState,
   type SaveStateV2,
 } from "../save-v2.ts";
@@ -280,4 +282,75 @@ test("validateSaveV2 accepts a save after a realistic capture-and-storage sequen
   }
   assert.equal(save.teamIds.length, MAX_TEAM_SIZE);
   assert.ok(validateSaveV2(save));
+});
+
+// --- Field Guide seen state + team edits (issue #5) ---
+
+test("markSeen: unknown → seen, and the save still validates", () => {
+  const guide = markSeen([], WOOLLY_FLUFFBALL.id, "normal");
+  assert.deepEqual(guide, [{ speciesId: WOOLLY_FLUFFBALL.id, status: "seen", variants: ["normal"] }]);
+  const save = createNewGameV2(STARTERS[0]);
+  save.fieldGuide = markSeen(save.fieldGuide, WOOLLY_RAM.id, "normal");
+  assert.ok(validateSaveV2(save));
+});
+
+test("markSeen never downgrades caught, and never upgrades seen to caught", () => {
+  const caught = markCaught([], WOOLLY_HARE.id, "normal");
+  assert.equal(markSeen(caught, WOOLLY_HARE.id, "normal"), caught, "same state → same reference");
+  const caughtAlt = markSeen(caught, WOOLLY_HARE.id, "alt");
+  assert.equal(caughtAlt[0].status, "caught", "a wild sighting can't un-catch");
+  assert.deepEqual(caughtAlt[0].variants, ["normal", "alt"], "the sighted variant is still discovered");
+
+  const seen = markSeen([], WOOLLY_RAM.id, "normal");
+  assert.equal(markSeen(seen, WOOLLY_RAM.id, "normal"), seen, "idempotent — same reference");
+  assert.equal(markSeen(seen, WOOLLY_RAM.id, "alt")[0].status, "seen", "alt sighting stays seen");
+});
+
+test("markSeen → markCaught upgrades seen to caught, keeping variants", () => {
+  const seen = markSeen([], WOOLLY_FLUFFBALL.id, "alt");
+  const caught = markCaught(seen, WOOLLY_FLUFFBALL.id, "normal");
+  assert.deepEqual(caught, [
+    { speciesId: WOOLLY_FLUFFBALL.id, status: "caught", variants: ["alt", "normal"] },
+  ]);
+});
+
+test("setTeam: swaps and reorders members, keeps the lead when possible", () => {
+  let save = createNewGameV2(STARTERS[0]);
+  for (const id of ["a", "b", "c", "d", "e", "f", "g"]) {
+    save = captureCreature(save, caughtCreature(WOOLLY_FLUFFBALL.id, id)).save;
+  }
+  // Full team [starter,a,b,c,d,e] with f,g in storage; starter leads.
+  assert.equal(save.ownedCreatures.length, 8);
+  assert.equal(save.teamIds.length, MAX_TEAM_SIZE);
+
+  // Swap e→g and reorder; the starter still leads.
+  const swapped = setTeam(save, ["g", save.starterCreatureId, "a", "f"]);
+  assert.deepEqual(swapped.teamIds, ["g", save.starterCreatureId, "a", "f"]);
+  assert.equal(swapped.activeTeamId, save.starterCreatureId);
+  assert.equal(swapped.starterCreatureId, save.starterCreatureId, "starter identity never moves");
+  assert.equal(save.teamIds.length, MAX_TEAM_SIZE, "input save untouched");
+  assert.ok(validateSaveV2(swapped));
+});
+
+test("setTeam: removing the leader moves the lead to the first member", () => {
+  let save = createNewGameV2(STARTERS[0]);
+  save = captureCreature(save, caughtCreature(WOOLLY_HARE.id, "hare-1")).save;
+  assert.equal(save.activeTeamId, save.starterCreatureId);
+  const edited = setTeam(save, ["hare-1"]);
+  assert.equal(edited.activeTeamId, "hare-1");
+  assert.ok(validateSaveV2(edited));
+});
+
+test("setTeam rejects invalid rosters (callers guard before calling)", () => {
+  let save = createNewGameV2(STARTERS[0]);
+  save = captureCreature(save, caughtCreature(WOOLLY_HARE.id, "hare-1")).save;
+  const starter = save.starterCreatureId;
+  assert.throws(() => setTeam(save, []), /at least one/);
+  assert.throws(
+    () => setTeam(save, [starter, "hare-1", "a", "b", "c", "d", "e"]),
+    /at most/,
+    "seven ids exceed the cap — the UI offers storage instead",
+  );
+  assert.throws(() => setTeam(save, [starter, starter]), /duplicate/);
+  assert.throws(() => setTeam(save, [starter, "ghost"]), /not owned/);
 });
