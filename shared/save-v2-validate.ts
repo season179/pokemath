@@ -69,10 +69,9 @@ function isPlayer(value: unknown): value is PlayerProgress {
   if (!isBoundedInt(value.level, 1, MAX_STAT)) return false;
   if (!isBoundedInt(value.totalXp, 0, MAX_STAT)) return false;
   // level and totalXp must agree on the player curve. They are seeded
-  // together by migration (legacyToPlayerProgress) and, once M2A advances
-  // totalXp from battles, level is derived from totalXp — so a disagreement
-  // is always invalid. Enforced now so the gap can't open silently when live
-  // XP lands.
+  // together by migration (legacyToPlayerProgress), and battles advance
+  // totalXp with level derived from it (M2A awardPlayerXp) — so a
+  // disagreement is always invalid.
   return levelForTotalXp(value.totalXp).level === value.level;
 }
 

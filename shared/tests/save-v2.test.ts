@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { STARTERS, WOOLLY_FLUFFBALL, WOOLLY_HARE, WOOLLY_RAM } from "../creature.ts";
+import { STARTERS, WOOLLY_FLUFFBALL, WOOLLY_HARE, WOOLLY_RAM, Creature } from "../creature.ts";
 import {
   MAX_SAVE_JSON_BYTES_V2,
   MAX_TEAM_SIZE,
@@ -109,6 +109,31 @@ test("captureCreature rejects a duplicate creatureId", () => {
   const save = createNewGameV2(STARTERS[0]);
   const dup = caughtCreature(WOOLLY_FLUFFBALL.id, "dup");
   assert.throws(() => captureCreature(captureCreature(save, dup).save, dup));
+});
+
+test("a client-style capture produces a save the server validator accepts", () => {
+  // The exact path GameState.capture() takes (M2A e2e, issue #7): a wild
+  // Creature is captured, spread into an owned record, and run through
+  // captureCreature — the result must validate AND survive the JSON wire
+  // round-trip. (The Cocos bundler once miscompiled dedupeVariants'
+  // [...new Set] into [].concat(set), yielding variants:[{}] on the wire —
+  // every client capture 400'd. This pins the domain contract it broke.)
+  const wild = Creature.fromSpecies(WOOLLY_FLUFFBALL);
+  wild.takeDamage(4);
+  wild.capture();
+  const owned: OwnedCreatureState = {
+    ...wild.toState(),
+    creatureId: "fb-client-1",
+    speciesId: wild.speciesId!,
+    stage: 1,
+    variant: "normal",
+  };
+  const res = captureCreature(createNewGameV2(STARTERS[0]), owned);
+  assert.ok(validateSaveV2(res.save), "capture result must validate");
+  const wire = JSON.parse(JSON.stringify(res.save)) as unknown;
+  assert.ok(validateSaveV2(wire), "capture result must validate after the JSON round-trip");
+  const entry = res.save.fieldGuide.find((e) => e.speciesId === WOOLLY_FLUFFBALL.id);
+  assert.deepEqual(entry?.variants, ["normal"]);
 });
 
 test("markCaught is idempotent and dedups variants", () => {

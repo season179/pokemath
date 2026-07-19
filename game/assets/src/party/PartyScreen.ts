@@ -89,7 +89,7 @@ export class PartyScreen {
       name.node.getComponent(UITransform)!.setContentSize(300, 28);
       name.enableWrapText = false;
       name.overflow = Label.Overflow.SHRINK;
-      makeLabel(row, `Lv. ${creature.level}`, 20, 20, { fontSize: 16, color: PALETTE.sub });
+      // No creature Lv: pet levels are frozen (player-owned progression, M2A).
 
       const hpFraction = Math.max(0, creature.hp / creature.maxHp);
       makeRect(row, -176, -18, 210, 12, new Color(221, 221, 221, 255), 6);

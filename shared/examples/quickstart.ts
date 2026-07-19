@@ -8,14 +8,15 @@ import {
   SAMPLE_BANK,
   SPECIES,
   STARTERS,
+  awardPlayerXp,
   correctAnswerDamage,
   createNewGame,
   makeChangeQuestion,
+  playerXpForTurn,
   prizeMoney,
   rollDamage,
   SHOP_ITEMS,
   turnsOf,
-  xpReward,
 } from "../index.ts";
 
 // A battle round: answer the wild creature's question to hit it.
@@ -36,7 +37,11 @@ const dmg = correct ? correctAnswerDamage(rollDamage(me.attack), question.operat
 wild.takeDamage(dmg);
 console.log(correct ? `Correct! ${round.turn.expression} = ${picked} → ${dmg} damage (wild HP ${wild.hp})` : "Missed!");
 
-// Win: rewards + shop change question.
-console.log(`Victory: +${xpReward(wild.maxHp)} XP, +RM ${prizeMoney(wild.maxHp)}`);
+// Win: the player earns the accrued question XP (M2A) + prize money.
+const gained = playerXpForTurn(round.turn, 1, wild.level);
+const award = awardPlayerXp({ level: 1, totalXp: 0 }, gained);
+console.log(
+  `Victory: +${gained} XP (Lv ${award.level}, ${award.after.intoLevel}/${award.after.span}), +RM ${prizeMoney(wild.maxHp)}`,
+);
 const change = makeChangeQuestion(SHOP_ITEMS[0]);
 console.log(`Shop: ${change.question_en} (answer: ${change.answer})`);

@@ -10,7 +10,9 @@
 
 import {
   Creature,
+  awardPlayerXp,
   captureCreature,
+  levelForTotalXp,
   markSeen,
   mintCreatureId,
   setTeam as setSaveTeam,
@@ -20,7 +22,9 @@ import {
   type FieldGuideEntryState,
   type LocationState,
   type OwnedCreatureState,
+  type PlayerLevelInfo,
   type PlayerProgress,
+  type PlayerXpAward,
   type SaveStateV2,
 } from "../shared/index";
 
@@ -64,6 +68,29 @@ export class GameState {
 
   get active(): Creature {
     return this.team[this.activeIndex];
+  }
+
+  /** The player's level on the approved curve (derived from totalXp). */
+  get playerLevel(): number {
+    return this.player.level;
+  }
+
+  /** Level + progress into the next level — the HUD/result XP bar truth. */
+  get playerInfo(): PlayerLevelInfo {
+    return levelForTotalXp(this.player.totalXp);
+  }
+
+  /**
+   * Award battle XP to the PLAYER (M2A, issue #7). The battle tallies
+   * per-question XP as turns are answered, then applies the tally once here
+   * on victory/capture — the number shown in the result panel IS the number
+   * written to the save. Returns the award (before/after level info +
+   * levelsGained) so the result panel can render the level-up state.
+   */
+  awardPlayerXp(gain: number): PlayerXpAward {
+    const award = awardPlayerXp(this.player, gain);
+    this.player = { level: award.level, totalXp: award.totalXp };
+    return award;
   }
 
   benchedFighters(): Creature[] {

@@ -388,6 +388,9 @@ export class Creature {
     this.xp = 0;
   }
 
+  // Legacy CREATURE XP: live battles stopped awarding it in M2A (the player
+  // owns XP now — battle-rules.ts playerXpForTurn + awardPlayerXp). Kept for
+  // the migration and its v1 fixtures (save-migrate).
   // Adds XP and applies any level-ups earned. Returns how many levels were
   // gained so the scene can celebrate them.
   awardXp(gain: number): { levelsGained: number; level: number } {
