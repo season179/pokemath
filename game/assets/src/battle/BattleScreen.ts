@@ -9,12 +9,12 @@ import {
   QuestionBank,
   QuestionRound,
   QuestionTurn,
-  XP_PER_LEVEL,
   correctAnswerDamage,
+  playerXpForTurn,
   prizeMoney,
   rollDamage,
   turnsOf,
-  xpReward,
+  type PlayerXpAward,
 } from "../../shared/index";
 import { GameState } from "../state";
 import { colorFromHex } from "../creature-art";
@@ -32,7 +32,19 @@ import {
 } from "../ui";
 import { QuestionView } from "../questions/QuestionView";
 
-type Phase = "message" | "menu" | "question" | "switch";
+type Phase = "message" | "menu" | "question" | "switch" | "result";
+
+// The compact post-battle result (M2A, issue #7): one card shows the earned
+// XP, the prize (victory only), the player's level progress, and the level-up
+// state. Every number comes from the single awardPlayerXp computation that
+// also lands in the save — displayed totals always equal saved totals.
+interface BattleResult {
+  title: string;
+  subtitle?: string;
+  xpGain: number;
+  prize: number | null;
+  award: PlayerXpAward;
+}
 
 export interface BattleActions {
   onExit: () => void;
@@ -45,6 +57,12 @@ export class BattleScreen {
   private phase: Phase = "message";
   private messages: string[] = [];
   private afterMessages: () => void = () => {};
+  private result: BattleResult | null = null;
+  // Player XP accrued per correctly answered question turn this battle
+  // (playerXpForTurn). Awarded to the player on victory AND on capture — so
+  // capturing early can only ever pay the answered share, never full defeat
+  // XP for unanswered questions (issue #7).
+  private earnedXp = 0;
   private questionView: QuestionView | null = null;
   private bossTurns: QuestionTurn[] | null = null;
   private bossIndex = 0;
@@ -64,6 +82,10 @@ export class BattleScreen {
   handleKeyDown(e: EventKeyboard): void {
     if (this.phase === "message" && (e.keyCode === KeyCode.SPACE || e.keyCode === KeyCode.ENTER)) {
       this.advanceMessage();
+      return;
+    }
+    if (this.phase === "result" && (e.keyCode === KeyCode.SPACE || e.keyCode === KeyCode.ENTER)) {
+      this.advanceResult();
       return;
     }
     if (this.phase === "question") {
@@ -124,6 +146,9 @@ export class BattleScreen {
       return;
     }
 
+    // The math is the reward: player XP accrues per correctly answered turn.
+    this.earnedXp += playerXpForTurn(turn, this.state.playerLevel, this.wild.level);
+
     const messages = [`Correct! ${turn.expression} = ${fmtNum(turn.answer)}`];
     const base = rollDamage(this.state.active.attack);
     let damage: number;
@@ -141,7 +166,7 @@ export class BattleScreen {
     messages.push(`${this.state.active.name} attacks! ${damage} damage!`);
     this.say(messages, () => {
       if (this.wild.fainted) {
-        this.say([`${this.wild.name} fainted.`, "You won! Hooray!"], () => this.giveRewards());
+        this.say([`${this.wild.name} fainted!`], () => this.giveRewards());
       } else {
         this.wildAttack();
       }
@@ -166,20 +191,28 @@ export class BattleScreen {
   }
 
   private giveRewards(): void {
-    const gain = xpReward(this.wild.maxHp);
+    // One computation feeds both the result card and the save (state
+    // .toSave() on battle exit) — the displayed XP total IS the saved total.
+    const award = this.state.awardPlayerXp(this.earnedXp);
     const prize = prizeMoney(this.wild.maxHp);
-    const beforeLevel = this.state.active.level;
-    const result = this.state.active.awardXp(gain);
     this.state.money += prize;
+    this.showResult(
+      { title: "Victory! 胜利啦！", xpGain: this.earnedXp, prize, award },
+      this.actions.onExit,
+    );
+  }
 
-    const messages = [
-      `${this.state.active.name} got ${gain} XP!`,
-      `You won RM ${fmtNum(prize)}!`,
-    ];
-    for (let level = beforeLevel + 1; level <= result.level; level++) {
-      messages.push(`${this.state.active.name} grew to level ${level}!`);
-    }
-    this.say(messages, this.actions.onExit);
+  private showResult(result: BattleResult, then: () => void): void {
+    this.phase = "result";
+    this.result = result;
+    this.afterMessages = then;
+    this.render();
+  }
+
+  private advanceResult(): void {
+    const then = this.afterMessages;
+    this.afterMessages = () => {};
+    then();
   }
 
   private throwBall(): void {
@@ -195,11 +228,18 @@ export class BattleScreen {
     this.say([`You throw a ball at ${this.wild.name}…`], () => {
       if (Math.random() < this.wild.catchChance) {
         const outcome = this.state.capture(this.wild);
-        const message =
+        // Capture pays exactly the answered-question share of the battle's
+        // XP (never full defeat XP for unanswered questions) and no prize
+        // money — the new friend is the reward.
+        const award = this.state.awardPlayerXp(this.earnedXp);
+        const subtitle =
           outcome === "joined-team"
-            ? `Gotcha! ${this.wild.name} joined your team!`
-            : `Gotcha! ${this.wild.name} joined your collection!`;
-        this.say([message], this.actions.onExit);
+            ? `${this.wild.name} joined your team! 加入了队伍！`
+            : `${this.wild.name} joined your collection! 加入了收藏！`;
+        this.showResult(
+          { title: "Gotcha! 收服啦！", subtitle, xpGain: this.earnedXp, prize: null, award },
+          this.actions.onExit,
+        );
       } else {
         this.say([`Oh no! ${this.wild.name} broke free!`], () => this.wildAttack());
       }
@@ -249,6 +289,12 @@ export class BattleScreen {
       this.questionView = new QuestionView(this.root, questionRound, (picked, correct) => {
         this.answerQuestion(questionRound, picked, correct);
       });
+      return;
+    }
+
+    if (this.phase === "result") {
+      // The result card replaces the message box entirely (M2A).
+      this.renderResult();
       return;
     }
 
@@ -305,7 +351,11 @@ export class BattleScreen {
     // right padding — center-anchored labels overflow the panel with long
     // names (e.g. "Boss Countasaur").
     makeLabel(panel, creature.name, -113, 23, { fontSize: 18, align: "left" });
-    makeLabel(panel, `Lv.${creature.level}`, 113, 23, { fontSize: 16, align: "right" });
+    // The wild keeps its Lv tag: it feeds the level-gap XP modifier (and
+    // bosses run higher). The player side drops it — owned-pet levels are
+    // frozen under player-owned progression (M2A); the XP strip below shows
+    // the PLAYER's progress instead.
+    if (!showXp) makeLabel(panel, `Lv.${creature.level}`, 113, 23, { fontSize: 16, align: "right" });
 
     const fraction = Math.max(0, creature.hp / creature.maxHp);
     makeRect(panel, -25, -4, 176, 14, new Color(221, 221, 221, 255), 7);
@@ -317,12 +367,75 @@ export class BattleScreen {
     makeLabel(panel, `${creature.hp}/${creature.maxHp}`, 90, -4, { fontSize: 15 });
 
     if (showXp) {
+      // The battler's XP strip shows the PLAYER's progress to the next level
+      // (player-owned progression, M2A) — the result card and the world HUD
+      // bar read the same truth.
+      const info = this.state.playerInfo;
       makeRect(panel, -25, -27, 176, 6, new Color(238, 238, 238, 255), 3);
-      if (creature.xp > 0) {
-        const width = 176 * Math.min(1, creature.xp / XP_PER_LEVEL);
+      if (info.intoLevel > 0) {
+        const width = 176 * Math.min(1, info.intoLevel / info.span);
         makeRect(panel, -113 + width / 2, -27, width, 6, PALETTE.xp, 3);
       }
     }
+  }
+
+  // The compact result card (M2A): earned XP, prize (victory only), level
+  // progress, and the level-up state — one glanceable panel, one advance.
+  private renderResult(): void {
+    const result = this.result;
+    if (!result) return;
+    const panel = makePanel(this.root, 0, 30, 440, 236, {
+      fill: PALETTE.panel,
+      stroke: PALETTE.panelStroke,
+      radius: 16,
+      lineWidth: 5,
+    });
+    makeLabel(panel, result.title, 0, 92, { fontSize: 26 });
+
+    let rowY = 58;
+    if (result.subtitle) {
+      makeLabel(panel, result.subtitle, 0, rowY, { fontSize: 15, color: PALETTE.sub });
+      rowY -= 26;
+    }
+
+    const xpText = makeLabel(panel, `+${result.xpGain} XP`, result.prize === null ? 0 : -70, rowY, {
+      fontSize: 21,
+    });
+    xpText.color = PALETTE.xp;
+    if (result.prize !== null) {
+      makeLabel(panel, `+RM ${fmtNum(result.prize)}`, 78, rowY, { fontSize: 21 });
+    }
+    rowY -= 40;
+
+    // Level progress AFTER the award: Lv tag, bar, and into/span numbers —
+    // the same truth the world HUD bar shows.
+    const { after } = result.award;
+    makeLabel(panel, `Lv ${after.level}`, -184, rowY, { fontSize: 15, align: "left" });
+    makeRect(panel, -10, rowY, 240, 12, new Color(221, 221, 221, 255), 6);
+    if (after.intoLevel > 0) {
+      const width = 240 * Math.min(1, after.intoLevel / after.span);
+      makeRect(panel, -130 + width / 2, rowY, width, 12, PALETTE.xp, 6);
+    }
+    makeLabel(panel, `${after.intoLevel}/${after.span}`, 184, rowY, {
+      fontSize: 13,
+      color: PALETTE.sub,
+      align: "right",
+    });
+    rowY -= 34;
+
+    if (result.award.levelsGained > 0) {
+      const levelUp = makeLabel(
+        panel,
+        `LEVEL UP! 升级啦！ Lv ${result.award.before.level} → ${after.level}`,
+        0,
+        rowY,
+        { fontSize: 18 },
+      );
+      levelUp.color = new Color(255, 167, 38, 255);
+    }
+
+    makeLabel(panel, "▼", 0, -98, { fontSize: 20, color: PALETTE.sub });
+    panel.on(Node.EventType.TOUCH_END, () => this.advanceResult());
   }
 
   private renderMessage(box: Node): void {

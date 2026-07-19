@@ -3,10 +3,10 @@
 // "Progression, collection, and reward contract").
 //
 // M1.5 (this module + save-v2 + save-migrate) ships the curve and seeds the
-// player's level/totalXp from the legacy creature-owned progression. Live
-// battle XP-awarding switches from creatures to the player in M2A; until then
-// a save's `player.totalXp` is a migration-computed seed, NOT advanced by
-// battles. See save-v2.ts `PlayerProgress`.
+// player's level/totalXp from the legacy creature-owned progression. M2A
+// (issue #7) switched live battle XP-awarding from creatures to the player:
+// battles accrue per-question XP (battle-rules.ts playerXpForTurn) and apply
+// it through awardPlayerXp below. See save-v2.ts `PlayerProgress`.
 
 // --- Variable player-level curve (approved 2026-07-19, M1.5) ---
 //
@@ -94,6 +94,46 @@ export function legacyToPlayerProgress(
   // clamp to span-1 so the result stays strictly inside `legacyLevel`.
   const totalXp = Math.min(base + Math.round(fraction * span), base + span - 1);
   return { level: legacyLevel, totalXp };
+}
+
+/**
+ * The result of awarding player XP: the new progress pair plus the before/
+ * after level info (for the result panel's progress bar) and how many levels
+ * were gained (for the level-up celebration).
+ */
+export interface PlayerXpAward {
+  level: number;
+  totalXp: number;
+  before: PlayerLevelInfo;
+  after: PlayerLevelInfo;
+  levelsGained: number;
+}
+
+/**
+ * Award earned XP to the player and derive the new level from the total.
+ * This is the ONLY mutation path for live player progression (M2A): the
+ * battle tallies per-question XP (battle-rules.ts playerXpForTurn), then
+ * applies the tally once here — so the number the result panel shows IS the
+ * number the save records, and the level always agrees with totalXp (the
+ * invariant save-v2-validate enforces). Throws on a negative/non-integer
+ * gain or a progress pair that already disagrees with the curve.
+ */
+export function awardPlayerXp(
+  player: { level: number; totalXp: number },
+  gain: number,
+): PlayerXpAward {
+  if (!Number.isInteger(gain) || gain < 0) {
+    throw new Error(`awardPlayerXp: invalid gain ${gain}`);
+  }
+  const before = levelForTotalXp(player.totalXp);
+  if (before.level !== player.level) {
+    throw new Error(
+      `awardPlayerXp: level ${player.level} disagrees with totalXp ${player.totalXp} (curve says ${before.level})`,
+    );
+  }
+  const totalXp = player.totalXp + gain;
+  const after = levelForTotalXp(totalXp);
+  return { level: after.level, totalXp, before, after, levelsGained: after.level - before.level };
 }
 
 /**

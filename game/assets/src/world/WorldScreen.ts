@@ -1004,14 +1004,11 @@ export class WorldScreen {
     portrait.setPosition(-69, -1);
 
     const name = makeLabel(card, creature.name, -43, 15, { fontSize: 17, align: "left" });
-    name.node.getComponent(UITransform)!.setContentSize(103, 22);
+    name.node.getComponent(UITransform)!.setContentSize(128, 22);
     name.enableWrapText = false;
     name.overflow = Label.Overflow.SHRINK;
-    makeLabel(card, `Lv.${creature.level}`, 81, 15, {
-      fontSize: 13,
-      color: PALETTE.sub,
-      align: "right",
-    });
+    // No creature Lv here: pet levels are frozen (player-owned progression,
+    // M2A) — the live level is the player's, on the strip directly below.
 
     const fraction = Math.max(0, creature.hp / creature.maxHp);
     makeLabel(card, `HP ${creature.hp}/${creature.maxHp}`, -43, -14, {
@@ -1026,6 +1023,8 @@ export class WorldScreen {
       makeRect(card, 18 + width / 2, -14, width, 9, color, 5);
     }
     card.on(Node.EventType.TOUCH_END, this.actions.onParty);
+
+    this.buildPlayerXpStrip();
 
     const bag = makePanel(this.hudLayer, size.width / 2 - 47, size.height / 2 - 47, 54, 54, {
       fill: new Color(255, 253, 245, 230),
@@ -1083,6 +1082,42 @@ export class WorldScreen {
 
     this.buildLocationPlate();
     this.buildMiniMap();
+  }
+
+  /**
+   * The player's level + progress to the next level (M2A, issue #7): a slim
+   * strip hanging directly under the active-pet card, so the top-left cluster
+   * keeps its 20-unit safe-area inset and the existing card/buttons are
+   * untouched. Reads the same playerInfo truth as the battle result card;
+   * refreshHud() rebuilds it after every battle, and a reload restores it
+   * from the save.
+   */
+  private buildPlayerXpStrip() {
+    const size = view.getVisibleSize();
+    const info = this.state.playerInfo;
+    const strip = makePanel(
+      this.hudLayer,
+      -size.width / 2 + 118,
+      size.height / 2 - 50 - 30 - 9,
+      196,
+      18,
+      {
+        fill: new Color(255, 253, 245, 230),
+        stroke: PALETTE.panelStroke,
+        lineWidth: 2,
+      },
+    );
+    makeLabel(strip, `Lv ${info.level}`, -90, 0, { fontSize: 11, align: "left" });
+    makeRect(strip, -4, 0, 110, 8, new Color(221, 221, 221, 255), 4);
+    if (info.intoLevel > 0) {
+      const width = 110 * Math.min(1, info.intoLevel / info.span);
+      makeRect(strip, -59 + width / 2, 0, width, 8, PALETTE.xp, 4);
+    }
+    makeLabel(strip, `${info.intoLevel}/${info.span}`, 90, 0, {
+      fontSize: 10,
+      color: PALETTE.sub,
+      align: "right",
+    });
   }
 
   /**

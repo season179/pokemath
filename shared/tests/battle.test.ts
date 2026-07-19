@@ -15,7 +15,6 @@ import {
   isHardOperation,
   prizeMoney,
   rollDamage,
-  xpReward,
 } from "../battle-rules.ts";
 import { makeChangeQuestion, SHOP_ITEMS } from "../shop-rules.ts";
 
@@ -135,8 +134,7 @@ test("boss final blow doubles the roll", () => {
   assert.equal(base * BOSS_FINAL_BLOW_MULTIPLIER, rollDamage(STARTERS[2].attack, constRng(0.5)) * 2);
 });
 
-test("rewards scale with the wild creature's max HP", () => {
-  assert.equal(xpReward(28), 28);
+test("prize money scales with the wild creature's max HP", () => {
   assert.equal(prizeMoney(28), 140);
 });
 
