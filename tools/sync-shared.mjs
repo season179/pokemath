@@ -6,9 +6,11 @@
 // chokes on those extensions. This script copies the files and rewrites the
 // specifiers. Tests and examples are excluded — they're Node-only.
 //
-// Two mirrors:
+// Three mirrors:
 //   shared/            → game/assets/shared           (flat)
 //   game/world/regions → game/assets/src/world/regions (recursive)
+//   game/world/graph   → game/assets/src/world/graph
+//   game/client        → game/assets/src/client
 // Both mirrors overwrite .ts files and remove stale .ts files only — Cocos
 // .meta files are never deleted.
 //
@@ -93,4 +95,11 @@ await mirrorRegions(WORLD_SRC, WORLD_DEST);
 await mirrorRegions(
   join(root, "game", "world", "graph"),
   join(root, "game", "assets", "src", "world", "graph"),
+);
+
+// Pure, Node-runnable client modules (no Cocos imports) — telemetry today.
+// Same deletion-safe mirror contract as regions/ and graph/.
+await mirrorRegions(
+  join(root, "game", "client"),
+  join(root, "game", "assets", "src", "client"),
 );

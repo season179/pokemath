@@ -4,6 +4,7 @@
 //   POST /api/save/new      → (session, {starter}) → mint save with chosen starter → {save, saveVersion}
 //   PUT  /api/save          → (session, {save, baseVersion}) → CAS write → {saveVersion} | 409
 //   PUT  /api/profile/name  → (session, {name}) → validate ^[A-Za-z0-9]{1,10}$ → {name}
+//   POST /api/events        → (session, {events[]}) → {accepted, dropped} — telemetry ingest (#24)
 //   GET  /api/health        → liveness
 //
 // A null save from GET means the player never chose a starter; the client
@@ -27,6 +28,7 @@ import {
   type SaveStateV2,
 } from "../../shared/index.ts";
 import type { Auth } from "./auth.ts";
+import { ingestEvents } from "./events.ts";
 
 export const PLAYER_NAME_RE = /^[A-Za-z0-9]{1,10}$/;
 
@@ -49,6 +51,8 @@ export async function handleApi(request: Request, url: URL, auth: Auth, env: Env
       return storeSave(request, userId, env);
     case "PUT /api/profile/name":
       return setName(request, userId, env);
+    case "POST /api/events":
+      return ingestEvents(request, userId, env);
     default:
       return json({ error: "not found" }, 404);
   }

@@ -31,6 +31,7 @@ import {
   makeWrappedLabel,
 } from "../ui";
 import { QuestionView } from "../questions/QuestionView";
+import { NULL_SINK, type TelemetrySink } from "../client/telemetry";
 
 type Phase = "message" | "menu" | "question" | "switch" | "result";
 
@@ -67,12 +68,17 @@ export class BattleScreen {
   private bossTurns: QuestionTurn[] | null = null;
   private bossIndex = 0;
   private switchForced = false;
+  // Per-battle question tallies for the battle_outcome event (#24).
+  private asked = 0;
+  private answeredCorrect = 0;
+  private outcomeEmitted = false;
 
   constructor(
     private state: GameState,
     readonly wild: Creature,
     private bank: QuestionBank,
     private actions: BattleActions,
+    private telemetry: TelemetrySink = NULL_SINK,
   ) {
     const intro = [`A wild ${wild.name} appeared!`];
     if (wild.boss) intro.push("It asks tricky problems — solve them step by step!");
@@ -141,6 +147,18 @@ export class BattleScreen {
 
   private answerQuestion(round: QuestionRound, _picked: number, correct: boolean): void {
     const turn = round.turn;
+    // Learning signal (#24): correctness per operation/topic/TP — never the
+    // answer value, the picked choice, or how long the child thought.
+    this.asked++;
+    if (correct) this.answeredCorrect++;
+    this.telemetry.emit("question_answered", {
+      battle: this.wild.boss ? "boss" : "wild",
+      operation: turn.question.operation,
+      correct,
+      ...(turn.question.topic !== undefined ? { topic: turn.question.topic } : {}),
+      ...(turn.question.tp_level !== undefined ? { tp: turn.question.tp_level } : {}),
+      ...(turn.step !== null ? { step: turn.stepIndex, steps: turn.stepCount } : {}),
+    });
     if (!correct) {
       this.say([`Good try — ${turn.expression} = ${fmtNum(turn.answer)}.`], () => this.wildAttack());
       return;
@@ -182,6 +200,7 @@ export class BattleScreen {
       } else if (this.state.benchedFighters().length > 0) {
         this.say([`${this.state.active.name} fainted…`], () => this.beginSwitch(true));
       } else {
+        this.emitOutcome("defeated");
         this.say(
           [`${this.state.active.name} fainted…`, "All your friends are tired!", "You hurry home to rest."],
           this.actions.onRespawn,
@@ -191,6 +210,7 @@ export class BattleScreen {
   }
 
   private giveRewards(): void {
+    this.emitOutcome("won");
     // One computation feeds both the result card and the save (state
     // .toSave() on battle exit) — the displayed XP total IS the saved total.
     const award = this.state.awardPlayerXp(this.earnedXp);
@@ -228,6 +248,9 @@ export class BattleScreen {
     this.say([`You throw a ball at ${this.wild.name}…`], () => {
       if (Math.random() < this.wild.catchChance) {
         const outcome = this.state.capture(this.wild);
+        // Collection-variety signal (#24): which species join collections.
+        this.telemetry.emit("creature_captured", { speciesId: this.wild.speciesId! });
+        this.emitOutcome("captured");
         // Capture pays exactly the answered-question share of the battle's
         // XP (never full defeat XP for unanswered questions) and no prize
         // money — the new friend is the reward.
@@ -261,7 +284,22 @@ export class BattleScreen {
   }
 
   private runAway(): void {
+    // Battle abandonment (#24): the healthy-stopping counterpart to wins.
+    this.emitOutcome("fled");
     this.say(["Got away safely!"], this.actions.onExit);
+  }
+
+  // One terminal outcome per battle. defeat is emitted at the all-fainted
+  // moment in wildAttack via emitOutcome("defeated") — see below.
+  private emitOutcome(outcome: "won" | "captured" | "fled" | "defeated"): void {
+    if (this.outcomeEmitted) return;
+    this.outcomeEmitted = true;
+    this.telemetry.emit("battle_outcome", {
+      battle: this.wild.boss ? "boss" : "wild",
+      outcome,
+      asked: this.asked,
+      correct: this.answeredCorrect,
+    });
   }
 
   private beginSwitch(forced: boolean): void {
