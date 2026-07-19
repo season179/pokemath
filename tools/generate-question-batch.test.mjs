@@ -63,11 +63,30 @@ test("generator: every question carries the batch's slice tags", () => {
 test("generator: counting items show exactly <answer> emoji (no miscounted pictures)", () => {
   const params = { bankId: "std1.emoji", topic: "4.1", tpMin: 1, tpMax: 2, profile: "dpk3_2026_core", count: 40, seed: 11 };
   const { bank } = buildBatchArtifacts(params, 1);
-  const counting = bank.questions.filter((q) => q.format_type === "count-write" || q.format_type === "count-circle");
-  assert.ok(counting.length > 0, "expected counting items in the batch");
+  // Emoji-scene items only — ten-frame count items draw their counters in
+  // the declarative figure, not in the prose (covered by the frame test).
+  const counting = bank.questions.filter(
+    (q) => (q.format_type === "count-write" || q.format_type === "count-circle") && q.presentation === "picture",
+  );
+  assert.ok(counting.length > 0, "expected pictured counting items in the batch");
   for (const q of counting) {
-    const emoji = [...q.question_zh].filter((ch) => ch.codePointAt(0) > 0xffff);
+    const emoji = [...q.question_zh].filter((ch) => /\p{Extended_Pictographic}/u.test(ch));
     assert.equal(emoji.length, q.answer, `Q${q.id}: ${q.question_zh}`);
+  }
+});
+
+test("generator: ten-frame items draw a frame that matches the math", () => {
+  const params = { bankId: "std1.frames", topic: "4.1", tpMin: 1, tpMax: 2, profile: "dpk3_2026_core", count: 40, seed: 11 };
+  const { bank } = buildBatchArtifacts(params, 1);
+  const frames = bank.questions.filter((q) => q.figure?.kind === "ten-frame");
+  // The template deck cycles, so a 40-question batch deals both ten-frame
+  // templates — the count and the within-10 bond (#17's arc anchors).
+  assert.ok(frames.some((q) => q.format_type === "count-write"), "expected a ten-frame count item");
+  assert.ok(frames.some((q) => q.format_type === "number-bond"), "expected a ten-frame bond item");
+  for (const q of frames) {
+    assert.equal(q.presentation, "figure:ten-frame", `Q${q.id} presentation`);
+    if (q.format_type === "count-write") assert.equal(q.figure.filled, q.answer, `Q${q.id} count`);
+    if (q.format_type === "number-bond") assert.equal(10 - q.figure.filled, q.answer, `Q${q.id} bond`);
   }
 });
 
