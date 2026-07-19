@@ -227,13 +227,13 @@ ck() { # ck <expected-region> — exits 0 only when the URL is exactly the worke
 }
 agent-browser --session "$SN" click canvas                     # focus #GameCanvas for keyboard
 
-# Arrival-toast probe: `tp "<expected title>"` exits 0 only if the transient
-# arrival toast currently renders a label containing that title. The toast
-# panel is a direct child of the world root (not map/huds), but the player-name
-# label sits on the world root too and the mini-map shows the title
-# persistently — so a bare "any label" check would false-pass. Pass the
-# expected title and abort on mismatch:   tp "…" || exit 1
-tp() { local want="$1" got; got=$(agent-browser --session "$SN" eval "(function(){const want=\"$want\";const s=cc.director.getScene();let wr=null;function fr(n){if(n.name&&n.name.indexOf('world-')===0&&n.name!=='world-map'){wr=n;return true;}if(n.children)for(const c of n.children)if(fr(c))return true;return false;}fr(s);if(!wr)return'FAIL no-world';const ex=[];for(const ch of wr.children){if(ch.name==='map'||ch.name==='huds')continue;let t='';(function w(n){const l=n.getComponent&&n.getComponent('cc.Label');if(l&&l.string)t=l.string;if(n.children)for(const c of n.children)w(c);})(ch);if(t)ex.push(t);}const ok=ex.some(function(t){return t.indexOf(want)>=0;});return (ok?'PASS ':'FAIL ')+want+' :: '+ex.join(' | ');})()"); got=${got//\"/}; echo "  TOAST $got"; [[ "$got" == PASS* ]]; }
+# Arrival-banner probe: `tp "<expected title>"` exits 0 only if a label
+# containing that title renders anywhere in the scene. Since #42 the area
+# plate is persistent and lives under `huds` (not as a direct world-root
+# child), and a just-destroyed world node lingers in the graph for a frame
+# after travel — so a first-match world-root search false-fails. Search the
+# whole scene and pass the expected title; abort on mismatch:   tp "…" || exit 1
+tp() { local want="$1" got; got=$(agent-browser --session "$SN" eval "(function(){const want=\"$want\";const s=cc.director.getScene();let found=false;const titles=[];(function w(n){const l=n.getComponent&&n.getComponent('cc.Label');if(l&&l.string){titles.push(l.string);if(l.string.indexOf(want)>=0)found=true;}if(n.children)for(const c of n.children)w(c);})(s);return (found?'PASS ':'FAIL ')+want+' :: '+titles.filter(t=>t.length<40).join(' | ');})()"); got=${got//\"/}; echo "  TOAST $got"; [[ "$got" == PASS* ]]; }
 
 # Click a Cocos canvas element (UI projection: page_x = worldX, page_y = 720 − worldY).
 # `read -r px py` (not `set -- $p`) so the split works in bash AND zsh — zsh does
@@ -249,14 +249,14 @@ Coordinates are validated `tile (x, y)`, row 0 at the top; the mini-map
 (you = white dot, green dot = open exit, amber ring = sealed, blue dot =
 ferry captain) is the visual aid.
 
-> **Three operational rules.** (1) **Gate notices pause the world** — while a
-> bilingual "opens later" notice is open, `WorldScreen.update()` ignores all
-> input, so dismiss it with `Space` before the next move. (2) **Capture
-> arrival evidence fast**: the bilingual arrival toast fades at 1750 ms and
-> is destroyed at ~2000 ms, so wait **< 1500 ms** after each travel before
-> screenshotting, and assert it with `tp`. (3) **Tall grass can start a wild
-> battle** — since #8, stepping onto a `g` tile in Woolly Meadows rolls an
-> encounter (~20 % per step). The route below stays off tall grass, so a
+> **Three operational rules.** (1) **Gate notices and NPC dialogs pause the
+> world** — while a bilingual "opens later" notice or an NPC chat is open,
+> `WorldScreen.update()` ignores all input, so dismiss it (tap the notice
+> itself, or `Space`) before the next move. (2) **Arrival banners persist**:
+> since #42 the bilingual area plate stays on screen (no fade), so `tp` can
+> assert it any time after travel — no rush. (3) **Tall grass can start a
+> wild battle** — since #8, stepping onto a `g` tile in Woolly Meadows rolls
+> an encounter (~20 % per step). The route below stays off tall grass, so a
 > clean run never battles; if a battle does start (route drift), flee with
 > **Escape**, then resume from the last checkpoint.
 
