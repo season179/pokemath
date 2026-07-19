@@ -96,14 +96,14 @@ export class QuestionView {
         y,
         w: 390,
         h: 62,
-        label: `${i + 1}.   ${formatAnswer(v, q.answer_unit)}`,
+        label: formatAnswer(v, q.answer_unit),
         color: new Color(84, 110, 122, 255),
         fontSize: 21,
         onTap: () => this.choose(i),
       });
     });
 
-    const hint = makeLabel(this.root, "Pick the right answer / 选出正确答案 (1–4)", 0, -260, {
+    const hint = makeLabel(this.root, "Pick the right answer / 选出正确答案", 0, -260, {
       fontSize: 15,
       color: PALETTE.sub,
     });
