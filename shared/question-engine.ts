@@ -59,8 +59,9 @@ export interface QuestionBankData {
   questions: Question[];
 }
 
-// Versioned envelope used by authored JSON assets. Schema v2 will extend this
-// additively; v1 remains the contract for the first Woolly Meadows preview.
+// Versioned envelope used by authored JSON assets. v2 (question-v2.ts)
+// extends this additively; v1 remains the contract for the first Woolly
+// Meadows preview and parses unchanged at the trust boundary.
 export interface VersionedQuestionBankData extends QuestionBankData {
   schema_version: 1;
   bank_id: string;

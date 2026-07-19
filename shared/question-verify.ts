@@ -14,6 +14,7 @@
 // ships no runtime cost to players.
 
 import type { Question } from "./question-engine.ts";
+import { chineseNumeral, type BilingualValue } from "./question-v2.ts";
 
 export type Severity = "error" | "warn";
 
@@ -230,6 +231,33 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
     // 4-option set that collapses to <4 distinct values
     if (values.length + 1 !== seen.size) {
       here("warn", "distractor-collision", `answer + distractors are not all distinct`);
+    }
+  }
+
+  // --- bilingual values (schema v2; content check, not the trust boundary) ---
+  // The numeral is the answer's identity in string form (error); the zh word
+  // is a gloss, so a mismatch warns with the derived reading rather than
+  // hard-failing — legitimate variants may exist and deserve human review.
+  const bilingual = (q as { bilingual?: BilingualValue }).bilingual;
+  if (bilingual !== undefined) {
+    if (bilingual.numeral !== String(q.answer)) {
+      here(
+        "error",
+        "bilingual-numeral-mismatch",
+        `bilingual.numeral "${bilingual.numeral}" does not match the answer ${q.answer}`,
+      );
+    }
+    try {
+      const derived = chineseNumeral(q.answer);
+      if (bilingual.zh_word !== derived) {
+        here(
+          "warn",
+          "bilingual-zh-word-mismatch",
+          `bilingual.zh_word "${bilingual.zh_word}" differs from the derived "${derived}" for ${q.answer}`,
+        );
+      }
+    } catch {
+      // non-integer/negative answers are already flagged by the range checks
     }
   }
 

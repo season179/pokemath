@@ -287,8 +287,8 @@ test("question-bank v1 contract supports legacy stepped questions", () => {
 
 test("parseQuestionBankData rejects unsupported or malformed JSON", () => {
   assert.throws(
-    () => parseQuestionBankData({ ...STD1_WOOLLY_BANK, schema_version: 2 }),
-    /unsupported question-bank schema version/,
+    () => parseQuestionBankData({ ...STD1_WOOLLY_BANK, schema_version: 99 }),
+    /unsupported question-bank schema version: 99 \(supported: 1, 2\)/,
   );
   assert.throws(
     () => parseQuestionBankData({ ...STD1_WOOLLY_BANK, questions: [] }),

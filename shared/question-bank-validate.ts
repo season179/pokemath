@@ -1,6 +1,10 @@
 // Runtime trust boundary for versioned question-bank JSON. Structural checks
 // live here rather than in the question engine so content loading and gameplay
 // behavior remain separate concerns.
+//
+// parseQuestionBankData dispatches on schema_version: v1 banks parse here,
+// v2 banks go to question-v2-validate.ts, and anything else is rejected with
+// the list of supported versions.
 
 import type {
   Distractor,
@@ -8,6 +12,14 @@ import type {
   QuestionStep,
   VersionedQuestionBankData,
 } from "./question-engine.ts";
+import { parseQuestionBankV2Data } from "./question-v2-validate.ts";
+import type { AnyVersionedQuestionBankData } from "./question-v2.ts";
+import {
+  record,
+  rejectUnknownFields,
+  requiredInteger,
+  requiredString,
+} from "./parse-util.ts";
 
 const BANK_FIELDS = new Set([
   "schema_version", "bank_id", "version", "source", "currency", "profile", "scope", "questions",
@@ -19,40 +31,32 @@ const QUESTION_FIELDS = new Set([
 const STEP_FIELDS = new Set(["prompt_zh", "prompt_en", "expression", "answer"]);
 const DISTRACTOR_FIELDS = new Set(["value", "strategy"]);
 
-function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : null;
-}
-
-function rejectUnknownFields(value: Record<string, unknown>, allowed: Set<string>, label: string): void {
-  const unknown = Object.keys(value).filter((key) => !allowed.has(key));
-  if (unknown.length > 0) throw new Error(`${label} has unknown field(s): ${unknown.join(", ")}`);
-}
-
-function requiredString(value: unknown, label: string): string {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`${label} must be a non-empty string`);
-  }
-  return value;
-}
-
-function requiredInteger(value: unknown, label: string): number {
-  if (!Number.isInteger(value)) throw new Error(`${label} must be an integer`);
-  return Number(value);
-}
-
 /**
- * Validate untrusted JSON before QuestionBank sees it. Curriculum and answer
- * derivation stay in question-verify.ts for authoring/CI; this guard enforces
- * the complete runtime shape and rejects unknown fields rather than guessing.
+ * Validate untrusted JSON before QuestionBank sees it. Dispatches on
+ * schema_version; unknown versions are rejected with the supported list.
+ * Curriculum and answer derivation stay in question-verify.ts for
+ * authoring/CI; the guards enforce the complete runtime shape and reject
+ * unknown fields rather than guessing.
  */
-export function parseQuestionBankData(raw: unknown): VersionedQuestionBankData {
+export function parseQuestionBankData(raw: unknown): AnyVersionedQuestionBankData {
+  const bank = record(raw);
+  if (!bank) throw new Error("question bank must be an object");
+  if (bank.schema_version === 1) return parseQuestionBankV1Data(bank);
+  if (bank.schema_version === 2) return parseQuestionBankV2Data(bank);
+  throw new Error(
+    `unsupported question-bank schema version: ${String(bank.schema_version)} (supported: 1, 2)`,
+  );
+}
+
+/** Validate a schema-v1 bank (the complete legacy runtime shape). */
+export function parseQuestionBankV1Data(raw: unknown): VersionedQuestionBankData {
   const bank = record(raw);
   if (!bank) throw new Error("question bank must be an object");
   rejectUnknownFields(bank, BANK_FIELDS, "question bank");
   if (bank.schema_version !== 1) {
-    throw new Error(`unsupported question-bank schema version: ${String(bank.schema_version)}`);
+    throw new Error(
+      `parseQuestionBankV1Data requires schema_version 1, got ${String(bank.schema_version)}`,
+    );
   }
   const bankId = requiredString(bank.bank_id, "question bank bank_id");
   const version = requiredInteger(bank.version, "question bank version");

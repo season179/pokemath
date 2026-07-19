@@ -11,6 +11,7 @@
 import type { Species } from "./creature.ts";
 import { mintCreatureId } from "./player-progression.ts";
 import { MAX_TEAM_SIZE, STARTING_BAG, STARTING_MONEY, type BagState } from "./save-types.ts";
+import type { CurriculumProfile } from "./curriculum.ts";
 
 export type { BagState };
 export { MAX_TEAM_SIZE, STARTING_BAG, STARTING_MONEY };
@@ -75,7 +76,8 @@ export interface FieldGuideEntryState {
   variants: readonly string[];
 }
 
-export type CurriculumProfile = "dpk3_2026_core" | "original_dskp_extra";
+// Canonical home: shared/curriculum.ts (question banks gate on the same flag).
+export type { CurriculumProfile };
 
 export interface SaveStateV2 {
   version: 2;
