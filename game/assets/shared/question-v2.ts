@@ -19,6 +19,7 @@
 //   runtime-valid; the converse is false.
 
 import type { CurriculumProfile } from "./curriculum";
+import type { FigureSpec } from "./figures";
 import type {
   Question,
   QuestionBankData,
@@ -193,6 +194,12 @@ export interface QuestionV2 extends Question {
   // ordering items, absent on every other form; adapted legacy banks never
   // carry one.
   sequence?: OrderingSequence;
+  // The declarative figure (#16) behind a `figure:*` presentation. Optional
+  // on the wire; when present its kind must match the presentation. A
+  // `figure:*` presentation WITHOUT a spec is deliberate — the question
+  // layout falls back to prose plus world sprites (resolveFigureView).
+  // Adapted legacy banks never carry one.
+  figure?: FigureSpec;
 }
 
 /** Versioned v2 envelope: same bank fields as v1, schema_version 2. */

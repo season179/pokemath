@@ -12,6 +12,7 @@ export * from "./question-v2-adapt";
 export * from "./question-objective";
 export * from "./question-ordering";
 export * from "./question-bank-manifest";
+export * from "./figures";
 export * from "./creature";
 export * from "./encounters";
 export * from "./battle-rules";
