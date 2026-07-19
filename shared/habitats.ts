@@ -1,16 +1,25 @@
 // Meadow Isle habitat registry (issue #4): which ordinary species live in
 // which area, at which rarity — keyed entirely by permanent speciesId, per
 // the approved naming slate's habitat matrix
-// (docs/islands/meadow-naming-slate.md). This is the semantic layer; each
-// area's live weighted encounter table lands with that area's encounter
-// slice and must stay consistent with the entries here (weights are tuning,
-// membership and rarity are registry).
+// (docs/islands/meadow-naming-slate.md). This is the semantic layer; the live
+// weighted encounter tables landed with M2B (issue #9) and sit next to each
+// area's map data (game/world/regions/meadow-*.ts, mirrored into Cocos).
+// Membership and rarity here are registry; weights there are tuning — the
+// regions test suite (game/tests/regions.test.ts, "M2B") mechanically keeps
+// the two consistent, with the two enshrined exceptions below.
 //
 // Two deliberate shapes from the slate:
 // - meadow/pufftail spans every ordinary area (the roster's "everywhere"
 //   background mouse); area tables still weight it below each area's anchor.
 // - The Festival also draws island-wide common spillover, expressed as a
-//   share of the common pool when its table lands — not as extra rows here.
+//   share of its live table's common pool — not as extra rows here.
+// And two deliberate divergences between registry and live tables:
+// - Woolly Meadows' live table predates this registry (the kids-playtest
+//   table, grandfathered): it omits pufftail, a subset of the rows below.
+// - Meadow Dock has NO live table yet: it is transit infrastructure (#27),
+//   and its slate encounter ("first guaranteed encounter") is a scripted
+//   tutorial beat that lands with the Dockside tutorial slice, not an
+//   ordinary weighted roll.
 // The guardian (meadow/cloudmane) appears in NO entry: a fixed authored
 // battle, never a wild roll — no Unique capture pressure by construction.
 
@@ -38,7 +47,9 @@ export const MEADOW_HABITATS: readonly HabitatEntry[] = [
   { speciesId: "meadow/mothling", area: "meadow/dock", rarity: "common" },
   { speciesId: "meadow/pufftail", area: "meadow/dock", rarity: "common" },
   // Woolly Meadows — the preview's live table (fluffball 65 / hare 27 /
-  // ram 8) already matches this membership and rarity split.
+  // ram 8) shipped before this registry existed: a grandfathered subset of
+  // these rows (pufftail is absent from the shipped table), with the same
+  // rarity split.
   { speciesId: "woolly/fluffball", area: "meadow/woolly", rarity: "common" },
   { speciesId: "meadow/pufftail", area: "meadow/woolly", rarity: "common" },
   { speciesId: "woolly/hare", area: "meadow/woolly", rarity: "uncommon" },

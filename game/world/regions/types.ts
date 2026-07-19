@@ -10,6 +10,10 @@
 //   o = stone (blocked)       C = clock post (blocked)
 //   N = NPC marker (blocked; bump/talk)
 //   H = home door (heal)      P = workshop          S = shop
+//
+// Tile edits stay within the shipped grid: a region is never resized, so
+// swapping `.`/`f` for `g` (M2B) must replace characters in place — never
+// insert — or saved positions, gateways, and the mini-map shift.
 
 export const TILE = 48;
 
@@ -68,12 +72,13 @@ export interface NpcDef {
 
 export type TileHandler = "heal" | "shop" | "workshop";
 
-// Wild-encounter roster for a region. Only Woolly Meadows declares one in the
-// preview; every other region stays encounter-free. Entries reference species
-// by stable semantic id (resolved through shared/encounters' SPECIES_BY_ID),
-// so region data never imports Species objects. `weight` drives selection;
-// `rarity` is a human-readable label so the common/uncommon/rare split is
-// verifiable directly from the map data.
+// Wild-encounter roster for a region. Every Meadow monster region declares
+// one (M2B, issue #9); Meadow Dock stays transit-only and the Harbor stays
+// peaceful, so neither declares a table. Entries reference species by stable
+// semantic id (resolved through shared/encounters' SPECIES_BY_ID), so region
+// data never imports Species objects. `weight` drives selection; `rarity` is
+// a human-readable label so the common/uncommon/rare split is verifiable
+// directly from the map data.
 export type Rarity = "common" | "uncommon" | "rare";
 
 export interface EncounterEntry {

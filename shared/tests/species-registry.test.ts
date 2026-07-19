@@ -121,3 +121,53 @@ describe("habitat registry (#4)", () => {
     }
   });
 });
+
+describe("artRef interchangeability (#9)", () => {
+  it("binds every wild-table Meadow species to a replaceable sheet cell", () => {
+    // Licensed pack strips and original generated strips are interchangeable
+    // behind artRef: one shape, one render path (creature-portrait.ts), a
+    // blob fallback on a miss. Every ordinary species a child can meet has a
+    // bound cell, so no wild encounter renders as an identity-less blob.
+    const wild = MEADOW_SPECIES.filter((s) => s.rarity !== "guardian");
+    for (const species of wild) {
+      const art = species.artRef;
+      assert.ok(art, `${species.id} has an artRef`);
+      assert.ok(art.w > 0 && art.h > 0, `${species.id} cell has size`);
+      assert.ok(art.x >= 0 && art.y >= 0, `${species.id} cell origin`);
+      assert.ok(typeof art.sheet === "string" && art.sheet.length > 0, `${species.id} sheet`);
+    }
+  });
+
+  it("hosts both art sources behind the one SpeciesArt shape", () => {
+    // The two interchangeable forms (docs/art-assets.md): an absolute R2 key
+    // ("art/…" — original generated creatures) or a path relative to the
+    // licensed pack route (everything else). remote-art.artUrl maps both
+    // through one code path, so the registry must carry at least one of each
+    // (the pair stays proven), and every sheet must match exactly one form.
+    const sheets = Object.values(SPECIES_BY_ID)
+      .map((s) => s.artRef?.sheet)
+      .filter((sheet): sheet is string => typeof sheet === "string");
+    const isR2Key = (sheet: string) => sheet.startsWith("art/");
+    assert.ok(sheets.some(isR2Key), "an original-creature R2 key is bound");
+    assert.ok(sheets.some((sheet) => !isR2Key(sheet)), "a licensed pack sheet is bound");
+    for (const sheet of sheets) {
+      assert.ok(!sheet.startsWith("/"), `sheet is never origin-absolute: ${sheet}`);
+    }
+  });
+
+  it("keeps identity when art is re-bound (replaceable by construction)", () => {
+    // Swapping the sheet — licensed ↔ original — touches only artRef. The
+    // registry key, names, stages, rarity, and stats are the identity and
+    // never move (issue #4 permanence rules).
+    const fluffball = SPECIES_BY_ID["woolly/fluffball"];
+    const rebound = {
+      ...fluffball,
+      artRef: { sheet: "art/creatures/fluffball/deadbeef/asset.bin", x: 0, y: 0, w: 48, h: 48 },
+    };
+    assert.equal(rebound.id, fluffball.id);
+    assert.equal(rebound.nameZh, fluffball.nameZh);
+    assert.equal(rebound.rarity, fluffball.rarity);
+    // The registry row itself is untouched by any re-binding.
+    assert.equal(SPECIES_BY_ID[rebound.id].artRef?.sheet, "creatures/3evo/06/06.png");
+  });
+});

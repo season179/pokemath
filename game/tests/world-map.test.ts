@@ -61,31 +61,38 @@ test("node open/encounter flags mirror the preview scope helpers", () => {
   }
 });
 
-test("preview: Harbor, Dock, Woolly are the only open nodes", () => {
+test("every node is open (the #29 preview gates were lifted in #9)", () => {
   assert.deepEqual(
     nodes.filter((n) => n.open).map((n) => n.id),
-    ["harbor", "meadow/dock", "meadow/woolly"],
+    [
+      "harbor",
+      "meadow/dock",
+      "meadow/woolly",
+      "meadow/ticktock",
+      "meadow/orchard",
+      "meadow/festival",
+      "meadow/barn",
+      "meadow/gardens",
+      "meadow/stones",
+    ],
   );
 });
 
-test("preview: Woolly is the only open monster area; Dock is transit-only", () => {
+test("every habitat-table region reads as an open monster/guardian area; Dock is transit-only", () => {
   // Criterion: Meadow Dock must NOT read as a monster area on the map.
-  const woolly = byId.get("meadow/woolly")!;
   const dock = byId.get("meadow/dock")!;
   const harbor = byId.get("harbor")!;
-  assert.equal(woolly.role, "monster");
-  assert.equal(woolly.open, true);
-  assert.equal(woolly.encounter, true);
   assert.equal(dock.role, "transit");
   assert.equal(dock.open, true);
   assert.equal(dock.encounter, false, "Dock is transit, not a monster area");
   assert.equal(harbor.role, "hub");
   assert.equal(harbor.open, true);
   assert.equal(harbor.encounter, false);
-});
-
-test("every other Meadow area is locked, with the right role", () => {
+  // Every other Meadow region is open AND encounter-capable since #9 — the
+  // map shows the whole ring as visitable monster country (the Stones keep
+  // their guardian role while hosting their ordinary ram table).
   const expected: Record<string, "monster" | "guardian"> = {
+    "meadow/woolly": "monster",
     "meadow/ticktock": "monster",
     "meadow/orchard": "monster",
     "meadow/festival": "monster",
@@ -95,9 +102,9 @@ test("every other Meadow area is locked, with the right role", () => {
   };
   for (const [id, role] of Object.entries(expected)) {
     const node = byId.get(id)!;
-    assert.equal(node.open, false, `${id} is sealed in the preview`);
     assert.equal(node.role, role, `${id} role`);
-    assert.equal(node.encounter, false, `${id} has no preview encounters`);
+    assert.equal(node.open, true, `${id} is open since #9`);
+    assert.equal(node.encounter, true, `${id} hosts its ordinary habitat table`);
   }
 });
 

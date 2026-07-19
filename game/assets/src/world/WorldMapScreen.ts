@@ -3,7 +3,7 @@
 //
 // Nodes, connections, labels, and lock state all derive from the pure
 // world-map graph (./world-map), which in turn derives them from the region
-// registry and the preview open/encounter helpers — so this screen owns no
+// registry and the open/encounter scope helpers — so this screen owns no
 // geography of its own. Opening it is the job of GameApp (the M key and the
 // HUD button); this screen renders itself and signals close via onBack.
 

@@ -1,5 +1,7 @@
 // Pattern Gardens: shape and pattern beds on the ring's south-west.
 // The south pocket is reserved for the Hidden Grove (original_dskp_extra).
+// M2B (issue #9): tall grass (`g`) among the beds hosts the Gardens'
+// ordinary roster — the best place to meet the Mothling line.
 
 import { POCKET_MESSAGE, guide } from "./meadow-shared";
 import type { RegionDef } from "./types";
@@ -13,26 +15,39 @@ export const MEADOW_GARDENS: RegionDef = {
     "TTTTTTTTpTTTTTTTTTTTTTTTTTTTTT",
     "T.......p.N..................T",
     "T.......p....................T",
-    "T...fffff....................T",
-    "T...fffff.........ffffff.....T",
-    "T...fffff.........ffffff.....T",
+    "T...fffffggggg...............T",
+    "T...fffffggggg....ffffff.....T",
+    "T...fffffggggg....ffffff.....T",
     "T.......p.........ffffff.....T",
     "T.......p....................T",
-    "T...fffff....................T",
-    "T...fffff.........ffffff.....T",
-    "T...fffff.........ffffff.....T",
+    "T...fffffggggg...............T",
+    "T...fffffggggg....ffffff.....T",
+    "T...fffffggggg....ffffff.....T",
     "T.......p....................T",
     "T.......pppppppppppppppppppppp",
-    "T..............p.............T",
-    "T..............p.............T",
-    "T..............p.............T",
-    "T..............p.............T",
-    "T..............p.............T",
-    "T..............p.............T",
+    "T..............p.ggggg.......T",
+    "T..............p.ggggg.......T",
+    "T..............p.ggggg.......T",
+    "T.ggggg........p.............T",
+    "T.ggggg........p.............T",
+    "T.ggggg........p.............T",
     "TTTTTTTTTTTTTTT.TTTTTTTTTTTTTT",
   ],
   spawn: { x: 8, y: 1 },
   npcs: [guide(10, 1, "characters/character_5/character05-sheet.png")],
+  // M2B roster (issue #9): Mothling anchors the garden beds (the slate calls
+  // this the best place to meet all three of its stages). Weights sum to 100
+  // (percentages); membership and rarity match the MEADOW_HABITATS rows for
+  // "meadow/gardens" exactly, with Pufftail below the area anchor.
+  //   Mothling (common) 60 · Balltail Hare (uncommon) 25 · Pufftail (common) 15
+  encounters: {
+    rate: 0.2,
+    entries: [
+      { speciesId: "meadow/mothling", weight: 60, rarity: "common" },
+      { speciesId: "woolly/hare", weight: 25, rarity: "uncommon" },
+      { speciesId: "meadow/pufftail", weight: 15, rarity: "common" },
+    ],
+  },
   gateways: [
     {
       name: "north",

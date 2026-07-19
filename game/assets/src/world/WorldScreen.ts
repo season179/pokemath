@@ -332,9 +332,9 @@ export class WorldScreen {
   private onArrive() {
     const gateway = gatewayAt(this.def, this.px, this.py);
     if (gateway) {
-      // Pocket gateways (reserved lots) and preview-sealed gateways both fall
+      // Pocket gateways (reserved lots) and sealed gateways both fall
       // through to their notice; only gateways whose target is currently open
-      // actually travel. See regions/index.ts canTraverseGateway (issue #29).
+      // actually travel. See regions/index.ts canTraverseGateway (issues #29/#9).
       if (canTraverseGateway(gateway)) {
         this.releaseAll();
         this.actions.onTravel(gateway.to!, gateway.toGateway ?? null);
@@ -357,10 +357,10 @@ export class WorldScreen {
       this.showNotice("Professor Sum's workshop is still being prepared.");
     }
 
-    // Wild encounters: only in an encounter-capable region (#29 preview gate)
-    // and only on tall-grass tiles, and only once the reviewed question bank
-    // has loaded. A fresh level-1, non-boss creature of the rarity-weighted
-    // species starts the battle.
+    // Wild encounters: only in an encounter-capable region (the open-region
+    // scope in regions/index.ts) and only on tall-grass tiles, and only once
+    // the reviewed question bank has loaded. A fresh level-1, non-boss
+    // creature of the rarity-weighted species starts the battle.
     if (
       this.def.encounters &&
       isEncounterRegion(this.regionId) &&
@@ -1143,7 +1143,7 @@ export class WorldScreen {
 
   /**
    * Compact local map in the bottom-left HUD corner. Pure view of the current
-   * region: walkable route shape, exits (green = open, amber = preview-sealed,
+   * region: walkable route shape, exits (green = open, amber = sealed,
    * grey = reserved pocket), the ferry captain, and a live player dot. It never
    * overlaps the creature card (top-left) or the bag/map buttons (top-right).
    */
