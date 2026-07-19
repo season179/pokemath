@@ -2,20 +2,20 @@
 // ONE geography — the regions themselves — so this module owns no second map.
 //
 //   nodes       ← every region's `map` pin (label/role/position come from the
-//                 region; open/encounter come from the preview scope helpers).
+//                 region; open/encounter come from the open-region scope helpers).
 //   edges       ← physical gateways (the Meadow ring) plus ferry sails; the
 //                 back-to-dock "shortcut" guides are deliberately hidden so
 //                 the map shows the island's real shape, not a Dock star.
 //   lock state  ← isOpenRegion / isEncounterRegion (the same helpers
-//                 WorldScreen and GameApp use to seal the preview).
+//                 WorldScreen and GameApp use to seal areas).
 //
 // This directory holds the pure (Node-runnable, no Cocos) world modules; the
 // sync script mirrors it into game/assets/src/world/graph/ for the game build.
 // A dedicated mirror dir keeps the sync deletion-safe, like regions/.
 //
 // Adding a future island or reopening a sealed area needs no change here: a new
-// region file carrying its own pin appears as a node, and growing the preview
-// open set flips that node's `open` flag. The functions take an optional
+// region file carrying its own pin appears as a node, and growing the open
+// set flips that node's `open` flag. The functions take an optional
 // registry so the tests can prove that parametrically.
 
 import {
@@ -35,9 +35,9 @@ export interface MapNode {
   readonly group: RegionDef["map"]["group"];
   readonly role: MapRole;
   readonly position: { readonly x: number; readonly y: number };
-  /** Reachable in the current preview scope. */
+  /** Reachable in the current open-region scope. */
   readonly open: boolean;
-  /** Encounter-capable in the current preview scope (a strict subset of open). */
+  /** Encounter-capable in the current scope (a strict subset of open). */
   readonly encounter: boolean;
 }
 
