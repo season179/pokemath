@@ -183,15 +183,9 @@ export class BattleScreen {
   }
 
   private throwBall(): void {
-    // A full team never consumes a ball or loses the creature (preview rule,
-    // issue #8). Storage for a seventh friend is the later M1.5 migration.
-    if (this.state.teamFull) {
-      this.say(
-        ["Your team is full — you already have 6 friends!", "Make room before catching another."],
-        () => this.showMenu(),
-      );
-      return;
-    }
+    // A catch is never blocked by a full team (issue #3): the creature goes
+    // to owned storage instead of being rejected, and a ball is only spent
+    // on a real throw.
     if (this.state.bag.ball <= 0) {
       this.say(["No balls left! Buy more at the shop."], () => this.showMenu());
       return;
@@ -200,9 +194,12 @@ export class BattleScreen {
     this.state.bag.ball--;
     this.say([`You throw a ball at ${this.wild.name}…`], () => {
       if (Math.random() < this.wild.catchChance) {
-        this.wild.capture();
-        this.state.team.push(this.wild);
-        this.say([`Gotcha! ${this.wild.name} joined your team!`], this.actions.onExit);
+        const outcome = this.state.capture(this.wild);
+        const message =
+          outcome === "joined-team"
+            ? `Gotcha! ${this.wild.name} joined your team!`
+            : `Gotcha! ${this.wild.name} joined your collection!`;
+        this.say([message], this.actions.onExit);
       } else {
         this.say([`Oh no! ${this.wild.name} broke free!`], () => this.wildAttack());
       }

@@ -11,21 +11,25 @@
 // A 401 at any point means the session died; we send the player back to
 // /login. The dirty cache survives in localStorage and reconciles on the
 // next boot. A 409 (another device wrote first) retries once with our state.
+//
+// Save v2 (#3): the Worker is the migration boundary, so the wire format is
+// always v2 — but a dirty cache written by the preview-era (v1) client is
+// still honored, upgraded through normalizeSave before it is pushed.
 
-import { validateSaveState, type SaveState } from "../shared/index";
+import { normalizeSave, validateSaveV2, type SaveStateV2 } from "../shared/index";
 
 const KEY_CACHE = "pokemath.save-cache";
 const KEY_DIRTY = "pokemath.save-dirty";
 
 export interface BootResult {
-  save: SaveState | null; // null → starter not chosen yet; show the starter screen
+  save: SaveStateV2 | null; // null → starter not chosen yet; show the starter screen
   playerName: string | null; // null → GameApp shows the name screen first
 }
 
 export class Persistence {
   private version = 0;
   private saving = false;
-  private pending: SaveState | null = null;
+  private pending: SaveStateV2 | null = null;
   // Resolves when the current flush loop drains. signOut() awaits it so the
   // last checkpoint reaches the server before the session ends.
   private flushed: Promise<void> = Promise.resolve();
@@ -52,7 +56,7 @@ export class Persistence {
       localStorage.removeItem(KEY_DIRTY);
       return { save: null, playerName: body.playerName };
     }
-    if (!validateSaveState(body.save)) throw new Error("server sent invalid save");
+    if (!validateSaveV2(body.save)) throw new Error("server sent invalid save");
     this.version = body.saveVersion;
 
     // Un-synced local progress beats the server copy: push it, then play it.
@@ -71,7 +75,7 @@ export class Persistence {
    * existing save is returned untouched). Returns the save to play, or a
    * player-facing error message to show on the starter screen.
    */
-  async chooseStarter(starterId: string): Promise<{ save: SaveState } | { error: string }> {
+  async chooseStarter(starterId: string): Promise<{ save: SaveStateV2 } | { error: string }> {
     let res: Response;
     try {
       res = await fetch("/api/save/new", {
@@ -92,7 +96,7 @@ export class Persistence {
       return { error: body?.error ?? "Could not save your choice — please try again.  保存失败，请再试一次。" };
     }
     const body = (await res.json()) as { save: unknown; saveVersion: number };
-    if (!validateSaveState(body.save)) return { error: "server sent invalid save" };
+    if (!validateSaveV2(body.save)) return { error: "server sent invalid save" };
     this.version = body.saveVersion;
     localStorage.setItem(KEY_CACHE, JSON.stringify(body.save));
     return { save: body.save };
@@ -123,7 +127,7 @@ export class Persistence {
    * The dirty flag only clears when the server confirms the write, so a
    * failed push is never silently lost: the next boot reconciles it.
    */
-  checkpoint(save: SaveState): void {
+  checkpoint(save: SaveStateV2): void {
     localStorage.setItem(KEY_CACHE, JSON.stringify(save));
     localStorage.setItem(KEY_DIRTY, "1");
     this.pending = save;
@@ -204,12 +208,13 @@ export class Persistence {
     if (typeof location !== "undefined") location.href = "/login";
   }
 
-  private readCache(): SaveState | null {
+  private readCache(): SaveStateV2 | null {
     try {
       const raw = localStorage.getItem(KEY_CACHE);
       if (!raw) return null;
-      const parsed: unknown = JSON.parse(raw);
-      return validateSaveState(parsed) ? parsed : null;
+      // A v1 (preview-era) cache upgrades through the same migration the
+      // Worker uses; anything unreadable is dropped, never played.
+      return normalizeSave(JSON.parse(raw));
     } catch {
       return null;
     }
