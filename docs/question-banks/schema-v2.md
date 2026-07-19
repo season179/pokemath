@@ -52,14 +52,15 @@ Unknown envelope fields are rejected.
 | `item_format` | `"objective"` | item shape (style doc §B); v2 serves numeric objective rounds only |
 | `format_type` | one of the style doc §A ids (e.g. `count-write`, `number-bond`, `word-single`, `pattern-continue`, `round-ten`) | worksheet format the item models |
 | `presentation` | `plain`, `picture`, `story`, `figure:ten-frame`, `figure:number-bond`, `figure:number-line`, `figure:clock`, `figure:abacus`, `figure:coins`, `figure:shapes`, `figure:pictograph`, `figure:objects`, `figure:balance`, `figure:calendar`, `figure:grid`, `figure:table` | how the item is shown |
-| `answer_form` | `"numeral"`, `"count"`, `"chinese-word"`, `"circle"`, `"true-false"` | the objective forms v2 serves (see below). Ordering (#12) extends this list with its renderer |
+| `answer_form` | `"numeral"`, `"count"`, `"chinese-word"`, `"circle"`, `"true-false"`, `"ordering"` | the objective forms v2 serves (see below) |
 | `answer_unit` | `"none"`, `"RM"`, `"sen"` | display unit; `"none"` keeps counts out of currency |
 | `operation` | `"counting"`, `"addition"`, `"subtraction"` | Std-1 hard constraints: no × ÷ |
-| `expression` | non-empty string, e.g. `"70 + 3"`, `"8"`; for true-false a comparison claim, e.g. `"7 > 8"` | machine-checkable arithmetic (a bare numeral for counting items) |
-| `answer` | non-negative integer; for true-false only `1` (对/✓) or `0` (错/✗) | the correct choice |
+| `expression` | non-empty string, e.g. `"70 + 3"`, `"8"`; for true-false a comparison claim, e.g. `"7 > 8"`; for ordering the declared order, e.g. `"5 < 6 < 7 < 8 < 9"` | machine-checkable content (form-specific grammar) |
+| `answer` | non-negative integer; for true-false only `1` (对/✓) or `0` (错/✗); for ordering the first value in the declared order | the correct choice |
 | `bilingual` | `{ "numeral": "<answer digits>", "zh_word": "<中文>" }` | the answer as numeral and Chinese word (`"18"` / `"十八"`) |
 | `question_zh` / `question_en` | non-empty strings | bilingual prompt |
-| `distractors` | exactly 3 `{ "value", "strategy" }`; exactly 1 for true-false | authored wrong choices; `strategy` is one of the style doc §D misconception ids |
+| `distractors` | exactly 3 `{ "value", "strategy" }`; exactly 1 for true-false; empty (`[]`) for ordering | authored wrong choices; `strategy` is one of the style doc §D misconception ids |
+| `sequence` | ordering only: `{ "direction": ..., "items": [...] }` (below) | the declared correct order (#12) |
 | `table` | optional object of finite numbers | supporting data table |
 
 ## Rules the parser enforces (structural)
@@ -76,8 +77,7 @@ Unknown envelope fields are rejected.
   `money-denom-miscount`.
 - `bilingual.numeral` must equal `String(answer)` — the numeral is the
   answer's identity in string form.
-- `answer_form` accepts the five values above. `ordering` is rejected until
-  #12 ships its renderer — do not generate it yet.
+- `answer_form` accepts the six values above.
 - Every error names its path, e.g. `question 4.distractors[1].strategy must
   be one of: …`.
 
@@ -110,13 +110,53 @@ Because the serving contract is numeric, the truth value is encoded:
   pair rendered by the runtime — they are not per-item data, so they do not
   live in `bilingual`.
 
+### The `ordering` answer form (#12)
+
+The worksheet 排列 form (style doc §A `order-sequence`): the child arranges
+tiles into the correct order — ascending/descending values, or the order
+events or pattern stages happen. The bank declares the order **plus its
+direction**; shuffling is serve-time UI state and never enters the bank.
+
+- `sequence` (required on this form, forbidden on every other):
+  - `direction`: `"ascending"` (从小到大), `"descending"` (从大到小), or
+    `"forward"` (events / pattern stages, in the order they happen).
+  - `items`: 3–5 tiles **in their correct order**. Each is
+    `{ "value": <non-negative integer> }` for numeric ordering, plus
+    `{ "label_zh", "label_en" }` (both required) for `forward` — the labels
+    are the tile text (e.g. 刷牙 / brush teeth), while `value` stays the
+    tile's numeric identity (conventionally 1, 2, 3…). Numeric-ordering
+    tiles show the numeral, so their labels stay unauthored.
+  - Values must be **unique** within a sequence — duplicates make the
+    correct order ambiguous and are rejected.
+- `answer`: the **first value in the declared order** (`items[0]`) — for
+  ascending the smallest number, for descending the largest, for forward
+  the first step. `bilingual` follows the same uniform rule as every form:
+  `numeral` is the answer's digits and `zh_word` its Chinese number word
+  (just as true-false carries `"1"`/`"一"` for its encoded answer).
+- `distractors`: `[]` — the ordering round serves the sequence tiles, not
+  MCQ choices. The field stays present (v2 omits nothing silently).
+- `operation`: `"counting"` — ordering performs no arithmetic (comparing
+  and sequencing counts), the same convention as true-false numerals.
+- `expression` restates the declared order, form-specific grammar:
+  - ascending/descending: a uniform comparator chain of the declared
+    values — `"5 < 6 < 7 < 8 < 9"` or `"17 > 14 > 12 > 11 > 9"`. The
+    verifier re-derives it: the chain must use one comparator matching the
+    direction and restate exactly the declared values.
+  - forward: the declared Chinese labels joined by `" → "` —
+    `"起床 → 刷牙 → 上学"`. The verifier cross-checks it against the labels
+    as an anti-drift guard (positional order cannot be re-derived).
+- Scoring is three-valued (see `shared/question-ordering.ts`): an
+  unfinished arrangement is `incomplete` (calm hint, no penalty), a full
+  wrong arrangement is `incorrect`, and the declared order is `correct`.
+
 ## Rules the verifier enforces (content, authoring/CI)
 
 `shared/question-verify.ts` stays the authoring gate (#14 hardens it): it
 re-derives the answer from `expression` — for true-false, by evaluating the
 comparison claim (each side must independently stay in scope and single-
-step) — enforces the scope (numbers ≤ 100, `+ −` only, single-step), and
-flags `bilingual` mismatches: a wrong `numeral` is an error, and a `zh_word`
+step); for ordering, by checking the declared order against the direction
+(sortedness for ascending/descending, the label cross-check for forward) —
+enforces the scope (numbers ≤ 100, `+ −` only, single-step), and flags `bilingual` mismatches: a wrong `numeral` is an error, and a `zh_word`
 that differs from the derived `chineseNumeral(answer)` reading warns with
 the suggestion (the gloss is a translation; a human reviews variants). The
 trust boundary never re-derives content.
@@ -296,6 +336,222 @@ true-false item (the child judges the statement; the answer encodes 1 = ✓,
       "distractors": [
         { "value": 1, "strategy": "more-fewer-flip" }
       ]
+    }
+  ]
+}
+```
+
+### Valid: ordering items (#12)
+
+An ascending numeric ordering item (tiles show numerals; the declared items
+are already in correct order) and a forward event-ordering item (labels
+carry the tile text; values are step identities).
+
+<!-- example: valid -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.example-ordering",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5 < 6 < 7 < 8 < 9",
+      "answer": 5,
+      "bilingual": { "numeral": "5", "zh_word": "五" },
+      "question_zh": "从小到大排列：5、7、9、6、8",
+      "question_en": "Arrange from smallest to largest: 5, 7, 9, 6, 8",
+      "distractors": [],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          { "value": 5 },
+          { "value": 6 },
+          { "value": 7 },
+          { "value": 8 },
+          { "value": 9 }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "story",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "起床 → 刷牙 → 上学",
+      "answer": 1,
+      "bilingual": { "numeral": "1", "zh_word": "一" },
+      "question_zh": "按事情发生的顺序排列：小明的早晨",
+      "question_en": "Put Xiaoming's morning in the order it happens",
+      "distractors": [],
+      "sequence": {
+        "direction": "forward",
+        "items": [
+          { "value": 1, "label_zh": "起床", "label_en": "wake up" },
+          { "value": 2, "label_zh": "刷牙", "label_en": "brush teeth" },
+          { "value": 3, "label_zh": "上学", "label_en": "go to school" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+### Invalid: forward ordering without labels
+
+`forward` tiles are event/pattern text, so every item needs both bilingual
+labels — an unlabeled event tile would render as a bare number.
+
+<!-- example: invalid: /question 1\.sequence\.items\[0\]\.label_zh is required for direction "forward"/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.bad",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "story",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "起床 → 刷牙 → 上学",
+      "answer": 1,
+      "bilingual": { "numeral": "1", "zh_word": "一" },
+      "question_zh": "按事情发生的顺序排列：小明的早晨",
+      "question_en": "Put Xiaoming's morning in the order it happens",
+      "distractors": [],
+      "sequence": {
+        "direction": "forward",
+        "items": [
+          { "value": 1, "label_en": "wake up" },
+          { "value": 2, "label_zh": "刷牙", "label_en": "brush teeth" },
+          { "value": 3, "label_zh": "上学", "label_en": "go to school" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+### Invalid: sequence on a non-ordering form
+
+The declared order only means something to the ordering renderer; on any
+other form it is silent extras and rejected like any misplaced field.
+
+<!-- example: invalid: /question 1\.sequence is only allowed for answer_form "ordering"/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.bad",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5 < 6 < 7 < 8 < 9",
+      "answer": 5,
+      "bilingual": { "numeral": "5", "zh_word": "五" },
+      "question_zh": "从小到大排列：5、7、9、6、8",
+      "question_en": "Arrange from smallest to largest: 5, 7, 9, 6, 8",
+      "distractors": [
+        { "value": 6, "strategy": "off-by-one-count" },
+        { "value": 7, "strategy": "off-by-one-count" },
+        { "value": 9, "strategy": "off-by-one-count" }
+      ],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          { "value": 5 },
+          { "value": 6 },
+          { "value": 7 },
+          { "value": 8 },
+          { "value": 9 }
+        ]
+      }
+    }
+  ]
+}
+```
+
+### Invalid: ordering with MCQ distractors
+
+The ordering round serves the sequence tiles — there are no four choices to
+distract from, so the distractor list must stay empty.
+
+<!-- example: invalid: /question 1\.distractors must be empty for answer_form "ordering"/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.bad",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5 < 6 < 7 < 8 < 9",
+      "answer": 5,
+      "bilingual": { "numeral": "5", "zh_word": "五" },
+      "question_zh": "从小到大排列：5、7、9、6、8",
+      "question_en": "Arrange from smallest to largest: 5, 7, 9, 6, 8",
+      "distractors": [
+        { "value": 6, "strategy": "off-by-one-count" }
+      ],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          { "value": 5 },
+          { "value": 6 },
+          { "value": 7 },
+          { "value": 8 },
+          { "value": 9 }
+        ]
+      }
     }
   ]
 }

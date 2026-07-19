@@ -19,6 +19,7 @@ import {
   type Question,
   type QuestionTurn,
 } from "./question-engine.ts";
+import { isOrdering, orderingResultFeedback } from "./question-ordering.ts";
 import { chineseNumeral } from "./question-v2.ts";
 
 // Form literals mirror the question-v2.ts QUESTION_ANSWER_FORMS vocabulary.
@@ -98,13 +99,15 @@ export function objectiveKeyIndex(key: string): number {
 // --- result feedback ---------------------------------------------------------
 
 /**
- * The battle result line for a judged round, form-aware and bilingual for
- * true-false ("对！…是错的 (✗)。 Correct! … is false."). Numeric forms —
- * including circle — return the exact pre-#11 strings
+ * The battle result line for a judged round, form-aware. Ordering rounds
+ * (#12) route to their own feedback (it states the declared order);
+ * true-false is bilingual ("对！…是错的 (✗)。 Correct! … is false.").
+ * Numeric forms — including circle — return the exact pre-#11 strings
  * ("Correct! 70 + 3 = 73" / "Good try — 70 + 3 = 73."), so legacy feedback
  * is byte-identical.
  */
 export function resultFeedback(turn: QuestionTurn, correct: boolean): string {
+  if (isOrdering(turn.question)) return orderingResultFeedback(turn, correct);
   if (isTrueFalse(turn.question)) {
     const t = truthLabel(turn.answer);
     const zh = correct ? "答对了！" : "再想一想，";

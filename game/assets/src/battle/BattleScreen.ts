@@ -6,10 +6,12 @@ import {
   BOSS_FINAL_BLOW_MULTIPLIER,
   POTION_HEAL,
   Creature,
+  OrderingRound,
   QuestionBank,
   QuestionRound,
   QuestionTurn,
   correctAnswerDamage,
+  isOrdering,
   playerXpForTurn,
   prizeMoney,
   resultFeedback,
@@ -31,6 +33,7 @@ import {
   makeRect,
   makeWrappedLabel,
 } from "../ui";
+import { OrderingView } from "../questions/OrderingView";
 import { QuestionView } from "../questions/QuestionView";
 import { NULL_SINK, type TelemetrySink } from "../client/telemetry";
 
@@ -66,6 +69,7 @@ export class BattleScreen {
   // XP for unanswered questions (issue #7).
   private earnedXp = 0;
   private questionView: QuestionView | null = null;
+  private orderingView: OrderingView | null = null;
   private bossTurns: QuestionTurn[] | null = null;
   private bossIndex = 0;
   private switchForced = false;
@@ -97,6 +101,7 @@ export class BattleScreen {
     }
     if (this.phase === "question") {
       this.questionView?.handleKey(e.keyCode);
+      this.orderingView?.handleKey(e.keyCode);
       return;
     }
     if (this.phase === "menu") {
@@ -141,13 +146,19 @@ export class BattleScreen {
       turn = turnsOf(this.bank.pick((q) => !q.steps))[0];
     }
 
+    // Ordering questions (#12) serve their own tray/slot round; every
+    // other form shares the numeric QuestionRound contract.
+    if (isOrdering(turn.question)) {
+      this.phase = "question";
+      this.render(undefined, new OrderingRound(turn));
+      return;
+    }
     const round = new QuestionRound(turn);
     this.phase = "question";
     this.render(round);
   }
 
-  private answerQuestion(round: QuestionRound, _picked: number, correct: boolean): void {
-    const turn = round.turn;
+  private answerQuestion(turn: QuestionTurn, correct: boolean): void {
     // Learning signal (#24): correctness per operation/topic/TP — never the
     // answer value, the picked choice, or how long the child thought.
     this.asked++;
@@ -320,14 +331,22 @@ export class BattleScreen {
     });
   }
 
-  private render(questionRound?: QuestionRound): void {
+  private render(questionRound?: QuestionRound, orderingRound?: OrderingRound): void {
     destroyChildren(this.root);
     this.questionView = null;
+    this.orderingView = null;
     this.drawBase();
 
+    if (this.phase === "question" && orderingRound) {
+      this.orderingView = new OrderingView(this.root, orderingRound, (correct) => {
+        this.answerQuestion(orderingRound.turn, correct);
+      });
+      return;
+    }
+
     if (this.phase === "question" && questionRound) {
-      this.questionView = new QuestionView(this.root, questionRound, (picked, correct) => {
-        this.answerQuestion(questionRound, picked, correct);
+      this.questionView = new QuestionView(this.root, questionRound, (_picked, correct) => {
+        this.answerQuestion(questionRound.turn, correct);
       });
       return;
     }

@@ -17,12 +17,18 @@
 // ships no runtime cost to players.
 
 import {
+  ORDERING_FORM,
   TRUE_FALSE_FORM,
   TRUTH_FALSE,
   TRUTH_TRUE,
   type Question,
 } from "./question-engine";
-import { chineseNumeral, type BilingualValue } from "./question-v2";
+import {
+  ORDERING_MAX_ITEMS,
+  ORDERING_MIN_ITEMS,
+  chineseNumeral,
+  type BilingualValue,
+} from "./question-v2";
 
 export type Severity = "error" | "warn";
 
@@ -36,7 +42,7 @@ export interface VerifyOptions {
   // Inclusive upper bound on every number in the problem (operands, answer,
   // and distractors). Standard-1 default is 100.
   maxNumber?: number;
-  // How many authored distractors a question must carry when it carries any.
+// How many authored distractors a question must carry when it carries any.
   // The current UI is a 4-option MCQ (answer + 3), so the default is 3.
   // True-false questions always require exactly 1 (the opposite truth
   // value), regardless of this option.
@@ -198,6 +204,158 @@ export function parseTruthExpression(raw: string): ParsedTruthExpression {
 }
 
 /**
+ * Parse a numeric ordering chain (#12): values joined by `<` or `>` marks,
+ * e.g. "5 < 6 < 7 < 8 < 9" or "17 > 14 > 12". Returns the values and the
+ * comparator marks in order, or null when the expression is not a clean
+ * numeral/comparator alternation. Uniformity and direction are the caller's
+ * checks (the expected mark depends on the declared direction).
+ */
+export function parseOrderChain(raw: string): { values: number[]; marks: string[] } | null {
+  if (typeof raw !== "string" || raw.trim() === "") return null;
+  const expr = raw.replace(/\s+/g, " ").trim();
+  if (!/^[0-9<> ]+$/.test(expr)) return null;
+  const parts = expr.split(/([<>])/).map((part) => part.trim()).filter((part) => part !== "");
+  if (parts.length < 3 || parts.length % 2 === 0) return null;
+  const values: number[] = [];
+  const marks: string[] = [];
+  parts.forEach((part, index) => {
+    if (index % 2 === 0) values.push(Number(part));
+    else marks.push(part);
+  });
+  if (values.some((v, index) => !/^\d+$/.test(parts[index * 2]) || !Number.isInteger(v))) {
+    return null;
+  }
+  return { values, marks };
+}
+
+/**
+ * Verify an ordering question (#12). Two honest paths: ascending/descending
+ * orders are machine-derivable (the declared items must already be sorted,
+ * and the expression must restate them as a uniform comparator chain);
+ * "forward" event/pattern order is positional only — the verifier checks
+ * labels, uniqueness, and that the expression restates the declared labels
+ * exactly (an anti-drift cross-check, not a derivation).
+ */
+function verifyOrdering(
+  q: Question,
+  max: number,
+  here: (severity: Severity, code: string, message: string) => void,
+): void {
+  const sequence = q.sequence;
+  if (!sequence || !Array.isArray(sequence.items) || sequence.items.length === 0) {
+    here("error", "sequence-missing", `ordering question declares no sequence`);
+    return;
+  }
+  const items = sequence.items;
+  if (items.length < ORDERING_MIN_ITEMS || items.length > ORDERING_MAX_ITEMS) {
+    here(
+      "error",
+      "sequence-length",
+      `sequence has ${items.length} items; expected ${ORDERING_MIN_ITEMS} to ${ORDERING_MAX_ITEMS}`,
+    );
+  }
+
+  const seen = new Set<number>();
+  items.forEach((item, i) => {
+    if (!item || !Number.isInteger(item.value) || item.value < 0) {
+      here("error", "sequence-value", `sequence.items[${i}].value must be a non-negative integer`);
+      return;
+    }
+    if (item.value > max) {
+      here("error", "sequence-out-of-range", `sequence item ${item.value} outside [0, ${max}]`);
+    }
+    if (seen.has(item.value)) {
+      here(
+        "error",
+        "sequence-duplicate",
+        `sequence repeats the value ${item.value} — duplicates make the correct order ambiguous`,
+      );
+    }
+    seen.add(item.value);
+  });
+
+  // The numeric `answer` convention: the first value in the declared order.
+  const first = items[0]?.value;
+  if (Number.isInteger(first) && q.answer !== first) {
+    here(
+      "error",
+      "answer-mismatch",
+      `answer is ${q.answer}, but the declared order starts with ${first} (the answer is the first value in the order)`,
+    );
+  }
+
+  const direction = sequence.direction;
+  if (direction === "ascending" || direction === "descending") {
+    const declared = items.map((item) => item.value);
+    const sorted = [...declared].sort((a, b) => (direction === "ascending" ? a - b : b - a));
+    if (declared.some((value, i) => value !== sorted[i])) {
+      here(
+        "error",
+        "order-mismatch",
+        `declared order ${declared.join(", ")} is not ${direction} (expected ${sorted.join(", ")})`,
+      );
+    }
+    const wantMark = direction === "ascending" ? "<" : ">";
+    const chain = parseOrderChain(q.expression);
+    if (!chain) {
+      here(
+        "error",
+        "expression-parse",
+        `ordering expression "${q.expression}" must be a comparator chain like "5 < 6 < 7"`,
+      );
+    } else {
+      if (chain.marks.some((mark) => mark !== wantMark)) {
+        here(
+          "error",
+          "expression-parse",
+          `expression "${q.expression}" must use "${wantMark}" throughout for direction "${direction}"`,
+        );
+      }
+      if (
+        chain.values.length !== declared.length ||
+        chain.values.some((value, i) => value !== declared[i])
+      ) {
+        here(
+          "error",
+          "expression-parse",
+          `expression "${q.expression}" must restate the declared order ${declared.join(", ")}`,
+        );
+      }
+    }
+  } else if (direction === "forward") {
+    items.forEach((item, i) => {
+      if (!item?.label_zh || !item?.label_en) {
+        here(
+          "error",
+          "sequence-label",
+          `sequence.items[${i}] needs label_zh and label_en for direction "forward"`,
+        );
+      }
+    });
+    const restated = items.map((item) => item?.label_zh ?? "?").join(" → ");
+    if (q.expression !== restated) {
+      here(
+        "error",
+        "expression-drift",
+        `expression "${q.expression}" must restate the declared labels "${restated}"`,
+      );
+    }
+  } else {
+    here("error", "sequence-direction", `unknown ordering direction "${String(direction)}"`);
+  }
+
+  // Ordering performs no arithmetic; the operation label stays "counting"
+  // (comparing/sequencing counts), same convention as true-false numerals.
+  if (q.operation !== "counting") {
+    here(
+      "error",
+      "operation-mismatch",
+      `ordering performs no arithmetic; operation must be "counting", got "${q.operation}"`,
+    );
+  }
+}
+
+/**
  * Independently verify a single Standard-1 question. Returns any findings;
  * an empty array means the item passes every mechanical check.
  */
@@ -205,16 +363,26 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
   const max = opts.maxNumber ?? DEFAULT_MAX;
   const answerForm = (q as { answer_form?: string }).answer_form;
   const trueFalse = answerForm === TRUE_FALSE_FORM;
+  const ordering = answerForm === ORDERING_FORM;
   // True-false declares exactly one distractor (the opposite truth value);
-  // numeric forms default to the 4-option MCQ shape (answer + 3).
-  const wantDistractors = trueFalse ? 1 : (opts.distractorCount ?? DEFAULT_DISTRACTORS);
+  // ordering serves its sequence tiles instead of MCQ choices (zero
+  // distractors); numeric forms default to the 4-option MCQ shape (+3).
+  const wantDistractors = ordering
+    ? 0
+    : trueFalse
+      ? 1
+      : (opts.distractorCount ?? DEFAULT_DISTRACTORS);
   const findings: Finding[] = [];
   const here = (severity: Severity, code: string, message: string) =>
     findings.push({ severity, code, message });
 
   // --- answer is independently re-derived from the expression ---
   // True-false expressions are comparison claims (parseTruthExpression);
-  // everything else keeps the arithmetic grammar.
+  // ordering declares its order in `sequence` (verifyOrdering owns that
+  // path); everything else keeps the arithmetic grammar.
+  if (ordering) {
+    verifyOrdering(q, max, here);
+  } else {
   let parsed: ParsedExpression;
   let truthSides: [ParsedExpression, ParsedExpression] | null = null;
   try {
@@ -293,6 +461,7 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
       `expression "${q.expression}" implies operation "${expected}", but field is "${q.operation}"`,
     );
   }
+  } // end non-ordering expression checks
 
   // --- authored distractors (validity only; strategy labels are reviewed) ---
   const d = q.distractors;

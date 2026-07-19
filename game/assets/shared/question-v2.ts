@@ -87,9 +87,45 @@ export type QuestionPresentation = (typeof QUESTION_PRESENTATIONS)[number];
  * values (same numeric round, circle presentation). `true-false` (#11)
  * judges a statement 对/错: the answer is encoded 1 = ✓, 0 = ✗ and serves
  * the fixed ✓/✗ option pair (see question-engine.ts). `ordering` (#12)
- * extends this list with its renderer. */
-export const QUESTION_ANSWER_FORMS = ["numeral", "count", "chinese-word", "circle", "true-false"] as const;
+ * declares a sequence of tiles in their correct order plus a direction and
+ * serves the tray/slot arranging round (see question-ordering.ts). */
+export const QUESTION_ANSWER_FORMS = ["numeral", "count", "chinese-word", "circle", "true-false", "ordering"] as const;
 export type QuestionAnswerForm = (typeof QUESTION_ANSWER_FORMS)[number];
+
+// --- ordering (#12) ---
+
+/** Ordering directions (style doc §A `order-sequence`): `ascending` /
+ * `descending` order numeric values (从小到大 / 从大到小); `forward` orders
+ * events or pattern stages in the order they happen (labels carry the
+ * content). The declared `items` are always in the CORRECT order — the
+ * direction documents the semantics and drives prompts, hints, and
+ * verification; shuffling is serve-time UI state and never enters the bank. */
+export const ORDERING_DIRECTIONS = ["ascending", "descending", "forward"] as const;
+export type OrderingDirection = (typeof ORDERING_DIRECTIONS)[number];
+
+/** Worksheet-realistic sequence lengths (style doc §C.1 shows five-number
+ * ordering; daily-event chains run 3–4 steps). */
+export const ORDERING_MIN_ITEMS = 3;
+export const ORDERING_MAX_ITEMS = 5;
+
+/** One tile in an ordering sequence. `value` is the tile's numeric identity
+ * (and its display text for numeric ordering); the optional bilingual labels
+ * carry event/pattern text for `forward` sequences, where the wire requires
+ * them. Values must be unique within a sequence — duplicates make the
+ * correct order ambiguous and are rejected. */
+export interface OrderingItem {
+  value: number;
+  label_zh?: string;
+  label_en?: string;
+}
+
+/** The declared ordering contract: items in their correct order plus the
+ * direction that explains why. Served rounds shuffle the items into a tray;
+ * judging compares the player's arrangement against this declaration. */
+export interface OrderingSequence {
+  direction: OrderingDirection;
+  items: OrderingItem[];
+}
 
 /** Misconception menu for authored distractors (style doc §D). The wire
  * schema requires these canonical ids so reviews stay uniform; legacy v1
@@ -153,6 +189,10 @@ export interface QuestionV2 extends Question {
   presentation: QuestionPresentation;
   answer_form: QuestionAnswerForm;
   bilingual: BilingualValue;
+  // The declared order (answer_form "ordering"). Required by the wire for
+  // ordering items, absent on every other form; adapted legacy banks never
+  // carry one.
+  sequence?: OrderingSequence;
 }
 
 /** Versioned v2 envelope: same bank fields as v1, schema_version 2. */

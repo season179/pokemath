@@ -24,6 +24,7 @@ import {
   requiredString,
 } from "./parse-util";
 import {
+  ORDERING_FORM,
   TRUE_FALSE_FORM,
   TRUTH_FALSE,
   TRUTH_TRUE,
@@ -32,11 +33,15 @@ import {
 import {
   DISTRACTOR_STRATEGIES,
   ITEM_FORMATS,
+  ORDERING_DIRECTIONS,
+  ORDERING_MAX_ITEMS,
+  ORDERING_MIN_ITEMS,
   QUESTION_ANSWER_FORMS,
   QUESTION_FORMAT_TYPES,
   QUESTION_PRESENTATIONS,
   QUESTION_TOPICS,
   QUESTION_V2_OPERATIONS,
+  type OrderingItem,
   type QuestionV2,
   type VersionedQuestionBankV2Data,
 } from "./question-v2";
@@ -47,10 +52,12 @@ const BANK_FIELDS = new Set([
 const QUESTION_FIELDS = new Set([
   "id", "topic", "tp_level", "profile", "item_format", "format_type", "presentation",
   "answer_form", "answer_unit", "operation", "expression", "answer", "bilingual",
-  "question_zh", "question_en", "table", "distractors",
+  "question_zh", "question_en", "table", "distractors", "sequence",
 ]);
 const BILINGUAL_FIELDS = new Set(["numeral", "zh_word"]);
 const DISTRACTOR_FIELDS = new Set(["value", "strategy"]);
+const SEQUENCE_FIELDS = new Set(["direction", "items"]);
+const SEQUENCE_ITEM_FIELDS = new Set(["value", "label_zh", "label_en"]);
 
 /**
  * Validate untrusted schema-v2 JSON before QuestionBank sees it. Throws with
@@ -108,6 +115,7 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
     const answer = requiredInteger(q.answer, `question ${id}.answer`);
     if (answer < 0) throw new Error(`question ${id}.answer must be non-negative`);
     const trueFalse = answerForm === TRUE_FALSE_FORM;
+    const ordering = answerForm === ORDERING_FORM;
     if (trueFalse && answer !== TRUTH_TRUE && answer !== TRUTH_FALSE) {
       throw new Error(
         `question ${id}.answer must be 1 (对/true) or 0 (错/false) for answer_form "true-false"`,
@@ -157,13 +165,16 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
     // Numeric forms serve a 4-choice round (answer + 3 authored choices).
     // True-false serves the closed ✓/✗ pair, so the wire declares exactly
     // one distractor — the opposite truth value (uniqueness + the 0/1 domain
-    // check below guarantee it).
-    const wantChoices = trueFalse ? 1 : 3;
+    // check below guarantee it). Ordering serves the sequence tiles instead
+    // of MCQ choices, so its distractor list must be present but empty.
+    const wantChoices = ordering ? 0 : trueFalse ? 1 : 3;
     if (!Array.isArray(q.distractors) || q.distractors.length !== wantChoices) {
       throw new Error(
-        trueFalse
-          ? `question ${id}.distractors must contain exactly 1 choice (the opposite truth value) for answer_form "true-false"`
-          : `question ${id}.distractors must contain exactly 3 choices`,
+        ordering
+          ? `question ${id}.distractors must be empty for answer_form "ordering" (the ordering round serves the sequence tiles, not MCQ choices)`
+          : trueFalse
+            ? `question ${id}.distractors must contain exactly 1 choice (the opposite truth value) for answer_form "true-false"`
+            : `question ${id}.distractors must contain exactly 3 choices`,
       );
     }
     const values = new Set<number>([answer]);
@@ -200,6 +211,77 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
         ),
       };
     });
+
+    // Ordering (#12): the declared sequence is the answer. Required on the
+    // ordering form, forbidden everywhere else (unknown-field posture: no
+    // silent extras). Structural checks only — sortedness, comparator
+    // chains, and label drift are content rules for question-verify.ts.
+    if (q.sequence !== undefined && !ordering) {
+      throw new Error(`question ${id}.sequence is only allowed for answer_form "ordering"`);
+    }
+    if (ordering) {
+      if (q.sequence === undefined) {
+        throw new Error(`question ${id}.sequence is required for answer_form "ordering"`);
+      }
+      const sequenceRaw = record(q.sequence);
+      if (!sequenceRaw) throw new Error(`question ${id}.sequence must be an object`);
+      rejectUnknownFields(sequenceRaw, SEQUENCE_FIELDS, `question ${id}.sequence`);
+      const direction = requiredEnum(
+        sequenceRaw.direction,
+        ORDERING_DIRECTIONS,
+        `question ${id}.sequence.direction`,
+      );
+      if (
+        !Array.isArray(sequenceRaw.items) ||
+        sequenceRaw.items.length < ORDERING_MIN_ITEMS ||
+        sequenceRaw.items.length > ORDERING_MAX_ITEMS
+      ) {
+        throw new Error(
+          `question ${id}.sequence.items must contain ${ORDERING_MIN_ITEMS} to ${ORDERING_MAX_ITEMS} items`,
+        );
+      }
+      const seen = new Set<number>();
+      const items = sequenceRaw.items.map((value, itemIndex): OrderingItem => {
+        const item = record(value);
+        if (!item) {
+          throw new Error(`question ${id}.sequence.items[${itemIndex}] must be an object`);
+        }
+        rejectUnknownFields(
+          item,
+          SEQUENCE_ITEM_FIELDS,
+          `question ${id}.sequence.items[${itemIndex}]`,
+        );
+        const tileValue = requiredInteger(
+          item.value,
+          `question ${id}.sequence.items[${itemIndex}].value`,
+        );
+        if (tileValue < 0) {
+          throw new Error(`question ${id}.sequence.items[${itemIndex}].value must be non-negative`);
+        }
+        if (seen.has(tileValue)) {
+          throw new Error(
+            `question ${id}.sequence.items must have unique values ` +
+              `(duplicate ${tileValue} makes the correct order ambiguous)`,
+          );
+        }
+        seen.add(tileValue);
+        const parsed: OrderingItem = { value: tileValue };
+        for (const label of ["label_zh", "label_en"] as const) {
+          if (item[label] !== undefined) {
+            parsed[label] = requiredString(
+              item[label],
+              `question ${id}.sequence.items[${itemIndex}].${label}`,
+            );
+          } else if (direction === "forward") {
+            throw new Error(
+              `question ${id}.sequence.items[${itemIndex}].${label} is required for direction "forward"`,
+            );
+          }
+        }
+        return parsed;
+      });
+      question.sequence = { direction, items };
+    }
 
     return question;
   });
