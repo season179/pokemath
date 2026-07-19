@@ -51,9 +51,14 @@ interface BattleResult {
   award: PlayerXpAward;
 }
 
+export type BattleOutcome = "won" | "captured" | "fled" | "defeated";
+
 export interface BattleActions {
   onExit: () => void;
   onRespawn: () => void;
+  // Region arcs (M5): the single terminal outcome, reported once per battle
+  // so the shell can count arc progress (e.g. Ticktock wins, #19).
+  onOutcome?: (outcome: BattleOutcome) => void;
 }
 
 export class BattleScreen {
@@ -304,7 +309,7 @@ export class BattleScreen {
   // One terminal outcome per battle, guaranteed by the guard. The four
   // endings: won (giveRewards), captured (throwBall), fled (runAway),
   // defeated (all-fainted branch of wildAttack above).
-  private emitOutcome(outcome: "won" | "captured" | "fled" | "defeated"): void {
+  private emitOutcome(outcome: BattleOutcome): void {
     if (this.outcomeEmitted) return;
     this.outcomeEmitted = true;
     this.telemetry.emit("battle_outcome", {
@@ -313,6 +318,7 @@ export class BattleScreen {
       asked: this.asked,
       correct: this.answeredCorrect,
     });
+    this.actions.onOutcome?.(outcome);
   }
 
   private beginSwitch(forced: boolean): void {

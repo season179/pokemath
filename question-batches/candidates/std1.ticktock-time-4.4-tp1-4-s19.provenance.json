@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.ticktock-time-4.4-tp1-4-s19",
+  "generator": {
+    "tool": "tools/generate-question-batch.mjs",
+    "version": 1
+  },
+  "generated_at": "2026-07-19T15:13:40.624Z",
+  "params": {
+    "bank_id": "std1.ticktock-time",
+    "grade": "std1",
+    "topic": "4.4",
+    "tp_min": 1,
+    "tp_max": 4,
+    "profile": "dpk3_2026_core",
+    "count": 24,
+    "seed": 19,
+    "bank_version": 1
+  },
+  "question_count": 24,
+  "template_counts": {
+    "fill-blank": 7,
+    "read-instrument": 14,
+    "order-sequence": 3
+  },
+  "sha256": "b75b1ac18f889984e0498754ba8cce8d897fb5c901611edca06e7c99dcfcebf0",
+  "reproduce": "node tools/generate-question-batch.mjs --bank std1.ticktock-time --topic 4.4 --tp 1-4 --profile dpk3_2026_core --count 24 --seed 19"
+}

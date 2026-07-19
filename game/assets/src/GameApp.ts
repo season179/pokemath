@@ -8,7 +8,7 @@ import { loadRoutedQuestionBank } from "./questions/loadQuestionBankManifest";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
 import { SignOutScreen } from "./SignOutScreen";
-import { BattleScreen } from "./battle/BattleScreen";
+import { BattleScreen, type BattleOutcome } from "./battle/BattleScreen";
 import { BagScreen } from "./bag/BagScreen";
 import { PartyScreen } from "./party/PartyScreen";
 import { ShopScreen } from "./shop/ShopScreen";
@@ -16,7 +16,15 @@ import { FieldGuideScreen } from "./guide/FieldGuideScreen";
 import { SanctuaryScreen } from "./sanctuary/SanctuaryScreen";
 import { GameState } from "./state";
 import { Telemetry } from "./client/telemetry";
-import { Direction, isEncounterRegion, isOpenRegion } from "./world/regions/index";
+import {
+  Direction,
+  TICKTOCK_ARC_BADGE,
+  TICKTOCK_ARC_CLUE,
+  TICKTOCK_ARC_WINS,
+  isEncounterRegion,
+  isOpenRegion,
+  topicForRegion,
+} from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
 import { WorldMapScreen } from "./world/WorldMapScreen";
 import { PALETTE, makeLabel, makePanel } from "./ui";
@@ -45,11 +53,16 @@ const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
 
 export class GameApp {
   private state: GameState;
-  // The approved Std-1 bank for Woolly encounters (#13: routed via the
-  // active manifest), loaded async from versioned JSON. Battles stay closed
-  // until it loads; we never fall back to the Year-4 SAMPLE_BANK (#8 forbids
-  // it in Woolly).
-  private bank: QuestionBank | null = null;
+  // Routed Std-1 banks (#13), one per curriculum topic, loaded async from
+  // versioned JSON. Each region's encounters serve the bank for ITS topic
+  // (topicForRegion, #19): Woolly asks 4.1, Ticktock asks 4.4. Battles in a
+  // region stay closed until its topic's bank loads; we never fall back to
+  // the Year-4 SAMPLE_BANK (#8 forbids it).
+  private banks = new Map<string, QuestionBank>();
+  private loadingTopics = new Set<string>();
+  // Ticktock arc progress (#19): session counter toward the re-chime badge.
+  private ticktockWins = 0;
+  private arcBadgeJustAwarded = false;
   private screen: Screen = "world";
   private world: WorldScreen;
   private party: PartyScreen | null = null;
@@ -91,7 +104,7 @@ export class GameApp {
     onBag: () => this.startBag(),
     onTravel: (regionId, gateway) => this.travel(regionId, gateway),
     onEncounter: (wild) => this.startBattle(wild),
-    encounterReady: () => this.bank !== null,
+    encounterReady: () => this.bankForCurrentRegion() !== null,
     onMap: () => this.openMap(),
     onGuide: () => this.startGuide(),
     onSanctuary: () => this.startSanctuary(),
@@ -115,6 +128,9 @@ export class GameApp {
     this.canvasNode.addChild(this.world.root);
     this.showPlayerName();
     this.screen = "world";
+    // Region arcs (#19): the destination's encounters serve its own topic's
+    // bank — start loading it now so tall grass is ready when the child is.
+    void this.loadBankFor(topicForRegion(regionId));
   }
 
   start() {
@@ -128,31 +144,42 @@ export class GameApp {
     view.on("canvas-resize", this.onViewResize, this);
     view.on("design-resolution-changed", this.onViewResize, this);
     this.showPlayerName();
-    // Load the routed Std-1 bank so Woolly encounters can start. If any
-    // manifest/bank boundary fails, encounters stay off (see loadBank).
-    void this.loadBank();
+    // Load the routed Std-1 bank for the starting region's topic so
+    // encounters can start. If any manifest/bank boundary fails, that
+    // topic's encounters stay off (see loadBankFor).
+    void this.loadBankFor(topicForRegion(this.world.regionId));
   }
 
-  private async loadBank(): Promise<void> {
+  /** The bank the current region's battles serve, or null until loaded. */
+  private bankForCurrentRegion(): QuestionBank | null {
+    return this.banks.get(topicForRegion(this.world.regionId)) ?? null;
+  }
+
+  private async loadBankFor(topic: string): Promise<void> {
+    if (this.banks.has(topic) || this.loadingTopics.has(topic)) return;
+    this.loadingTopics.add(topic);
     try {
       // Routed loading (#13): the active manifest picks the approved bank
       // version for this curriculum slice — battle code never names a bank
       // file, and a bad batch is rolled back at the manifest, not here.
-      this.bank = await loadRoutedQuestionBank({
+      const bank = await loadRoutedQuestionBank({
         grade: "std1",
-        topic: "4.1",
+        topic,
         profile: this.state.curriculumProfile,
       });
+      this.banks.set(topic, bank);
     } catch (error) {
-      // The routed Std-1 bank is required for any Woolly battle; we never
+      // The routed Std-1 bank is required for this topic's battles; we never
       // fall back to the Year-4 SAMPLE_BANK (#8 forbids it). If this fails,
       // check the active-manifest pointer, the manifest it names, and the
       // bank reference it resolves to — encounters enable once all three
-      // load and verify.
+      // load and verify. Other topics' banks are unaffected.
       console.error(
-        "[pokemath] Could not load the routed Std-1 Woolly bank; encounters stay off.",
+        `[pokemath] Could not load the routed Std-1 bank for topic ${topic}; its encounters stay off.`,
         error,
       );
+    } finally {
+      this.loadingTopics.delete(topic);
     }
   }
 
@@ -203,18 +230,18 @@ export class GameApp {
     if (this.screen === "world") this.world.update(dt);
   }
 
-  // A wild encounter (started from Woolly Meadows' tall grass) opens the
-  // battle screen with a fresh wild creature. Guards: only in an
+  // A wild encounter (started from tall grass in an encounter region) opens
+  // the battle screen with a fresh wild creature. Guards: only in an
   // encounter-capable region (the open-region scope), and only once the
-  // reviewed Std-1 bank has loaded.
+  // region's reviewed Std-1 bank has loaded.
   private startBattle(wild: Creature): void {
     if (!isEncounterRegion(this.world.regionId)) {
       console.warn(`Refusing battle in non-encounter region: ${this.world.regionId}`);
       return;
     }
-    const bank = this.bank;
+    const bank = this.bankForCurrentRegion();
     if (!bank) {
-      console.warn("Ignoring encounter: the reviewed Std-1 bank has not loaded yet.");
+      console.warn("Ignoring encounter: the region's reviewed Std-1 bank has not loaded yet.");
       return;
     }
     // Meeting a wild friend counts as "seen" in the Field Guide (#5) — even
@@ -228,14 +255,33 @@ export class GameApp {
     this.battle = new BattleScreen(this.state, wild, bank, {
       onExit: () => this.endBattle(false),
       onRespawn: () => this.endBattle(true),
+      onOutcome: (outcome) => this.trackArcOutcome(outcome),
     }, this.telemetry);
     this.canvasNode.addChild(this.battle.root);
+  }
+
+  // Region arcs (M5): terminal battle outcomes count toward the region's
+  // arc badge. Ticktock (#19): TICKTOCK_ARC_WINS won/captured battles on
+  // the knoll re-chime the tower clock — the badge persists, the landmark
+  // pays off in gold, and the habitat clue is revealed on battle exit.
+  private trackArcOutcome(outcome: BattleOutcome): void {
+    if (outcome !== "won" && outcome !== "captured") return;
+    if (this.world.regionId !== "meadow/ticktock") return;
+    if (this.state.hasBadge(TICKTOCK_ARC_BADGE)) return;
+    this.ticktockWins += 1;
+    if (this.ticktockWins >= TICKTOCK_ARC_WINS && this.state.awardBadge(TICKTOCK_ARC_BADGE)) {
+      this.arcBadgeJustAwarded = true;
+    }
   }
 
   private endBattle(respawn: boolean): void {
     this.battle?.root.destroy();
     this.battle = null;
     this.returnToWorld(respawn);
+    if (this.arcBadgeJustAwarded) {
+      this.arcBadgeJustAwarded = false;
+      this.world.showNotice(TICKTOCK_ARC_CLUE);
+    }
     this.checkpoint();
   }
 

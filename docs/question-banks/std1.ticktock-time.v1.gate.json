@@ -1,0 +1,170 @@
+{
+  "tool": "tools/validate-question-bank.mjs",
+  "generatedAt": "2026-07-19T15:13:40.812Z",
+  "source": "std1.ticktock-time-4.4-tp1-4-s19.candidate.json",
+  "sha256": "b75b1ac18f889984e0498754ba8cce8d897fb5c901611edca06e7c99dcfcebf0",
+  "accept": true,
+  "report": {
+    "bankId": "std1.ticktock-time",
+    "bankVersion": 1,
+    "schemaVersion": 2,
+    "questionCount": 24,
+    "accept": true,
+    "phases": [
+      {
+        "phase": "structural",
+        "accept": true,
+        "findings": []
+      },
+      {
+        "phase": "mechanical",
+        "accept": true,
+        "findings": []
+      },
+      {
+        "phase": "adversarial",
+        "accept": true,
+        "findings": []
+      }
+    ]
+  },
+  "jsonSchema": [],
+  "checklist": [
+    {
+      "rule": "SCHEMA-V2",
+      "phase": "structural",
+      "source": "docs/question-banks/schema-v2.md",
+      "description": "Bank parses at the trust boundary: a supported schema_version, every required field, no unknown fields, answer-form and figure payloads well-formed.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "SCOPE-100",
+      "phase": "mechanical",
+      "source": "scope doc §2",
+      "description": "Every number in the problem (operands, answer, distractors, table values) is within [0, 100].",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "OPS-PLUSMINUS",
+      "phase": "mechanical",
+      "source": "scope doc §2",
+      "description": "Only + and − appear; × ÷ * / and parentheses are rejected.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "STEP-SINGLE",
+      "phase": "mechanical",
+      "source": "scope doc §2",
+      "description": "Single-step items; chained subtraction and mixed +/− chains are rejected (pure repeated addition is allowed).",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "ANSWER-REDERIVE",
+      "phase": "mechanical",
+      "source": "issue #14",
+      "description": "The answer is independently re-derived from expression and must match — including the declared order on ordering items; wrong answers are rejected, never edited.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "OPERATION-LABEL",
+      "phase": "mechanical",
+      "source": "schema-v2 doc",
+      "description": "operation labels the arithmetic in expression (counting / addition / subtraction); ordering and numeral comparisons label counting.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "MONEY-RM10",
+      "phase": "mechanical",
+      "source": "scope doc §2/§4.3",
+      "description": "Ringgit amounts stay ≤ RM10 (answer_unit RM caps every number at 10).",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "MONEY-SEN100",
+      "phase": "mechanical",
+      "source": "scope doc §2/§4.3",
+      "description": "Sen amounts stay ≤ RM1 (answer_unit sen caps every number at 100).",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "MONEY-MIXED",
+      "phase": "mechanical",
+      "source": "scope doc §4.3",
+      "description": "No mixed coin-note exchange: a prompt exchanging equivalent value across the ringgit/sen boundary is rejected.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "DISTRACTORS",
+      "phase": "mechanical",
+      "source": "schema-v2 doc; style doc §D",
+      "description": "Authored distractors are in-scope, unique, distinct from the answer, and strategy-annotated.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "BILINGUAL",
+      "phase": "mechanical",
+      "source": "style doc §B; scope doc §3",
+      "description": "bilingual.numeral is the answer's digits; zh_word matches the derived Chinese number word.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "RAW-NUMERAL",
+      "phase": "adversarial",
+      "source": "issue #14",
+      "description": "Raw bilingual.numeral equals String(answer) — checked on the raw JSON, not the parsed object.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "RAW-IDS",
+      "phase": "adversarial",
+      "source": "schema-v2 doc",
+      "description": "Question ids are unique positive integers in the raw JSON.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "UNIT-TOPIC",
+      "phase": "adversarial",
+      "source": "scope doc §4.3",
+      "description": "answer_unit RM/sen appears only on topic 4.3 (money); money items outside 4.3 are incoherent.",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "STRATEGY-TOPIC",
+      "phase": "adversarial",
+      "source": "style doc §D",
+      "description": "money-denom-miscount distractors only on money items; clock-hand-swap only on topic 4.4 (time).",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "EXTRA-PROFILE",
+      "phase": "adversarial",
+      "source": "scope doc §1/§5",
+      "description": "topic \"extra\" requires profile original_dskp_extra; core topics gated to the extra profile warn (they are hidden from core-profile children).",
+      "result": "pass",
+      "findings": []
+    },
+    {
+      "rule": "ZH-WORD-DRIFT",
+      "phase": "adversarial",
+      "source": "style doc §B",
+      "description": "Raw bilingual.zh_word matches the independently derived Chinese number word (human-review evidence on drift).",
+      "result": "pass",
+      "findings": []
+    }
+  ]
+}

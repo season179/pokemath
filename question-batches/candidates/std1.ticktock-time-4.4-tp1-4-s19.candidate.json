@@ -1,0 +1,908 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.ticktock-time",
+  "version": 1,
+  "source": "Generated offline by tools/generate-question-batch.mjs v1 (M4, issue #15): seed 19, 4.4 TP1–4, profile dpk3_2026_core, 24 questions; provenance: question-batches/candidates/std1.ticktock-time-4.4-tp1-4-s19.provenance.json",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.4; TP1–4 candidate batch (pending gate + human review)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "一年中的最后一个月是几月？",
+      "question_en": "Which is the last month of the year?",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "要把钟面调到11时，分针应该指着几？",
+      "question_en": "To set the clock to 11 o'clock, which numeral should the minute hand point to?",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 3,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 9,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "钟面上是几时半？",
+      "question_en": "It is half past which hour?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 5,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 4,
+        "minute": 30
+      }
+    },
+    {
+      "id": 4,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "要把钟面调到7时半，分针应该指着几？",
+      "question_en": "To set the clock to half past 7, which numeral should the minute hand point to?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 9,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 3,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "钟面上是几时一刻？",
+      "question_en": "It is quarter past which hour?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 7,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 6,
+        "minute": 15
+      }
+    },
+    {
+      "id": 6,
+      "topic": "4.4",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "9",
+      "answer": 9,
+      "bilingual": {
+        "numeral": "9",
+        "zh_word": "九"
+      },
+      "question_zh": "要把钟面调到2时三刻，分针应该指着几？",
+      "question_en": "To set the clock to three quarters past 2, which numeral should the minute hand point to?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 12,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 6,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "9",
+      "answer": 9,
+      "bilingual": {
+        "numeral": "9",
+        "zh_word": "九"
+      },
+      "question_zh": "钟面上，分针指着哪个数字？",
+      "question_en": "Which numeral does the minute hand point to?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 12,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 6,
+          "strategy": "next-vs-between"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 2,
+        "minute": 45
+      }
+    },
+    {
+      "id": 8,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "story",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "昨天 → 今天 → 明天",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "按事情发生的顺序排列：连续三天（今天、昨天、明天）",
+      "question_en": "Put these in the order they happen: three days in a row (tomorrow, yesterday, today)",
+      "distractors": [],
+      "sequence": {
+        "direction": "forward",
+        "items": [
+          {
+            "value": 1,
+            "label_zh": "昨天",
+            "label_en": "yesterday"
+          },
+          {
+            "value": 2,
+            "label_zh": "今天",
+            "label_en": "today"
+          },
+          {
+            "value": 3,
+            "label_zh": "明天",
+            "label_en": "tomorrow"
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What o'clock is it?",
+      "distractors": [
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 9,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 8,
+        "minute": 0
+      }
+    },
+    {
+      "id": 10,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What o'clock is it?",
+      "distractors": [
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 4,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 3,
+        "minute": 0
+      }
+    },
+    {
+      "id": 11,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "3月的后一个月是几月？",
+      "question_en": "Which month comes just after March?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "story",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "清晨 → 上午 → 下午 → 晚上",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "按事情发生的顺序排列：一天的不同时段（上午、清晨、晚上、下午）",
+      "question_en": "Put these in the order they happen: parts of a day (evening, afternoon, early morning, morning)",
+      "distractors": [],
+      "sequence": {
+        "direction": "forward",
+        "items": [
+          {
+            "value": 1,
+            "label_zh": "清晨",
+            "label_en": "early morning"
+          },
+          {
+            "value": 2,
+            "label_zh": "上午",
+            "label_en": "morning"
+          },
+          {
+            "value": 3,
+            "label_zh": "下午",
+            "label_en": "afternoon"
+          },
+          {
+            "value": 4,
+            "label_zh": "晚上",
+            "label_en": "evening"
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "9",
+      "answer": 9,
+      "bilingual": {
+        "numeral": "9",
+        "zh_word": "九"
+      },
+      "question_zh": "钟面上是整点，时针指着哪个数字？",
+      "question_en": "It is exactly on the hour. Which numeral does the hour hand point to?",
+      "distractors": [
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 9,
+        "minute": 0
+      }
+    },
+    {
+      "id": 14,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "7",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What o'clock is it?",
+      "distractors": [
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 8,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 7,
+        "minute": 0
+      }
+    },
+    {
+      "id": 15,
+      "topic": "4.4",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "5月的后一个月是几月？",
+      "question_en": "Which month comes just after May?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "钟面上是整点，时针指着哪个数字？",
+      "question_en": "It is exactly on the hour. Which numeral does the hour hand point to?",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 12,
+        "minute": 0
+      }
+    },
+    {
+      "id": 17,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "今天是星期五，昨天是星期几？",
+      "question_en": "Today is Friday. What day was it yesterday?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "topic": "4.4",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "一年中的第一个月是几月？",
+      "question_en": "Which is the first month of the year?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "钟面上是几时半？",
+      "question_en": "It is half past which hour?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 6,
+        "minute": 30
+      }
+    },
+    {
+      "id": 20,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "story",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "昨天 → 今天 → 明天",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "按事情发生的顺序排列：连续三天（今天、明天、昨天）",
+      "question_en": "Put these in the order they happen: three days in a row (today, tomorrow, yesterday)",
+      "distractors": [],
+      "sequence": {
+        "direction": "forward",
+        "items": [
+          {
+            "value": 1,
+            "label_zh": "昨天",
+            "label_en": "yesterday"
+          },
+          {
+            "value": 2,
+            "label_zh": "今天",
+            "label_en": "today"
+          },
+          {
+            "value": 3,
+            "label_zh": "明天",
+            "label_en": "tomorrow"
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "今天是星期一，后天是星期几？",
+      "question_en": "Today is Monday. What day will it be the day after tomorrow?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "next-vs-between"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "钟面上，分针指着哪个数字？",
+      "question_en": "Which numeral does the minute hand point to?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 3,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 9,
+          "strategy": "next-vs-between"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 2,
+        "minute": 0
+      }
+    },
+    {
+      "id": 23,
+      "topic": "4.4",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "填一填：一年有 ___ 个月",
+      "question_en": "Fill in the blank: How many months are there in a year?",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 13,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 21,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "2",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "钟面上是几时半？",
+      "question_en": "It is half past which hour?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 3,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 2,
+        "minute": 30
+      }
+    }
+  ]
+}

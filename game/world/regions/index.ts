@@ -110,6 +110,35 @@ export function canTraverseGateway(gateway: GatewayDef): boolean {
 export const SEALED_GATEWAY_MESSAGE =
   "This path opens in a later update! 这条路稍后开放！";
 
+// --- Topic arcs (M5: #17 money, #18, #19 time, #20) ---
+//
+// Every encounter region serves the question bank routed for ITS curriculum
+// topic: GameApp asks this map for the region's topic, loads the routed bank
+// for it (#13), and caches per topic. Regions without a mapping keep the
+// Woolly default (4.1) until their arc lands. Later arcs add their case
+// here — nothing else in the battle path names a topic.
+export const REGION_TOPICS: Readonly<Record<string, string>> = {
+  "meadow/woolly": "4.1", // whole numbers to 100
+  "meadow/ticktock": "4.4", // time & calendar (#19)
+};
+
+/** The topic served in regions with no arc of their own yet. */
+export const DEFAULT_REGION_TOPIC = "4.1";
+
+/** The curriculum topic a region's battles serve (#13 routed loading). */
+export function topicForRegion(id: string): string {
+  return REGION_TOPICS[id] ?? DEFAULT_REGION_TOPIC;
+}
+
+// Ticktock Knoll arc payoff (#19): winning TICKTOCK_ARC_WINS battles on the
+// knoll (won or captured) awards the badge, the clock-post landmark chimes
+// again (golden face set to 八时, the hour the owl keeper wakes), and the
+// habitat clue below is revealed. The badge persists on save v2 `badges`.
+export const TICKTOCK_ARC_BADGE = "arc/ticktock-time";
+export const TICKTOCK_ARC_WINS = 3;
+export const TICKTOCK_ARC_CLUE =
+  "滴答钟塔重新敲响！咕咕在黄昏最活跃 · The tower clock chimes again — Owlets love dusk!";
+
 /**
  * The notice shown when a player steps on a gateway that does not travel. A
  * pocket or sealed gateway's own message wins; otherwise the bilingual
