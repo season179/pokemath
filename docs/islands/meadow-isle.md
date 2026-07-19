@@ -1,6 +1,6 @@
 # Meadow Isle — Standard 1 Island Design
 
-**Status: DRAFT (2026-07-17).** Companion to
+**Status: Plan of record — approved; revised implementation order locked 2026-07-18.** Companion to
 [world-map-design.md](../world-map-design.md). Curriculum authority:
 [standard-1-sjkc-math.md](../curriculum/standard-1-sjkc-math.md) (scope) and
 [standard-1-question-style.md](../curriculum/standard-1-question-style.md)

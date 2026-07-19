@@ -18,10 +18,13 @@ in **R2**. Phased — each phase ends with something playable or usable.
    diffable, reviewable) and keep editor-authored state to a minimum.
    **Pin the editor version** (3.8.x) in the repo.
 4. **Right-sized Cloudflare.** Web build → Workers Static Assets (free,
-   deploy-time). Saves *and the question bank* → D1 (structured: query by
-   operation/difficulty). R2 → media only (audio, sprites) and content that
-   should update without a redeploy. Don't put the question bank in R2 as
-   JSON blobs — it belongs in a database.
+   deploy-time). Saves → D1. R2 → media only (audio, sprites) and content that
+   should update without a redeploy. ~~Saves *and the question bank* →
+   D1 — don't put the question bank in R2 as JSON blobs, it belongs in a
+   database.~~ **Superseded (2026-07-19):** question banks ship as immutable,
+   versioned JSON resources under `game/assets/resources/question-banks/`,
+   validated against `schemas/` and selected via a rollback-safe manifest
+   (issues #10/#13). D1 holds saves only.
 5. **Kid-simple identity.** ~~Server-issued anonymous token in localStorage,
    plus a short human save-code (for siblings / switching devices).~~
    **Superseded (2026-07-17):** mandatory Google sign-in via better-auth;
@@ -124,12 +127,16 @@ progress survives refresh and restores on a second browser via save code.
   --build "platform=web-mobile"` → `game/build/web-mobile/` (exit code 36
   is success). Deploy: `npm run deploy`.
 
-## Phase 3+ — being replanned
+## Phase 3+ — replanned as Meadow Isle (2026-07)
+
+**This replan is done (2026-07-18).** The plan of record is
+[`docs/islands/meadow-isle.md`](docs/islands/meadow-isle.md); the live work
+sequence is tracker issue #27. The notes below are kept as the historical
+record of the replan's inputs.
 
 The original Phase 3 sketch (import the existing question bank into D1) is
 **superseded**: questions will be **AI-generated** rather than imported from
-the prototype's authored bank. Season is replanning the roadmap from here.
-Inputs to that replan:
+the prototype's authored bank. Inputs to that replan:
 
 - `docs/curriculum/standard-*-question-style.md` — curriculum question-style
   references being authored now; likely the grounding for AI generation.
