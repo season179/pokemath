@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.appledore-money-4.3-tp2-3-s81",
+  "generator": {
+    "tool": "tools/generate-question-batch.mjs",
+    "version": 2
+  },
+  "generated_at": "2026-07-19T15:22:47.600Z",
+  "params": {
+    "bank_id": "std1.appledore-money",
+    "grade": "std1",
+    "topic": "4.3",
+    "tp_min": 2,
+    "tp_max": 3,
+    "profile": "dpk3_2026_core",
+    "count": 20,
+    "seed": 81,
+    "bank_version": 1
+  },
+  "question_count": 20,
+  "template_counts": {
+    "fill-blank": 5,
+    "count-write": 10,
+    "word-single": 5
+  },
+  "sha256": "d5a5c13f89c92f3fd43ce806e5ec9266fddc4e2102ab55a3300b4b2f392cd9ef",
+  "reproduce": "node tools/generate-question-batch.mjs --bank std1.appledore-money --topic 4.3 --tp 2-3 --profile dpk3_2026_core --count 20 --seed 81"
+}

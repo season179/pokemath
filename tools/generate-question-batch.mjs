@@ -36,11 +36,15 @@ import { fileURLToPath } from "node:url";
 import { CURRICULUM_PROFILES } from "../shared/curriculum.ts";
 import { chineseNumeral } from "../shared/question-v2.ts";
 
+// Version 2 (M5, #18): the Appledore arc adds figure-carrying templates
+// (objects/coins) and the 4.2/4.3 exchange + repeated-addition forms, which
+// changes the 4.2/4.3 template decks — v1 provenance stays reproducible from
+// git history, never by editing a shipped candidate.
+export const GENERATOR_VERSION = 2;
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const DEFAULT_RESOURCES_DIR = join(root, "game", "assets", "resources");
 export const DEFAULT_CANDIDATES_DIR = join(root, "question-batches", "candidates");
-
-export const GENERATOR_VERSION = 1;
 
 // --- seeded PRNG (mulberry32): all randomness flows from the one seed ---
 
@@ -131,16 +135,18 @@ const COUNT_SCENES = [
   { emoji: "🐦", noun_zh: "小鸟", measure: "只", place_zh: "树上", noun_en: "bird", plural_en: "birds", place_en: "in the tree" },
 ];
 
-// Word-problem props (topic 4.2). giver_zh pairs with 又买了/又给了 frames.
+// Word-problem props (topic 4.2). giver_zh pairs with 又买了/又给了 frames;
+// verb_zh/verb_en is the subtraction action, matched to the object so a
+// story never eats the stationery (#18).
 const STORY_OBJECTS = [
-  { noun_zh: "故事书", measure: "本", noun_en: "storybook", plural_en: "storybooks" },
-  { noun_zh: "贴纸", measure: "张", noun_en: "sticker", plural_en: "stickers" },
-  { noun_zh: "弹珠", measure: "颗", noun_en: "marble", plural_en: "marbles" },
-  { noun_zh: "饼干", measure: "块", noun_en: "cookie", plural_en: "cookies" },
-  { noun_zh: "铅笔", measure: "支", noun_en: "pencil", plural_en: "pencils" },
-  { noun_zh: "鸡蛋", measure: "个", noun_en: "egg", plural_en: "eggs" },
-  { noun_zh: "苹果", measure: "个", noun_en: "apple", plural_en: "apples" },
-  { noun_zh: "糖果", measure: "颗", noun_en: "candy", plural_en: "candies" },
+  { noun_zh: "故事书", measure: "本", noun_en: "storybook", plural_en: "storybooks", verb_zh: "送出", verb_en: "gave away" },
+  { noun_zh: "贴纸", measure: "张", noun_en: "sticker", plural_en: "stickers", verb_zh: "送出", verb_en: "gave away" },
+  { noun_zh: "弹珠", measure: "颗", noun_en: "marble", plural_en: "marbles", verb_zh: "送出", verb_en: "gave away" },
+  { noun_zh: "饼干", measure: "块", noun_en: "cookie", plural_en: "cookies", verb_zh: "吃了", verb_en: "ate" },
+  { noun_zh: "铅笔", measure: "支", noun_en: "pencil", plural_en: "pencils", verb_zh: "送出", verb_en: "gave away" },
+  { noun_zh: "鸡蛋", measure: "个", noun_en: "egg", plural_en: "eggs", verb_zh: "吃了", verb_en: "ate" },
+  { noun_zh: "苹果", measure: "个", noun_en: "apple", plural_en: "apples", verb_zh: "吃了", verb_en: "ate" },
+  { noun_zh: "糖果", measure: "颗", noun_en: "candy", plural_en: "candies", verb_zh: "吃了", verb_en: "ate" },
 ];
 const STORY_NAMES = [
   { zh: "美美", en: "Meimei" },
@@ -533,8 +539,8 @@ function makeWordProblemItem(rng, tp, scopeMax = 100, unit = "none") {
     question_zh = `${name.zh}有 ${a} ${m}${obj.noun_zh}，妈妈又买了 ${b} ${m}，现在共有几${m}${obj.noun_zh}？`;
     question_en = `${name.en} had ${a} ${obj.plural_en}. Mother bought ${b} more. How many ${obj.plural_en} does ${name.en} have now?`;
   } else {
-    question_zh = `${name.zh}有 ${a} ${m}${obj.noun_zh}，吃了 ${b} ${m}，还剩几${m}${obj.noun_zh}？`;
-    question_en = `${name.en} had ${a} ${obj.plural_en} and ate ${b}. How many ${obj.plural_en} are left?`;
+    question_zh = `${name.zh}有 ${a} ${m}${obj.noun_zh}，${obj.verb_zh} ${b} ${m}，还剩几${m}${obj.noun_zh}？`;
+    question_en = `${name.en} had ${a} ${obj.plural_en} and ${obj.verb_en} ${b}. How many ${obj.plural_en} are left?`;
   }
   return {
     format_type: "word-single",
@@ -627,7 +633,8 @@ function makeEquationTruthItem(rng, tp) {
   };
 }
 
-function makeCoinTotalItem(rng, tp) {
+/** Draw a coin pile whose total stays within the sen cap (RM1, scope §4.3). */
+function drawCoins(rng, tp) {
   const count = tp <= 2 ? 2 : pick(rng, [2, 3]);
   let coins = [];
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -636,6 +643,11 @@ function makeCoinTotalItem(rng, tp) {
   }
   const sum = coins.reduce((x, y) => x + y, 0);
   if (sum > 100) throw new Error("no coin set within the sen cap");
+  return { coins, sum };
+}
+
+function makeCoinTotalItem(rng, tp) {
+  const { coins, sum } = drawCoins(rng, tp);
   const name = pick(rng, STORY_NAMES);
   const listZh = coins.map((c) => `一枚 ${c} sen`).join(" 和 ");
   const listEn = coins.map((c) => `a ${c}-sen coin`).join(" and ");
@@ -836,6 +848,179 @@ function makeMonthNameItem(rng) {
   };
 }
 
+// --- topic 4.2: Appledore orchard picture-sentence + repeated addition (#18) ---
+
+// 看图列式 (picture → number sentence): the objects figure strikes the
+// trailing `crossedOut` apples — crossing-out IS the Standard-1 subtraction
+// convention (style doc §C.2), so the picture fully determines the sentence.
+function makePictureSentenceItem(rng, tp) {
+  const total = tp <= 2 ? int(rng, 6, 10) : int(rng, 11, 20);
+  const crossed = int(rng, 1, total - 1);
+  const answer = total - crossed;
+  return {
+    format_type: "picture-sentence",
+    presentation: "figure:objects",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "subtraction",
+    expression: `${total} - ${crossed}`,
+    answer,
+    question_zh: `看图写出算式：一共有 ${total} 个苹果，划掉 ${crossed} 个，还剩几个？ ${total} - ${crossed} = ___`,
+    question_en: `Write the number sentence: ${total} apples, ${crossed} crossed out. How many are left? ${total} - ${crossed} = ___`,
+    figure: { kind: "objects", icon: "🍎", count: total, crossedOut: crossed },
+    distractors: buildDistractors(rng, answer, 100, [
+      { value: total + crossed, strategy: "wrong-operation" },
+      { value: crossed, strategy: "raw-operand" },
+      { value: answer + 1, strategy: "off-by-one-count" },
+    ]),
+  };
+}
+
+// Repeated addition as ×-readiness (scope doc §4.2): orchard rows of 2, 5,
+// or 10 trees, written as a `+` chain — never a × symbol.
+function makeRepeatedAdditionItem(rng, tp) {
+  const step = pick(rng, [2, 5, 10]);
+  const terms = int(rng, 3, 5);
+  const sentence = Array(terms).fill(step).join(" + ");
+  const answer = step * terms;
+  return {
+    format_type: "fill-blank",
+    presentation: "story",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "addition",
+    expression: sentence,
+    answer,
+    question_zh: `果园里有 ${terms} 行苹果树，每行 ${step} 棵。算一算：${sentence} = ___ 棵`,
+    question_en: `The orchard has ${terms} rows with ${step} apple trees each. Calculate: ${sentence} = ___ trees`,
+    distractors: buildDistractors(rng, answer, 100, [
+      { value: answer - step, strategy: "off-by-one-count" }, // missed a row
+      { value: answer + step, strategy: "off-by-one-count" }, // counted an extra row
+      { value: step + terms, strategy: "count-all-vs-add" },
+    ]),
+  };
+}
+
+// --- topic 4.3: fruit-stand figures, identification, exchange (#18) --------
+
+// 认钱 with the coins figure (#16): the pictured pile carries the
+// denominations, so the prompt no longer lists them (contrast the story
+// presentation of makeCoinTotalItem). Same sen cap, drawn by drawCoins.
+function makeCoinFigureItem(rng, tp) {
+  const { coins, sum } = drawCoins(rng, tp);
+  return {
+    format_type: "count-write",
+    presentation: "figure:coins",
+    answer_form: "numeral",
+    answer_unit: "sen",
+    operation: "addition",
+    expression: coins.join(" + "),
+    answer: sum,
+    question_zh: "这些硬币一共多少钱？",
+    question_en: "How much are these coins worth in total?",
+    figure: { kind: "coins", coins },
+    distractors: buildDistractors(rng, sum, 100, [
+      { value: sum - (coins[0] === 50 ? 40 : 0), strategy: "money-denom-miscount" },
+      { value: sum - 5, strategy: "money-denom-miscount" },
+      { value: coins[0], strategy: "raw-operand" },
+    ]),
+  };
+}
+
+// Note identification / totals (认钱, style doc §C.3): notes only, totals ≤
+// RM10 — never mixed with coins in one item.
+function makeNoteTotalItem(rng, tp) {
+  const count = tp <= 2 ? 2 : pick(rng, [2, 3]);
+  let notes = [];
+  for (let attempt = 0; attempt < 100; attempt++) {
+    notes = Array.from({ length: count }, () => pick(rng, RM_NOTES));
+    if (notes.reduce((x, y) => x + y, 0) <= 10) break; // RM cap (scope §4.3)
+  }
+  const sum = notes.reduce((x, y) => x + y, 0);
+  if (sum > 10) throw new Error("no note set within the RM cap");
+  const name = pick(rng, STORY_NAMES);
+  const listZh = notes.map((n) => `一张 RM${n}`).join(" 和 ");
+  const listEn = notes.map((n) => `an RM${n} note`).join(" and ");
+  return {
+    format_type: "count-write",
+    presentation: "story",
+    answer_form: "numeral",
+    answer_unit: "RM",
+    operation: "addition",
+    expression: notes.join(" + "),
+    answer: sum,
+    question_zh: `${name.zh}有${listZh}，一共有多少钱？`,
+    question_en: `${name.en} has ${listEn}. How much money is that in total?`,
+    distractors: buildDistractors(rng, sum, 10, [
+      { value: sum - (notes[0] === 5 ? 4 : 0), strategy: "money-denom-miscount" },
+      { value: sum + 1, strategy: "off-by-one-count" },
+      { value: notes[0], strategy: "raw-operand" },
+    ]),
+  };
+}
+
+// Equivalent-value exchange, coins for coins within RM1 (scope §4.3). The
+// answer is a COUNT of coins, so the item is a counting item with a
+// bare-value expression (no ÷ at Standard 1); sen-only vocabulary keeps the
+// #14 gate's mixed coin-note exchange check silent.
+const COIN_EXCHANGES = [
+  { from: 50, to: 10 },
+  { from: 50, to: 5 },
+  { from: 20, to: 10 },
+  { from: 20, to: 5 },
+  { from: 10, to: 5 },
+];
+
+function makeCoinExchangeItem(rng) {
+  const { from, to } = pick(rng, COIN_EXCHANGES);
+  const answer = from / to;
+  return {
+    format_type: "count-write",
+    presentation: "plain",
+    answer_form: "count",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(answer),
+    answer,
+    question_zh: `一枚 ${from} sen 可以换几枚 ${to} sen？`,
+    question_en: `How many ${to}-sen coins can you exchange for one ${from}-sen coin?`,
+    distractors: buildDistractors(rng, answer, 100, [
+      { value: answer + 1, strategy: "off-by-one-count" },
+      { value: answer - 1, strategy: "off-by-one-count" },
+      { value: from - to, strategy: "wrong-operation" }, // subtracted the denominations
+    ]),
+  };
+}
+
+// Equivalent-value exchange, notes for notes within RM10 (scope §4.3) — the
+// ringgit twin of the coin exchange; never mixed in one item.
+const NOTE_EXCHANGES = [
+  { from: 10, to: 5 },
+  { from: 10, to: 1 },
+  { from: 5, to: 1 },
+];
+
+function makeNoteExchangeItem(rng) {
+  const { from, to } = pick(rng, NOTE_EXCHANGES);
+  const answer = from / to;
+  return {
+    format_type: "count-write",
+    presentation: "plain",
+    answer_form: "count",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(answer),
+    answer,
+    question_zh: `一张 RM${from} 可以换几张 RM${to}？`,
+    question_en: `How many RM${to} notes can you exchange for one RM${from} note?`,
+    distractors: buildDistractors(rng, answer, 100, [
+      { value: answer + 1, strategy: "off-by-one-count" },
+      { value: answer - 1, strategy: "off-by-one-count" },
+      { value: from - to, strategy: "wrong-operation" },
+    ]),
+  };
+}
+
 function makeCalendarFactItem(rng) {
   const fact = pick(rng, [
     {
@@ -938,9 +1123,15 @@ export const TEMPLATES_BY_TOPIC = {
     { tp: [2, 4], make: (rng, tp) => makeWordProblemItem(rng, tp) },
     { tp: [2, 4], make: (rng, tp) => makeNumberBondItem(rng, tp) },
     { tp: [2, 4], make: (rng, tp) => makeEquationTruthItem(rng, tp) },
+    { tp: [2, 3], make: (rng, tp) => makePictureSentenceItem(rng, tp) },
+    { tp: [2, 4], make: (rng, tp) => makeRepeatedAdditionItem(rng, tp) },
   ],
   "4.3": [
     { tp: [2, 3], make: (rng, tp) => makeCoinTotalItem(rng, tp) },
+    { tp: [2, 3], make: (rng, tp) => makeCoinFigureItem(rng, tp) },
+    { tp: [2, 3], make: (rng, tp) => makeNoteTotalItem(rng, tp) },
+    { tp: [3, 4], make: (rng, tp) => makeCoinExchangeItem(rng, tp) },
+    { tp: [3, 4], make: (rng, tp) => makeNoteExchangeItem(rng, tp) },
     { tp: [2, 4], make: (rng, tp) => makeComputeItem(rng, tp, 10, "RM") },
     { tp: [2, 4], make: (rng, tp) => makeComputeItem(rng, tp, 100, "sen") },
     { tp: [2, 4], make: (rng, tp) => makeWordProblemItem(rng, tp, 10, "RM") },

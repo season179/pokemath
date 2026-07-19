@@ -1,0 +1,677 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.appledore-arithmetic",
+  "version": 1,
+  "source": "Generated offline by tools/generate-question-batch.mjs v2 (M4, issue #15): seed 18, 4.2 TP2–3, profile dpk3_2026_core, 20 questions; provenance: question-batches/candidates/std1.appledore-arithmetic-4.2-tp2-3-s18.provenance.json",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.2; TP2–3 candidate batch (pending gate + human review)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "picture-sentence",
+      "presentation": "figure:objects",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "18 - 4",
+      "answer": 14,
+      "bilingual": {
+        "numeral": "14",
+        "zh_word": "十四"
+      },
+      "question_zh": "看图写出算式：一共有 18 个苹果，划掉 4 个，还剩几个？ 18 - 4 = ___",
+      "question_en": "Write the number sentence: 18 apples, 4 crossed out. How many are left? 18 - 4 = ___",
+      "distractors": [
+        {
+          "value": 22,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "objects",
+        "icon": "🍎",
+        "count": 18,
+        "crossedOut": 4
+      }
+    },
+    {
+      "id": 2,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "6 - 5",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "嘉嘉有 6 张贴纸，送出 5 张，还剩几张贴纸？",
+      "question_en": "Jiajia had 6 stickers and gave away 5. How many stickers are left?",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "7 - 6",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "算一算：7 - 6 = ___",
+      "question_en": "Calculate: 7 - 6 = ___",
+      "distractors": [
+        {
+          "value": 13,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 11,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "18 + 1",
+      "answer": 19,
+      "bilingual": {
+        "numeral": "19",
+        "zh_word": "十九"
+      },
+      "question_zh": "18 和 1 合起来是多少？",
+      "question_en": "What do 18 and 1 make together?",
+      "distractors": [
+        {
+          "value": 18,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 1,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 20,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "14 - 12",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "14 可以分成 12 和 ___",
+      "question_en": "14 can be split into 12 and ___",
+      "distractors": [
+        {
+          "value": 26,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 12,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "picture-sentence",
+      "presentation": "figure:objects",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "11 - 8",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "看图写出算式：一共有 11 个苹果，划掉 8 个，还剩几个？ 11 - 8 = ___",
+      "question_en": "Write the number sentence: 11 apples, 8 crossed out. How many are left? 11 - 8 = ___",
+      "distractors": [
+        {
+          "value": 19,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "objects",
+        "icon": "🍎",
+        "count": 11,
+        "crossedOut": 8
+      }
+    },
+    {
+      "id": 7,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "60 + 31",
+      "answer": 91,
+      "bilingual": {
+        "numeral": "91",
+        "zh_word": "九十一"
+      },
+      "question_zh": "60 和 31 合起来是多少？",
+      "question_en": "What do 60 and 31 make together?",
+      "distractors": [
+        {
+          "value": 60,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 31,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 92,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "5 + 5 + 5 + 5",
+      "answer": 20,
+      "bilingual": {
+        "numeral": "20",
+        "zh_word": "二十"
+      },
+      "question_zh": "果园里有 4 行苹果树，每行 5 棵。算一算：5 + 5 + 5 + 5 = ___ 棵",
+      "question_en": "The orchard has 4 rows with 5 apple trees each. Calculate: 5 + 5 + 5 + 5 = ___ trees",
+      "distractors": [
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 25,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "17 - 15 = 4",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：17 - 15 = 4",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 17 - 15 = 4",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "75 - 20",
+      "answer": 55,
+      "bilingual": {
+        "numeral": "55",
+        "zh_word": "五十五"
+      },
+      "question_zh": "小明有 75 个鸡蛋，吃了 20 个，还剩几个鸡蛋？",
+      "question_en": "Xiaoming had 75 eggs and ate 20. How many eggs are left?",
+      "distractors": [
+        {
+          "value": 95,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 20,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 75,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "7 - 1",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "7 可以分成 1 和 ___",
+      "question_en": "7 can be split into 1 and ___",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "2 + 2 + 2 + 2 + 2",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "果园里有 5 行苹果树，每行 2 棵。算一算：2 + 2 + 2 + 2 + 2 = ___ 棵",
+      "question_en": "The orchard has 5 rows with 2 apple trees each. Calculate: 2 + 2 + 2 + 2 + 2 = ___ trees",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 12,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "10 + 10 + 10 + 10 + 10",
+      "answer": 50,
+      "bilingual": {
+        "numeral": "50",
+        "zh_word": "五十"
+      },
+      "question_zh": "果园里有 5 行苹果树，每行 10 棵。算一算：10 + 10 + 10 + 10 + 10 = ___ 棵",
+      "question_en": "The orchard has 5 rows with 10 apple trees each. Calculate: 10 + 10 + 10 + 10 + 10 = ___ trees",
+      "distractors": [
+        {
+          "value": 40,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 60,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 15,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "94 + 3 = 91",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：94 + 3 = 91",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 94 + 3 = 91",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "wrong-operation"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "7 - 3",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "算一算：7 - 3 = ___",
+      "question_en": "Calculate: 7 - 3 = ___",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 14,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "2 + 2 + 2",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "果园里有 3 行苹果树，每行 2 棵。算一算：2 + 2 + 2 = ___ 棵",
+      "question_en": "The orchard has 3 rows with 2 apple trees each. Calculate: 2 + 2 + 2 = ___ trees",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "73 + 4 = 78",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：73 + 4 = 78",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 73 + 4 = 78",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "10 + 10 + 10",
+      "answer": 30,
+      "bilingual": {
+        "numeral": "30",
+        "zh_word": "三十"
+      },
+      "question_zh": "果园里有 3 行苹果树，每行 10 棵。算一算：10 + 10 + 10 = ___ 棵",
+      "question_en": "The orchard has 3 rows with 10 apple trees each. Calculate: 10 + 10 + 10 = ___ trees",
+      "distractors": [
+        {
+          "value": 20,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 40,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 13,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "44 - 12 = 31",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：44 - 12 = 31",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 44 - 12 = 31",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "picture-sentence",
+      "presentation": "figure:objects",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "18 - 7",
+      "answer": 11,
+      "bilingual": {
+        "numeral": "11",
+        "zh_word": "十一"
+      },
+      "question_zh": "看图写出算式：一共有 18 个苹果，划掉 7 个，还剩几个？ 18 - 7 = ___",
+      "question_en": "Write the number sentence: 18 apples, 7 crossed out. How many are left? 18 - 7 = ___",
+      "distractors": [
+        {
+          "value": 25,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 7,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 12,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "objects",
+        "icon": "🍎",
+        "count": 18,
+        "crossedOut": 7
+      }
+    }
+  ]
+}

@@ -1,0 +1,705 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.appledore-money",
+  "version": 1,
+  "source": "Generated offline by tools/generate-question-batch.mjs v2 (M4, issue #15): seed 81, 4.3 TP2–3, profile dpk3_2026_core, 20 questions; provenance: question-batches/candidates/std1.appledore-money-4.3-tp2-3-s81.provenance.json",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.3; TP2–3 candidate batch (pending gate + human review)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "1 + 2",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "算一算：RM1 + RM2 = ___",
+      "question_en": "Calculate: RM1 + RM2 = ___",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "10 + 5",
+      "answer": 15,
+      "bilingual": {
+        "numeral": "15",
+        "zh_word": "十五"
+      },
+      "question_zh": "算一算：10 sen + 5 sen = ___",
+      "question_en": "Calculate: 10 sen + 5 sen = ___",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 25,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 16,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "4 + 1",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "算一算：RM4 + RM1 = ___",
+      "question_en": "Calculate: RM4 + RM1 = ___",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "5 + 50 + 10",
+      "answer": 65,
+      "bilingual": {
+        "numeral": "65",
+        "zh_word": "六十五"
+      },
+      "question_zh": "小华存了一枚 5 sen 和 一枚 50 sen 和 一枚 10 sen，一共存了多少钱？",
+      "question_en": "Xiaohua saved a 5-sen coin and a 50-sen coin and a 10-sen coin. How much did Xiaohua save in total?",
+      "distractors": [
+        {
+          "value": 60,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 63,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "8 - 3",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "小华有 RM8，买文具用了 RM3，现在还有多少钱？",
+      "question_en": "Xiaohua had RM8 and spent RM3 on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "2 - 1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "小华有 RM2，买文具用了 RM1，现在还有多少钱？",
+      "question_en": "Xiaohua had RM2 and spent RM1 on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 2,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "subtraction",
+      "expression": "15 - 5",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "嘉嘉有 15 sen，买文具用了 5 sen，现在还有多少钱？",
+      "question_en": "Jiajia had 15 sen and spent 5 sen on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 20,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 15,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "6 + 1",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "小华有 RM6，妈妈又给了 RM1，现在共有多少钱？",
+      "question_en": "Xiaohua had RM6. Mother gave RM1 more. How much money does Xiaohua have now?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "8 - 2",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "算一算：RM8 - RM2 = ___",
+      "question_en": "Calculate: RM8 - RM2 = ___",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "2 + 5",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "算一算：RM2 + RM5 = ___",
+      "question_en": "Calculate: RM2 + RM5 = ___",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "20 + 10",
+      "answer": 30,
+      "bilingual": {
+        "numeral": "30",
+        "zh_word": "三十"
+      },
+      "question_zh": "嘉嘉存了一枚 20 sen 和 一枚 10 sen，一共存了多少钱？",
+      "question_en": "Jiajia saved a 20-sen coin and a 10-sen coin. How much did Jiajia save in total?",
+      "distractors": [
+        {
+          "value": 25,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 20,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 31,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "1 + 1",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "嘉嘉有一张 RM1 和 一张 RM1，一共有多少钱？",
+      "question_en": "Jiajia has an RM1 note and an RM1 note. How much money is that in total?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "plain",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "10",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "一张 RM10 可以换几张 RM1？",
+      "question_en": "How many RM1 notes can you exchange for one RM10 note?",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 12,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:coins",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "10 + 5",
+      "answer": 15,
+      "bilingual": {
+        "numeral": "15",
+        "zh_word": "十五"
+      },
+      "question_zh": "这些硬币一共多少钱？",
+      "question_en": "How much are these coins worth in total?",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 25,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 18,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "coins",
+        "coins": [
+          10,
+          5
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "1 + 1 + 5",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "小华有一张 RM1 和 一张 RM1 和 一张 RM5，一共有多少钱？",
+      "question_en": "Xiaohua has an RM1 note and an RM1 note and an RM5 note. How much money is that in total?",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "plain",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "2",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "一枚 10 sen 可以换几枚 5 sen？",
+      "question_en": "How many 5-sen coins can you exchange for one 10-sen coin?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "wrong-operation"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "1 + 4",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "嘉嘉有 RM1，妈妈又给了 RM4，现在共有多少钱？",
+      "question_en": "Jiajia had RM1. Mother gave RM4 more. How much money does Jiajia have now?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "5 + 1",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "嘉嘉有一张 RM5 和 一张 RM1，一共有多少钱？",
+      "question_en": "Jiajia has an RM5 note and an RM1 note. How much money is that in total?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:coins",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "20 + 10",
+      "answer": 30,
+      "bilingual": {
+        "numeral": "30",
+        "zh_word": "三十"
+      },
+      "question_zh": "这些硬币一共多少钱？",
+      "question_en": "How much are these coins worth in total?",
+      "distractors": [
+        {
+          "value": 25,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 20,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 29,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "coins",
+        "coins": [
+          20,
+          10
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "1 + 5",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "嘉嘉有一张 RM1 和 一张 RM5，一共有多少钱？",
+      "question_en": "Jiajia has an RM1 note and an RM5 note. How much money is that in total?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}
