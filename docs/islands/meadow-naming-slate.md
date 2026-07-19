@@ -45,7 +45,7 @@ stage-1 identity survives evolution, like a nickname that grows up with you).
 | 3 | `meadow/pufftail` | Pufftail | 团子鼠 | tuán zi shǔ | 2 | common | pack `2EVO/10` | pufftail mouse → roly-poly mouse |
 | 4 | `meadow/plumelet` | Plumelet | 小羽 | xiǎo yǔ | 3 | common | pack `3EVO/21` | chick → gamefowl → plumed strider |
 | 5 | `woolly/hare` *(keep)* | Balltail Hare *(ratify)* | 球尾兔 | qiú wěi tù | 3 | uncommon | pack `3EVO/13` — **bound** | ball-tail hare, quadruped throughout |
-| 6 | `sproutkit` *(keep)* | Sproutkit *(ratify)* | 苗苗 | miáo miáo | 3 | starter | pack `3EVO/02` — **bound** | sprout kitten → leaf cat → orchard lynx |
+| 6 | `sproutkit` *(keep)* | Sproutkit *(ratify)* | 苗苗 | miáo miáo | 3 | starter | pack `3EVO/02` — **bound** (via `STARTERS`) | sprout kitten → leaf cat → orchard lynx |
 | 7 | `meadow/blossomfox` | Blossomfox | 花狐 | huā hú | 3 | uncommon | pack `3EVO/08` | pink squirrel kit → squirrel-fox → blossom fox |
 | 8 | `meadow/owlet` | Owlet | 咕咕 | gū gū | 2 | uncommon | pack `2EVO/04` | round chick → owl |
 | 9 | `meadow/barnpup` | Barnpup | 汪汪 | wāng wāng | 2 | uncommon | pack `2EVO/06` | farm pup → hound |
@@ -58,8 +58,12 @@ stage-1 identity survives evolution, like a nickname that grows up with you).
 - **Rows 2, 5, 10 — ratify, don't rename.** The kids already play with
   Fluffball, Balltail Hare, and Woolly Ram. The English names are good; the
   cost of re-learning outweighs any polish. The Chinese names are the new
-  addition: 毛球 ("fur ball"), 球尾兔 (literal "ball-tail rabbit"), 卷卷
+  addition: 毛球 ("fur ball"), 球尾兔 ("ball-tail rabbit"), 卷卷
   ("curly-curly", for the fleece — the grown bull keeps his childhood nickname).
+  兔 is how a Chinese kid says both "rabbit" and "hare" (野兔 is not Std-1
+  vocabulary), so the EN/ZH hare–rabbit mismatch is cosmetic; and the bull
+  ending up as "Curly" is the mascot convention — flagging both so the
+  ratification is knowing, not accidental.
 - **Row 1 — 毛毛虫** is stage-1-forward (the adult is a great moth, not a
   caterpillar). That's the mascot-name convention on purpose: the larva is
   what kids meet first at the dock. Alternative if you'd rather name the
@@ -82,8 +86,10 @@ stage-1 identity survives evolution, like a nickname that grows up with you).
   fairy without colliding with 花狐.
 - **Row 12 — 天马** ("sky horse") is deliberately not a literal 云鬃马:
   鬃 is far too hard for the target reader, and 天马 gives the guardian its
-  mythic weight with two Standard-1 characters. English keeps the working
-  read: **Cloudmane**. Also keeps it distinct from starter Cloudhorn (云角).
+  mythic weight with two Standard-1 characters — it is the classical winged
+  sky-horse (天马行空), which suits a cloud-maned guardian better than a
+  literal mane-word would. English keeps the working read: **Cloudmane**.
+  Also keeps it distinct from starter Cloudhorn (云角).
 
 ## Appendix: starter Chinese names (same batch, for UI consistency)
 
@@ -118,20 +124,31 @@ battle, not a wild roll).
 | `meadow/blossomfox` | | | uncommon | | | uncommon | | |
 | `meadow/owlet` | | | | | | uncommon | | |
 | `meadow/barnpup` | | | | | uncommon | | | |
-| `woolly/ram` | | | | | | | | rare (edge) |
+| `woolly/ram` | | rare (near the Stones) | | | | | | rare (between the stones) |
 | `meadow/petalfae` | | | | | | | rare (dusk) | |
 | `meadow/cloudmane` | | | | | | | | guardian battle only — **never in a wild table** |
 
+Two honest calls in this matrix. `meadow/pufftail` spans every ordinary area
+because the roster literally says "everywhere" — it is the island's background
+mouse; area tables still weight it below each area's anchor species. And
+`woolly/ram` appears in both Woolly Meadows and the Stones: roster §2 has it
+drifting into the pasture near the Hundred Stones while §8 has it grazing
+between the stones themselves — matching the shipped preview, whose Woolly
+Meadows table (`fluffball 65 / hare 27 / ram 8`) already includes it.
+
 Numeric weights are set per area when the tables land in code (post-approval);
-the only weights shipped so far are the preview's Woolly Meadows table
-(`fluffball 65 / hare 27 / ram 8`), which this slate leaves untouched.
+the preview's Woolly Meadows weights above are the only ones shipped so far,
+and this slate leaves them untouched.
 
 ## After approval (the code work, in order)
 
 1. `shared/creature.ts`: extend `Species` with `nameZh`, `stages`, `rarity`,
    and rename `art` → `artRef` semantics (replaceable, optional); register the
-   nine new families + guardian with the ids above; replace the three
-   PROVISIONAL comments.
+   seven new ordinary families and the guardian with the ids above; replace
+   the three PROVISIONAL comments. Save records stay English-only
+   (`OwnedCreatureState.name` keeps its snapshot of the English name); `nameZh`
+   always resolves from the species registry at render time, so a future
+   rename touches one row, never a save.
 2. Habitat tables keyed by the new ids, replacing pack-code references in
    `meadow-isle.md`'s roster table (doc updated to point at the registry as
    the source of truth).
