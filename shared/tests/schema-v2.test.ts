@@ -597,7 +597,6 @@ test("schema-v2.md valid example gates as documented", async () => {
   const raw = JSON.parse(exampleRe.exec(doc)![1]);
   const parsed = parseQuestionBankData(raw);
   assert.equal(parsed.schema_version, 2);
-  if (parsed.schema_version !== 2) return; // narrowing for TS
   const core = gateQuestionsByProfile(parsed.questions, "dpk3_2026_core");
   assert.deepEqual(core.map((q) => q.id), [1], "core profile excludes the extra item");
   const extra = gateQuestionsByProfile(parsed.questions, "original_dskp_extra");
