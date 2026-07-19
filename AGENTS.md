@@ -21,6 +21,7 @@
 - After editing `shared/`, run `npm run sync` and commit the synced copies.
 - Gates before PR: `npm test` and `npm run typecheck` pass.
 - Cocos headless build exits 36 on success.
+- Rebasing onto `origin/main`: never run a bare `git rebase --continue` — it opens an editor and hangs the non-interactive shell. Resolve conflicts, `git add`, then `GIT_EDITOR=true git rebase --continue` (keeps the original messages), and finish with `git push --force-with-lease`. GitHub may report `CONFLICTING` right after a force-push; its mergeability check is async — re-query after a few seconds.
 - Fresh worktrees show `Cannot find module 'cc'` typecheck errors until the editor generates declarations — environmental, not yours.
 - Deploy: `cd worker && npx wrangler deploy`; when worker and client both change, deploy the worker first. Prod: <https://game.pokemath.fun>.
 - Release-gate smoke check: `docs/preview-smoke-check.md`.
