@@ -8,6 +8,7 @@
 import { Color, EventKeyboard, KeyCode, Label, Node, view } from "cc";
 import { PALETTE, makeButton, makeLabel, makePanel, makeRect } from "./ui";
 import type { Persistence } from "./persistence";
+import type { Telemetry } from "./client/telemetry";
 
 export class SignOutScreen {
   readonly root = new Node("signout-screen");
@@ -17,6 +18,7 @@ export class SignOutScreen {
   constructor(
     private persistence: Persistence,
     private onBack: () => void,
+    private telemetry: Telemetry | null = null,
   ) {
     const size = view.getVisibleSize();
     makeRect(this.root, 0, 0, size.width, size.height, new Color(224, 232, 244, 255));
@@ -67,6 +69,15 @@ export class SignOutScreen {
     if (this.busy) return;
     this.busy = true;
     this.error.string = "";
+    // The clearest voluntary-stop signal there is (#24). Sent under THIS
+    // account's session, then the queue closes for good: a sibling signing
+    // in next must never inherit unsent events (persistence.signOut clears
+    // the save cache for the same reason).
+    if (this.telemetry) {
+      this.telemetry.emit("session_ended", { reason: "sign_out", duringBattle: false });
+      await this.telemetry.flush();
+      this.telemetry.close();
+    }
     const err = await this.persistence.signOut();
     // On success the browser is already navigating to /login.
     if (err) {
