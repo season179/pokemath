@@ -119,6 +119,19 @@ export class GameState {
     return this.profile;
   }
 
+  // --- Arc badges (M5 region arcs; save v2 `badges`) ---
+
+  hasBadge(id: string): boolean {
+    return this.badges.includes(id);
+  }
+
+  /** Award an arc badge; returns true only when it is newly earned. */
+  awardBadge(id: string): boolean {
+    if (this.badges.includes(id)) return false;
+    this.badges = [...this.badges, id];
+    return true;
+  }
+
   /** Team roster as creatureIds (aligned with `team`). */
   get teamIdList(): string[] {
     return [...this.teamIds];

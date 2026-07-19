@@ -2,8 +2,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  DEFAULT_REGION_TOPIC,
   REGIONS,
+  REGION_TOPICS,
   SEALED_GATEWAY_MESSAGE,
+  TICKTOCK_ARC_BADGE,
+  TICKTOCK_ARC_CLUE,
+  TICKTOCK_ARC_WINS,
   TILE,
   camOffset,
   canTraverseGateway,
@@ -18,6 +23,7 @@ import {
   regionH,
   regionW,
   tileAt,
+  topicForRegion,
 } from "../world/regions/index.ts";
 import type { GatewayDef, RegionDef } from "../world/regions/index.ts";
 import { MEADOW_HABITATS, SPECIES_BY_ID, habitatFor } from "../../shared/index.ts";
@@ -247,6 +253,27 @@ test("encounter scope: every habitat-table region is encounter-capable; Dock is 
       `${def.id} scope/table agreement`,
     );
   }
+});
+
+test("topic arcs: encounter regions serve their own curriculum topic (#19)", () => {
+  assert.equal(topicForRegion("meadow/woolly"), "4.1");
+  assert.equal(topicForRegion("meadow/ticktock"), "4.4");
+  // Regions without an arc yet keep the Woolly default, and the harbor
+  // (never encounter-capable) defaults harmlessly too.
+  assert.equal(topicForRegion("meadow/orchard"), DEFAULT_REGION_TOPIC);
+  assert.equal(topicForRegion("harbor"), DEFAULT_REGION_TOPIC);
+  // Every mapped topic is a real region with encounters.
+  for (const id of Object.keys(REGION_TOPICS)) {
+    assert.ok(isEncounterRegion(id), `topic-mapped region ${id} must host encounters`);
+  }
+});
+
+test("ticktock arc payoff constants stay honest (#19)", () => {
+  assert.match(TICKTOCK_ARC_BADGE, /^arc\//);
+  assert.ok(TICKTOCK_ARC_WINS >= 1 && TICKTOCK_ARC_WINS <= 10);
+  // The clue is bilingual and names the knoll's mascot line (咕咕/Owlet).
+  assert.match(TICKTOCK_ARC_CLUE, /咕咕/);
+  assert.match(TICKTOCK_ARC_CLUE, /Owlet/);
 });
 
 test("a sealed wired gateway falls back to the bilingual opens-later notice", () => {

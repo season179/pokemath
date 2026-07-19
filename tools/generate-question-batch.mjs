@@ -209,6 +209,81 @@ const FORWARD_EVENTS = [
 const SEN_COINS = [5, 10, 20, 50];
 const RM_NOTES = [1, 5, 10];
 
+// Clock faces (topic 4.4): Standard 1 reads whole / half / quarter /
+// three-quarter hours only (scope doc §4.4), so the minute hand can only
+// rest on 12, 3, 6, or 9. `hand` is the numeral the minute hand points to.
+const CLOCK_MINUTE_SPECS = [
+  {
+    minute: 0,
+    hand: 12,
+    ask_zh: "钟面上是几时？",
+    ask_en: "What o'clock is it?",
+    time_zh: (h) => `${h}时`,
+    time_en: (h) => `${h} o'clock`,
+  },
+  {
+    minute: 15,
+    hand: 3,
+    ask_zh: "钟面上是几时一刻？",
+    ask_en: "It is quarter past which hour?",
+    time_zh: (h) => `${h}时一刻`,
+    time_en: (h) => `quarter past ${h}`,
+  },
+  {
+    minute: 30,
+    hand: 6,
+    ask_zh: "钟面上是几时半？",
+    ask_en: "It is half past which hour?",
+    time_zh: (h) => `${h}时半`,
+    time_en: (h) => `half past ${h}`,
+  },
+  {
+    minute: 45,
+    hand: 9,
+    ask_zh: "钟面上是几时三刻？",
+    ask_en: "It is three quarters past which hour?",
+    time_zh: (h) => `${h}时三刻`,
+    time_en: (h) => `three quarters past ${h}`,
+  },
+];
+
+// Day (星期) and month names for calendar naming items (topic 4.4).
+const WEEKDAYS = [
+  { zh: "星期一", en: "Monday" },
+  { zh: "星期二", en: "Tuesday" },
+  { zh: "星期三", en: "Wednesday" },
+  { zh: "星期四", en: "Thursday" },
+  { zh: "星期五", en: "Friday" },
+  { zh: "星期六", en: "Saturday" },
+  { zh: "星期日", en: "Sunday" },
+];
+const MONTH_ZH = (n) => `${n}月`;
+const MONTH_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** Hour-numeral distractors: candidates first (honest strategy labels),
+ * then any remaining clock numeral as a plain near-miss. Clock answers and
+ * options live on the 1..12 dial — never 0, never 13+. */
+function clockDistractors(answer, candidates) {
+  const seen = new Set([answer]);
+  const out = [];
+  const accept = (value, strategy) => {
+    if (out.length >= NUMERIC_DISTRACTORS) return;
+    if (!Number.isInteger(value) || value < 1 || value > 12 || seen.has(value)) return;
+    seen.add(value);
+    out.push({ value, strategy });
+  };
+  for (const c of candidates) accept(c.value, c.strategy);
+  for (let step = 1; out.length < NUMERIC_DISTRACTORS && step <= 11; step++) {
+    accept(((answer - 1 + step) % 12) + 1, "off-by-one-count");
+  }
+  return out;
+}
+
+/** The hour numeral after `h` on the dial (12 wraps to 1). */
+function nextHour(h, step = 1) {
+  return ((h - 1 + step) % 12) + 1;
+}
+
 // --- arithmetic range policy by TP ----------------------------------------
 // Style doc §C.2: facts within 20, results ≤ 100. TP1 stays within 10,
 // TP2 within 20 (no carry/borrow), TP3 within 100 without carry/borrow,
@@ -582,6 +657,185 @@ function makeCoinTotalItem(rng, tp) {
   };
 }
 
+/**
+ * Read a clock face (topic 4.4): the figure shows one of the four supported
+ * times and the child names the hour. The `clock-hand-swap` distractor is
+ * the numeral the MINUTE hand points to (reading the wrong hand); the
+ * next-hour distractor probes the travelling hour hand (at 3:45 the hand
+ * sits nearest 4).
+ */
+function makeClockReadItem(rng, tp, spec) {
+  const hour = int(rng, 1, 12);
+  return {
+    format_type: "read-instrument",
+    presentation: "figure:clock",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(hour),
+    answer: hour,
+    question_zh: spec.ask_zh,
+    question_en: spec.ask_en,
+    figure: { kind: "clock", hour, minute: spec.minute },
+    distractors: clockDistractors(hour, [
+      { value: spec.hand, strategy: "clock-hand-swap" },
+      { value: nextHour(hour), strategy: "next-vs-between" },
+      { value: nextHour(hour, 11), strategy: "off-by-one-count" },
+    ]),
+  };
+}
+
+/**
+ * Identify the hands (topic 4.4): name the numeral a hand points to. The
+ * minute-hand variant works at any supported time; the hour-hand variant
+ * stays at whole hours, where the hour hand points exactly at a numeral.
+ */
+function makeClockHandsItem(rng) {
+  if (rng() < 0.5) {
+    const spec = pick(rng, CLOCK_MINUTE_SPECS);
+    const hour = int(rng, 1, 12);
+    return {
+      format_type: "read-instrument",
+      presentation: "figure:clock",
+      answer_form: "numeral",
+      answer_unit: "none",
+      operation: "counting",
+      expression: String(spec.hand),
+      answer: spec.hand,
+      question_zh: "钟面上，分针指着哪个数字？",
+      question_en: "Which numeral does the minute hand point to?",
+      figure: { kind: "clock", hour, minute: spec.minute },
+      distractors: clockDistractors(spec.hand, [
+        { value: hour, strategy: "clock-hand-swap" },
+        { value: nextHour(spec.hand, 3), strategy: "next-vs-between" },
+        { value: nextHour(spec.hand, 9), strategy: "next-vs-between" },
+      ]),
+    };
+  }
+  const hour = int(rng, 1, 12);
+  return {
+    format_type: "read-instrument",
+    presentation: "figure:clock",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(hour),
+    answer: hour,
+    question_zh: "钟面上是整点，时针指着哪个数字？",
+    question_en: "It is exactly on the hour. Which numeral does the hour hand point to?",
+    figure: { kind: "clock", hour, minute: 0 },
+    distractors: clockDistractors(hour, [
+      { value: 12, strategy: "clock-hand-swap" },
+      { value: nextHour(hour), strategy: "off-by-one-count" },
+      { value: nextHour(hour, 11), strategy: "off-by-one-count" },
+    ]),
+  };
+}
+
+/**
+ * Set a clock (topic 4.4): given a supported time in words, pick the
+ * numeral the minute hand must point to. No figure — a drawn clock would
+ * give the setting away.
+ */
+function makeClockSetItem(rng) {
+  const spec = pick(rng, CLOCK_MINUTE_SPECS);
+  const hour = int(rng, 1, 12);
+  const timeZh = spec.time_zh(hour);
+  const timeEn = spec.time_en(hour);
+  return {
+    format_type: "read-instrument",
+    presentation: "plain",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(spec.hand),
+    answer: spec.hand,
+    question_zh: `要把钟面调到${timeZh}，分针应该指着几？`,
+    question_en: `To set the clock to ${timeEn}, which numeral should the minute hand point to?`,
+    distractors: clockDistractors(spec.hand, [
+      { value: hour, strategy: "clock-hand-swap" },
+      { value: nextHour(spec.hand, 3), strategy: "next-vs-between" },
+      { value: nextHour(spec.hand, 9), strategy: "next-vs-between" },
+    ]),
+  };
+}
+
+/** Day naming (topic 4.4): yesterday / today / tomorrow / the day after
+ * tomorrow, within the 星期一..星期日 week (answers 1..7, Sunday = 7). */
+function makeDayNameItem(rng) {
+  const given = int(rng, 0, 6);
+  const offset = pick(rng, [
+    { d: -1, zh: "昨天", ask_en: "What day was it yesterday?" },
+    { d: 1, zh: "明天", ask_en: "What day will it be tomorrow?" },
+    { d: 2, zh: "后天", ask_en: "What day will it be the day after tomorrow?" },
+  ]);
+  const answer = ((given + offset.d) % 7 + 7) % 7 + 1; // 1..7, no wrap ambiguity
+  const givenDay = WEEKDAYS[given];
+  const candidates = [
+    { value: answer + 1 <= 7 ? answer + 1 : answer - 1, strategy: "off-by-one-count" },
+    { value: answer - 1 >= 1 ? answer - 1 : answer + 1, strategy: "off-by-one-count" },
+    { value: ((given - offset.d) % 7 + 7) % 7 + 1, strategy: "next-vs-between" },
+  ];
+  return {
+    format_type: "fill-blank",
+    presentation: "story",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(answer),
+    answer,
+    question_zh: `今天是${givenDay.zh}，${offset.zh}是星期几？`,
+    question_en: `Today is ${givenDay.en}. ${offset.ask_en}`,
+    distractors: buildDistractors(rng, answer, 7, candidates),
+  };
+}
+
+/** Month naming (topic 4.4): the month before/after, and the first/last
+ * month of the year (answers 1..12). */
+function makeMonthNameItem(rng) {
+  const kind = pick(rng, ["before", "after", "first", "last"]);
+  let answer;
+  let question_zh;
+  let question_en;
+  if (kind === "first") {
+    answer = 1;
+    question_zh = "一年中的第一个月是几月？";
+    question_en = "Which is the first month of the year?";
+  } else if (kind === "last") {
+    answer = 12;
+    question_zh = "一年中的最后一个月是几月？";
+    question_en = "Which is the last month of the year?";
+  } else {
+    const given = int(rng, 1, 12);
+    answer = kind === "before" ? (given === 1 ? 12 : given - 1) : (given === 12 ? 1 : given + 1);
+    question_zh =
+      kind === "before"
+        ? `${MONTH_ZH(given)}的前一个月是几月？`
+        : `${MONTH_ZH(given)}的后一个月是几月？`;
+    question_en =
+      kind === "before"
+        ? `Which month comes just before ${MONTH_EN[given - 1]}?`
+        : `Which month comes just after ${MONTH_EN[given - 1]}?`;
+  }
+  const candidates = [
+    { value: answer + 1 <= 12 ? answer + 1 : answer - 1, strategy: "off-by-one-count" },
+    { value: answer - 1 >= 1 ? answer - 1 : answer + 1, strategy: "off-by-one-count" },
+    { value: answer + 2 <= 12 ? answer + 2 : answer - 2, strategy: "next-vs-between" },
+  ];
+  return {
+    format_type: "fill-blank",
+    presentation: "plain",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(answer),
+    answer,
+    question_zh,
+    question_en,
+    distractors: buildDistractors(rng, answer, 12, candidates),
+  };
+}
+
 function makeCalendarFactItem(rng) {
   const fact = pick(rng, [
     {
@@ -695,6 +949,13 @@ export const TEMPLATES_BY_TOPIC = {
   "4.4": [
     { tp: [1, 2], make: (rng) => makeCalendarFactItem(rng) },
     { tp: [1, 3], make: (rng) => makeForwardOrderingItem(rng) },
+    { tp: [1, 2], make: (rng) => makeClockHandsItem(rng) },
+    { tp: [1, 2], make: (rng, tp) => makeClockReadItem(rng, tp, CLOCK_MINUTE_SPECS[0]) },
+    { tp: [2, 3], make: (rng, tp) => makeClockReadItem(rng, tp, CLOCK_MINUTE_SPECS[2]) },
+    { tp: [3, 4], make: (rng, tp) => makeClockReadItem(rng, tp, pick(rng, [CLOCK_MINUTE_SPECS[1], CLOCK_MINUTE_SPECS[3]])) },
+    { tp: [3, 4], make: (rng) => makeClockSetItem(rng) },
+    { tp: [2, 3], make: (rng) => makeDayNameItem(rng) },
+    { tp: [2, 4], make: (rng) => makeMonthNameItem(rng) },
   ],
   extra: [
     { tp: [2, 3], make: (rng, tp) => makePatternItem(rng, tp, SKIP_STEPS_EXTRA) },
@@ -804,6 +1065,7 @@ export function generateBatch(params) {
         question_en: item.question_en,
         distractors: item.distractors,
         ...(item.sequence ? { sequence: item.sequence } : {}),
+        ...(item.figure ? { figure: item.figure } : {}),
       };
     }
     if (built === null) {

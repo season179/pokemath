@@ -86,6 +86,50 @@ test("generator: TP1 includes make-ten facts (7+3, 10−5 are anchors, not carri
   assert.ok(sawFromTenSub, "TP1 subtraction must be able to subtract from ten");
 });
 
+test("generator: 4.4 clock items stay on the dial and carry matching figures (#19)", () => {
+  const params = { bankId: "std1.clock", topic: "4.4", tpMin: 1, tpMax: 4, profile: "dpk3_2026_core", count: 40, seed: 19 };
+  const { questions } = generateBatch(params);
+  const clockReads = questions.filter((q) => q.presentation === "figure:clock");
+  assert.ok(clockReads.length > 0, "expected clock-figure items in the batch");
+  for (const q of clockReads) {
+    // The figure exists, matches the presentation, and can only describe
+    // whole/half/quarter/three-quarter hours (AC: no exact-minute reading).
+    assert.equal(q.figure?.kind, "clock", `Q${q.id} figure matches presentation`);
+    assert.ok([0, 15, 30, 45].includes(q.figure.minute), `Q${q.id} minute ${q.figure.minute}`);
+    assert.ok(q.figure.hour >= 1 && q.figure.hour <= 12, `Q${q.id} hour ${q.figure.hour}`);
+  }
+  // Clock items live on the dial: answers and options are 1..12 — never 0,
+  // never 13+.
+  const clockItems = questions.filter((q) => q.format_type === "read-instrument");
+  assert.ok(clockItems.length > 0, "expected clock items in the batch");
+  for (const q of clockItems) {
+    assert.ok(q.answer >= 1 && q.answer <= 12, `Q${q.id} answer ${q.answer}`);
+    for (const d of q.distractors) {
+      assert.ok(d.value >= 1 && d.value <= 12, `Q${q.id} distractor ${d.value}`);
+      assert.notEqual(d.value, q.answer, `Q${q.id} distractor equals answer`);
+    }
+  }
+  // The clock-hand-swap probe appears on clock items, and only there
+  // (STRATEGY-TOPIC confines it to 4.4 anyway).
+  const swaps = questions.filter((q) => q.distractors.some((d) => d.strategy === "clock-hand-swap"));
+  assert.ok(swaps.length > 0, "expected clock-hand-swap distractors");
+  for (const q of swaps) {
+    assert.equal(q.format_type, "read-instrument", `Q${q.id} swap on a clock item`);
+  }
+});
+
+test("generator: 4.4 covers the full arc menu (read, hands, set, days, months, order)", () => {
+  const params = { bankId: "std1.arcmenu", topic: "4.4", tpMin: 1, tpMax: 4, profile: "dpk3_2026_core", count: 60, seed: 7 };
+  const { questions } = generateBatch(params);
+  const zh = questions.map((q) => q.question_zh);
+  assert.ok(zh.some((t) => t.includes("几时？") || t.includes("几时半") || t.includes("几时一刻") || t.includes("几时三刻")), "clock reads");
+  assert.ok(zh.some((t) => t.includes("分针") || t.includes("时针")), "hand identification");
+  assert.ok(zh.some((t) => t.includes("调到")), "set-the-clock");
+  assert.ok(zh.some((t) => t.includes("星期")), "day naming");
+  assert.ok(zh.some((t) => t.includes("个月") || t.includes("几月")), "month naming");
+  assert.ok(questions.some((q) => q.answer_form === "ordering"), "event ordering");
+});
+
 test("generator: batch ids are unique and content is not duplicated within a batch", () => {
   const params = { bankId: "std1.dupe", topic: "4.2", tpMin: 2, tpMax: 4, profile: "dpk3_2026_core", count: 30, seed: 3 };
   const { questions } = generateBatch(params);

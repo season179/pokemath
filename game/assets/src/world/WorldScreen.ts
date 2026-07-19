@@ -25,6 +25,8 @@ import {
   Direction,
   NpcDef,
   RegionDef,
+  TICKTOCK_ARC_BADGE,
+  TICKTOCK_ARC_CLUE,
   TILE,
   camOffset,
   canTraverseGateway,
@@ -129,6 +131,10 @@ export class WorldScreen {
   private playerFrames: Partial<Record<Direction, SpriteFrame>> = {};
   private fallbackLandmarks = new Node("fallback-landmarks");
   private hudLayer = new Node("huds");
+  // Region arc payoff overlay (#19): once the region's arc badge is earned,
+  // its landmark pays off here (Ticktock's clock post chimes again in gold).
+  private arcPayoff = new Node("arc-payoff");
+  private arcPayoffG!: Graphics;
 
   private px: number;
   private py: number;
@@ -210,6 +216,8 @@ export class WorldScreen {
     this.actors.addChild(this.companionNode);
     this.playerG = this.playerNode.addComponent(Graphics);
     this.actors.addChild(this.playerNode);
+    this.arcPayoff.parent = this.mapNode;
+    this.arcPayoffG = this.arcPayoff.addComponent(Graphics);
     this.root.addChild(this.hudLayer);
 
     this.snapPlayer();
@@ -218,6 +226,12 @@ export class WorldScreen {
     this.applyCamera();
     if (this.def.art === "harbor") void this.loadHarborArt();
     else void this.loadMeadowArt();
+
+    // Arc complete (#19): arriving at the knoll after re-chiming the clock
+    // reveals the keeper's habitat clue.
+    if (this.def.id === "meadow/ticktock" && this.state.hasBadge(TICKTOCK_ARC_BADGE)) {
+      this.showNotice(TICKTOCK_ARC_CLUE);
+    }
   }
 
   pressDir(direction: Direction) {
@@ -1295,6 +1309,54 @@ export class WorldScreen {
     destroyChildren(this.hudLayer);
     this.buildHuds();
     this.drawCompanion();
+    this.refreshArcPayoff();
+  }
+
+  // Region arc payoff (#19): while the Ticktock badge is held, the knoll's
+  // clock post chimes again — a golden face set to 八时 (8:00, the hour the
+  // owl keeper fully wakes, per the island plan) with chime rays, painted
+  // over the still post from the prop layer. Runs on every refreshHud, so
+  // the battle that completes the arc pays off the moment the world
+  // returns.
+  private refreshArcPayoff() {
+    const g = this.arcPayoffG;
+    if (!g) return;
+    g.clear();
+    if (this.def.id !== "meadow/ticktock" || !this.state.hasBadge(TICKTOCK_ARC_BADGE)) return;
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        if (tileAt(this.def, x, y) !== "C") continue;
+        const cx = x * TILE + 24;
+        const cy = (this.h - 1 - y) * TILE + 34;
+        // Golden chime rays behind the face.
+        g.strokeColor = hex("#f7d54d");
+        g.lineWidth = 3;
+        for (const [dx, dy] of [[-16, 10], [16, 10], [-19, -2], [19, -2], [-10, 17], [10, 17]]) {
+          g.moveTo(cx + dx * 0.72, cy + dy * 0.72);
+          g.lineTo(cx + dx, cy + dy);
+        }
+        g.stroke();
+        // The re-chimed face: gold rim, warm dial.
+        g.fillColor = hex("#f7d54d");
+        g.circle(cx, cy, 14);
+        g.fill();
+        g.fillColor = hex("#fffdf5");
+        g.circle(cx, cy, 11);
+        g.fill();
+        g.strokeColor = hex("#b8860b");
+        g.lineWidth = 2;
+        g.circle(cx, cy, 11);
+        g.stroke();
+        // Hands at 八时: minute to 12, hour down-left to 8.
+        g.strokeColor = hex("#3b4a6b");
+        g.lineWidth = 2;
+        g.moveTo(cx, cy);
+        g.lineTo(cx, cy + 8);
+        g.moveTo(cx, cy);
+        g.lineTo(cx - 5, cy - 3);
+        g.stroke();
+      }
+    }
   }
 
   refreshLayout() {
