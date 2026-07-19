@@ -9,6 +9,7 @@ export * from "./curriculum";
 export * from "./question-v2";
 export * from "./question-v2-validate";
 export * from "./question-v2-adapt";
+export * from "./question-objective";
 export * from "./creature";
 export * from "./encounters";
 export * from "./battle-rules";

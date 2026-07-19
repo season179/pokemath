@@ -12,6 +12,7 @@ import {
   correctAnswerDamage,
   playerXpForTurn,
   prizeMoney,
+  resultFeedback,
   rollDamage,
   turnsOf,
   type PlayerXpAward,
@@ -142,14 +143,14 @@ export class BattleScreen {
   private answerQuestion(round: QuestionRound, _picked: number, correct: boolean): void {
     const turn = round.turn;
     if (!correct) {
-      this.say([`Good try — ${turn.expression} = ${fmtNum(turn.answer)}.`], () => this.wildAttack());
+      this.say([resultFeedback(turn, false)], () => this.wildAttack());
       return;
     }
 
     // The math is the reward: player XP accrues per correctly answered turn.
     this.earnedXp += playerXpForTurn(turn, this.state.playerLevel, this.wild.level);
 
-    const messages = [`Correct! ${turn.expression} = ${fmtNum(turn.answer)}`];
+    const messages = [resultFeedback(turn, true)];
     const base = rollDamage(this.state.active.attack);
     let damage: number;
 

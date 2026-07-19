@@ -23,7 +23,12 @@ import {
   requiredInteger,
   requiredString,
 } from "./parse-util";
-import type { Distractor } from "./question-engine";
+import {
+  TRUE_FALSE_FORM,
+  TRUTH_FALSE,
+  TRUTH_TRUE,
+  type Distractor,
+} from "./question-engine";
 import {
   DISTRACTOR_STRATEGIES,
   ITEM_FORMATS,
@@ -102,6 +107,12 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
     const expression = requiredString(q.expression, `question ${id}.expression`);
     const answer = requiredInteger(q.answer, `question ${id}.answer`);
     if (answer < 0) throw new Error(`question ${id}.answer must be non-negative`);
+    const trueFalse = answerForm === TRUE_FALSE_FORM;
+    if (trueFalse && answer !== TRUTH_TRUE && answer !== TRUTH_FALSE) {
+      throw new Error(
+        `question ${id}.answer must be 1 (对/true) or 0 (错/false) for answer_form "true-false"`,
+      );
+    }
 
     const bilingualRaw = record(q.bilingual);
     if (!bilingualRaw) throw new Error(`question ${id}.bilingual must be an object`);
@@ -143,8 +154,17 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
       }));
     }
 
-    if (!Array.isArray(q.distractors) || q.distractors.length !== 3) {
-      throw new Error(`question ${id}.distractors must contain exactly 3 choices`);
+    // Numeric forms serve a 4-choice round (answer + 3 authored choices).
+    // True-false serves the closed ✓/✗ pair, so the wire declares exactly
+    // one distractor — the opposite truth value (uniqueness + the 0/1 domain
+    // check below guarantee it).
+    const wantChoices = trueFalse ? 1 : 3;
+    if (!Array.isArray(q.distractors) || q.distractors.length !== wantChoices) {
+      throw new Error(
+        trueFalse
+          ? `question ${id}.distractors must contain exactly 1 choice (the opposite truth value) for answer_form "true-false"`
+          : `question ${id}.distractors must contain exactly 3 choices`,
+      );
     }
     const values = new Set<number>([answer]);
     question.distractors = q.distractors.map((value, distractorIndex): Distractor => {
@@ -163,6 +183,11 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
       );
       if (choice < 0) {
         throw new Error(`question ${id}.distractors[${distractorIndex}].value must be non-negative`);
+      }
+      if (trueFalse && choice !== TRUTH_TRUE && choice !== TRUTH_FALSE) {
+        throw new Error(
+          `question ${id}.distractors[${distractorIndex}].value must be 1 or 0 (the opposite truth value) for answer_form "true-false"`,
+        );
       }
       if (values.has(choice)) throw new Error(`question ${id} answer and distractors must be unique`);
       values.add(choice);

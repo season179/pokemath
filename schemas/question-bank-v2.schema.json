@@ -154,8 +154,8 @@
           ]
         },
         "answer_form": {
-          "description": "Numeric objective forms v2 can serve; circle/true-false (#11) and ordering (#12) extend this",
-          "enum": ["numeral", "count", "chinese-word"]
+          "description": "Objective forms v2 serves: the numeric forms plus circle/true-false (#11); ordering (#12) extends this",
+          "enum": ["numeral", "count", "chinese-word", "circle", "true-false"]
         },
         "answer_unit": { "enum": ["none", "RM", "sen"] },
         "operation": {
@@ -173,11 +173,41 @@
         },
         "distractors": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
           "items": { "$ref": "#/$defs/distractor" }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "answer_form": { "const": "true-false" } },
+            "required": ["answer_form"]
+          },
+          "then": {
+            "properties": {
+              "answer": {
+                "maximum": 1,
+                "description": "True-false encodes the answer 1 = 对/✓ (true), 0 = 错/✗ (false)"
+              },
+              "distractors": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "allOf": [
+                    { "$ref": "#/$defs/distractor" },
+                    { "properties": { "value": { "maximum": 1 } } }
+                  ]
+                },
+                "description": "Exactly one choice: the opposite truth value (the parser enforces oppositeness)"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "distractors": { "minItems": 3, "maxItems": 3 }
+            }
+          }
+        }
+      ]
     }
   }
 }
