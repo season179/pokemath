@@ -113,11 +113,14 @@ export class GameState {
 
   /**
    * A wild battle begins: record the species (and palette) as seen. Running
-   * away still counts — you saw it. Idempotent; the shared writer returns the
-   * same array when nothing changed.
+   * away still counts — you saw it. Returns true when the guide changed, so
+   * the caller can skip a checkpoint for an already-recorded sighting.
    */
-  markSeenEntry(speciesId: string, variant = "normal"): void {
-    this.fieldGuide = markSeen(this.fieldGuide, speciesId, variant);
+  markSeenEntry(speciesId: string, variant = "normal"): boolean {
+    const next = markSeen(this.fieldGuide, speciesId, variant);
+    if (next === this.fieldGuide) return false;
+    this.fieldGuide = next;
+    return true;
   }
 
   /**
@@ -129,6 +132,9 @@ export class GameState {
    */
   setTeam(teamIds: string[]): void {
     const result = setSaveTeam(this.toSave(), teamIds);
+    // Identity (creatureId/speciesId/stage/variant) comes from the owned
+    // record; only battle stats come from the Creature view — nothing is
+    // lost by round-tripping through toSave() here.
     const ownedById = new Map(result.ownedCreatures.map((c) => [c.creatureId, c]));
     this.teamIds = [...result.teamIds];
     this.team = this.teamIds.map((id) => Creature.fromState(ownedById.get(id)!));

@@ -176,10 +176,9 @@ export class GameApp {
       return;
     }
     // Meeting a wild friend counts as "seen" in the Field Guide (#5) — even
-    // when the player runs. Checkpoint now so the discovery survives closing
-    // the game mid-battle.
-    if (wild.speciesId) {
-      this.state.markSeenEntry(wild.speciesId);
+    // when the player runs. Checkpoint only when the guide actually changed:
+    // a repeat sighting must not churn a save version per battle.
+    if (wild.speciesId && this.state.markSeenEntry(wild.speciesId)) {
       this.persistence.checkpoint(this.state.toSave());
     }
     this.screen = "battle";
