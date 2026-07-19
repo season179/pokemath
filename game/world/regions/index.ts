@@ -110,24 +110,26 @@ export function canTraverseGateway(gateway: GatewayDef): boolean {
 export const SEALED_GATEWAY_MESSAGE =
   "This path opens in a later update! 这条路稍后开放！";
 
-// --- Topic arcs (M5: #17 money, #18, #19 time, #20) ---
+// --- Topic arcs (M5: #17 money, #18 orchard, #19 time, #20) ---
 //
-// Every encounter region serves the question bank routed for ITS curriculum
-// topic: GameApp asks this map for the region's topic, loads the routed bank
-// for it (#13), and caches per topic. Regions without a mapping keep the
-// Woolly default (4.1) until their arc lands. Later arcs add their case
-// here — nothing else in the battle path names a topic.
-export const REGION_TOPICS: Readonly<Record<string, string>> = {
-  "meadow/woolly": "4.1", // whole numbers to 100
-  "meadow/ticktock": "4.4", // time & calendar (#19)
+// Every encounter region serves the question banks routed for ITS
+// curriculum topics: GameApp asks this map for the region's topics, loads
+// the routed bank for each (#13), caches per topic, and merges multi-topic
+// sets into one battle bank. Regions without a mapping keep the Woolly
+// default (4.1) until their arc lands. Later arcs add their case here —
+// nothing else in the battle path names a topic.
+export const REGION_TOPICS: Readonly<Record<string, readonly string[]>> = {
+  "meadow/woolly": ["4.1"], // whole numbers to 100
+  "meadow/ticktock": ["4.4"], // time & calendar (#19)
+  "meadow/orchard": ["4.2", "4.3"], // arithmetic & fruit-stand money (#18)
 };
 
 /** The topic served in regions with no arc of their own yet. */
 export const DEFAULT_REGION_TOPIC = "4.1";
 
-/** The curriculum topic a region's battles serve (#13 routed loading). */
-export function topicForRegion(id: string): string {
-  return REGION_TOPICS[id] ?? DEFAULT_REGION_TOPIC;
+/** The curriculum topics a region's battles serve (#13 routed loading). */
+export function topicsForRegion(id: string): readonly string[] {
+  return REGION_TOPICS[id] ?? [DEFAULT_REGION_TOPIC];
 }
 
 // Ticktock Knoll arc payoff (#19): winning TICKTOCK_ARC_WINS battles on the

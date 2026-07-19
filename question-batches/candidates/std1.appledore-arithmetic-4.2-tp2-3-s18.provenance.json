@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.appledore-arithmetic-4.2-tp2-3-s18",
+  "generator": {
+    "tool": "tools/generate-question-batch.mjs",
+    "version": 2
+  },
+  "generated_at": "2026-07-19T15:25:50.214Z",
+  "params": {
+    "bank_id": "std1.appledore-arithmetic",
+    "grade": "std1",
+    "topic": "4.2",
+    "tp_min": 2,
+    "tp_max": 3,
+    "profile": "dpk3_2026_core",
+    "count": 20,
+    "seed": 18,
+    "bank_version": 1
+  },
+  "question_count": 20,
+  "template_counts": {
+    "picture-sentence": 3,
+    "word-single": 2,
+    "fill-blank": 7,
+    "number-bond": 4,
+    "true-false": 4
+  },
+  "sha256": "300602fdc771e4407b0710ff77a3996703680cfe70d93713ce1b14d59b20700b",
+  "reproduce": "node tools/generate-question-batch.mjs --bank std1.appledore-arithmetic --topic 4.2 --tp 2-3 --profile dpk3_2026_core --count 20 --seed 18"
+}

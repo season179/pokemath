@@ -101,7 +101,7 @@ export interface WorldActions {
   onTravel: (regionId: string, gateway: string | null) => void;
   /** A wild encounter started on tall grass; open the battle screen. */
   onEncounter: (wild: Creature) => void;
-  /** True once the reviewed question bank has loaded and battles may start. */
+  /** True once the current region's reviewed question bank has loaded and battles may start. */
   encounterReady: () => boolean;
   /** Open the informational world map overlay (M key / HUD button). */
   onMap: () => void;
@@ -373,8 +373,8 @@ export class WorldScreen {
 
     // Wild encounters: only in an encounter-capable region (the open-region
     // scope in regions/index.ts) and only on tall-grass tiles, and only once
-    // the reviewed question bank has loaded. A fresh level-1, non-boss
-    // creature of the rarity-weighted species starts the battle.
+    // the region's reviewed question bank has loaded. A fresh level-1,
+    // non-boss creature of the rarity-weighted species starts the battle.
     if (
       this.def.encounters &&
       isEncounterRegion(this.regionId) &&
@@ -393,7 +393,24 @@ export class WorldScreen {
       this.showTravelDialog(npc);
       return;
     }
-    this.showNotice(`${npc.name}: ${npc.message}`);
+    this.releaseAll();
+    this.pendingSail = null;
+    this.pendingOpen = null;
+    this.banner?.destroy();
+    // Plain-dialog NPCs get the travel dialog's wrapped panel minus the
+    // buttons: bilingual lines (the Harbor greetings, #18's Fruit-Stand
+    // Keeper payoff) wrap legibly instead of shrinking into showNotice's
+    // single line. Tap or Space/Enter dismisses (tap()).
+    const box = makePanel(this.root, 0, -226, 720, 104, {
+      fill: PALETTE.panel,
+      stroke: PALETTE.panelStroke,
+    });
+    makeWrappedLabel(box, `${npc.name}: ${npc.message}`, 0, 0, 660, 80, {
+      fontSize: 18,
+      lineHeight: 23,
+    });
+    box.on(Node.EventType.TOUCH_END, () => this.tap());
+    this.banner = box;
     if (npc.opens === "sanctuary") {
       // Dismissing the greeting (tap or Space/Enter) opens the Sanctuary.
       this.pendingOpen = () => this.actions.onSanctuary();

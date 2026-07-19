@@ -538,6 +538,7 @@ agent-browser --session "$SN" errors  > /tmp/smoke/errors.txt
 | `…world art failed to load; using fallback graphics` (Harbor or `<region>`) | ❌ **FAIL** — world/terrain/player art must load from R2. Means `ART` isn't remote (env), or the art pipeline broke (product). |
 | `NPC sprite for <name> in <region> did not load; using a flat fallback` (warn) | ✅ **Acceptable** — intended per-NPC degrade (issue #1). One NPC drops to a flat actor; terrain/scenery/player are unaffected. |
 | `Refusing travel to sealed region…` / `Refusing battle in non-encounter region…` (warn) | ✅ **Acceptable** — defense-in-depth guards; should not appear in a clean run. Investigate if seen. |
+| `[pokemath] Std-1 topic <t> has no routed bank yet; its arc regions stay encounter-free.` (warn) | ✅ **Acceptable while an arc's batches await import** — the M5 topic arcs (#17–#20) load their slices best-effort; the warn disappears once the orchestrator imports the batch and the manifest routes the topic (#15). Persistent warns after that mean a broken route — investigate. |
 | Any other `console.error` or uncaught exception | ❌ **FAIL** — investigate. |
 
 A clean run has **zero** `…world art failed to load` errors and **zero**

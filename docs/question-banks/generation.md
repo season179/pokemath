@@ -41,8 +41,10 @@ registry (`TEMPLATES_BY_TOPIC`) covers the serveable v2 answer forms with
 wording drawn from the style doc's authentic exemplars — counting (4.1),
 arithmetic (4.2), money (4.3), calendar/ordering (4.4), and the extras
 bucket (`extra`, which requires `--profile original_dskp_extra`). It proves
-the pipeline at volume; it is not a content-quality ceiling. Figure-first
-topics (4.5–4.7) arrive with the FigureView kit (#16), and a future LLM
+the pipeline at volume; it is not a content-quality ceiling. Since #18 the
+4.2/4.3 decks also emit figure-carrying items (the #16 `objects` and
+`coins` specs) and the fruit-stand exchange forms; the remaining
+figure-first topics (4.5–4.7) await their renderers, and a future LLM
 front-end can emit the same candidate format — the gate treats both
 identically. Batches declare their bank version up front (next free version
 for `--bank`); if an import lands first, the version check fails and the
