@@ -59,7 +59,7 @@ stage-1 identity survives evolution, like a nickname that grows up with you).
   Fluffball, Balltail Hare, and Woolly Ram. The English names are good; the
   cost of re-learning outweighs any polish. The Chinese names are the new
   addition: 毛球 ("fur ball"), 球尾兔 ("ball-tail rabbit"), 卷卷
-  ("curly-curly", for the fleece — the grown bull keeps his childhood nickname).
+  ("curly-curly", for the fleece).
   兔 is how a Chinese kid says both "rabbit" and "hare" (野兔 is not Std-1
   vocabulary), so the EN/ZH hare–rabbit mismatch is cosmetic; and the bull
   ending up as "Curly" is the mascot convention — flagging both so the
