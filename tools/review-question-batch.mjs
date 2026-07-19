@@ -1,0 +1,251 @@
+#!/usr/bin/env node
+// Human-review planner for candidate question batches (M4, #15): applies the
+// sampling policy, renders the review document, and writes the decisions
+// template the reviewer fills in.
+//
+// Policy (docs/question-banks/review-ledger.json is the record):
+//   - The first 200 human-reviewed questions: EVERY question in the batch is
+//     reviewed (mode "full"). The ledger starts at 20 — the hand-reviewed
+//     Woolly Meadows v1 bank (issue #6).
+//   - After the quota: a reproducible 5% random sample (min 1) is reviewed
+//     (mode "sample"). The sample is drawn by a PRNG seeded from the batch's
+//     content SHA-256, so the same batch always yields the same sample.
+//
+// A batch that starts under the quota is reviewed in full — the quota counts
+// questions, and review happens at batch granularity.
+//
+// Usage:
+//   node tools/review-question-batch.mjs <candidate.json> [--out <dir>] [--ledger <file>]
+//
+// Outputs (docs/question-banks/ by default):
+//   <batch-id>-review.md        the questions to review, with checkboxes
+//   <batch-id>.decisions.json   template: prefill = required ids; the human
+//                               deletes unreviewed ids and moves rejected
+//                               ones into `rejected` with a reason.
+// The decisions file is never overwritten (it holds human work) — delete it
+// yourself or pass --force to start the review over.
+
+import { createHash } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { mulberry32 } from "./generate-question-batch.mjs";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+export const DEFAULT_LEDGER_PATH = join(root, "docs", "question-banks", "review-ledger.json");
+export const DEFAULT_OUT_DIR = join(root, "docs", "question-banks");
+
+/** The first N human-reviewed questions are all reviewed (issue #15). */
+export const FULL_REVIEW_QUOTA = 200;
+/** Afterwards, this fraction of each batch is sampled (rounded up, min 1). */
+export const SAMPLE_RATE = 0.05;
+
+// --- ledger -----------------------------------------------------------------
+
+export async function readLedger(ledgerPath = DEFAULT_LEDGER_PATH) {
+  const raw = JSON.parse(await readFile(ledgerPath, "utf8"));
+  if (raw?.schema_version !== 1 || !Number.isInteger(raw.reviewed_total) || !Array.isArray(raw.history)) {
+    throw new Error(`review ledger ${ledgerPath} is malformed (need schema_version 1, reviewed_total, history)`);
+  }
+  return raw;
+}
+
+// --- sampling policy ----------------------------------------------------------
+
+export function sampleSizeFor(questionCount) {
+  return Math.max(1, Math.ceil(questionCount * SAMPLE_RATE));
+}
+
+/** Reproducible 5% sample: PRNG seeded from the batch content hash. */
+export function sampleQuestionIds(sha256, ids, size) {
+  const rng = mulberry32(parseInt(sha256.slice(0, 8), 16) >>> 0);
+  const deck = [...ids];
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck.slice(0, size).sort((a, b) => a - b);
+}
+
+/**
+ * The review plan for a candidate batch: mode (full|sample), the ids the
+ * human must review, and the ledger state the decision was made from.
+ */
+export async function planReview(candidateText, ledgerPath = DEFAULT_LEDGER_PATH) {
+  const sha256 = createHash("sha256").update(candidateText).digest("hex");
+  const batch = JSON.parse(candidateText);
+  if (!Array.isArray(batch?.questions) || batch.questions.length === 0) {
+    throw new Error("candidate batch is not a question bank (no questions array)");
+  }
+  const ids = batch.questions.map((q) => q.id);
+  const ledger = await readLedger(ledgerPath);
+  const full = ledger.reviewed_total < FULL_REVIEW_QUOTA;
+  const requiredIds = full ? [...ids].sort((a, b) => a - b) : sampleQuestionIds(sha256, ids, sampleSizeFor(ids.length));
+  return {
+    batchId: batch.bank_id ?? basename(ledgerPath, ".json"),
+    bankVersion: batch.version,
+    sha256,
+    mode: full ? "full" : "sample",
+    requiredIds,
+    questionCount: ids.length,
+    ledgerReviewedTotal: ledger.reviewed_total,
+    quota: FULL_REVIEW_QUOTA,
+  };
+}
+
+// --- review document ------------------------------------------------------------
+
+function quote(text) {
+  return String(text)
+    .split("\n")
+    .map((line) => `> ${line || "&nbsp;"}`)
+    .join("\n");
+}
+
+function cell(text) {
+  return String(text).replaceAll("|", "\\|").replaceAll("\n", "<br>");
+}
+
+/** Render the human review doc for the required questions only. */
+export function renderBatchReview(batch, plan, candidateName) {
+  const required = new Set(plan.requiredIds);
+  const questions = batch.questions.filter((q) => required.has(q.id));
+  const out = [
+    `# Question-batch review — ${batch.bank_id} v${batch.version}`,
+    "",
+    "> Generated by tools/review-question-batch.mjs from the immutable candidate batch.",
+    "> Do not edit questions here; reject in the decisions file and regenerate.",
+    "",
+    `**Review status:** Pending Season's review<br>`,
+    `**Candidate:** [${candidateName}](../../question-batches/candidates/${candidateName})<br>`,
+    `**Content SHA-256:** \`${plan.sha256}\`<br>`,
+    `**Mode:** ${plan.mode === "full" ? "🔍 FULL — every question is reviewed (first-200 quota)" : `🎲 SAMPLE — reproducible 5% (${questions.length} of ${plan.questionCount})`}<br>`,
+    `**Ledger:** ${plan.ledgerReviewedTotal} questions human-reviewed so far (quota ${plan.quota})<br>`,
+    `**Required ids:** ${plan.requiredIds.map((i) => `Q${i}`).join(", ")}`,
+    "",
+    "## How to review",
+    "",
+    "Check the Chinese and English wording, age suitability, the correct answer, and whether the wrong choices are believable mistakes. Record decisions in the companion decisions file " +
+      `(${plan.batchId}.decisions.json): delete ids you did not actually review from \`reviewed\`, and move rejected ids into \`rejected\` with a reason. Rejected questions never enter the served bank and are never repaired — they go back to generation.`,
+    "",
+    "## Questions to review",
+    "",
+  ];
+  for (const q of questions) {
+    out.push(
+      `### Q${q.id} · TP${q.tp_level} · ${q.format_type} · ${q.answer_form}`,
+      "",
+      `**\`${q.expression}\` → ${q.answer}** (${q.bilingual.zh_word}) · ${q.operation} · unit ${q.answer_unit}`,
+      "",
+      "**中文**",
+      "",
+      quote(q.question_zh),
+      "",
+      "**English**",
+      "",
+      quote(q.question_en),
+      "",
+    );
+    if (q.sequence) {
+      out.push(
+        "| Tile | Text |",
+        "|---:|---|",
+        ...q.sequence.items.map(
+          (item) =>
+            `| ${item.value} | ${item.label_zh === undefined ? "—" : `${cell(item.label_zh)} / ${cell(item.label_en)}`} |`,
+        ),
+        "",
+        `Direction: \`${q.sequence.direction}\` (tiles shown in correct order)`,
+        "",
+      );
+    } else {
+      out.push(
+        "| Wrong choice | Why it is included |",
+        "|---:|---|",
+        ...q.distractors.map((d) => `| ${d.value} | ${cell(d.strategy)} |`),
+        "",
+      );
+    }
+    out.push("**Decision:** ☐ Approve · ☐ Reject (reason in decisions file)", "", "---", "");
+  }
+  return `${out.join("\n").trimEnd()}\n`;
+}
+
+/** The decisions template: prefill reviewed with the required ids. */
+export function buildDecisionsTemplate(plan, candidateName) {
+  return {
+    schema_version: 1,
+    batch: candidateName,
+    batch_sha256: plan.sha256,
+    mode: plan.mode,
+    required_ids: plan.requiredIds,
+    reviewer: "",
+    reviewed_at: "",
+    reviewed: plan.requiredIds,
+    rejected: [],
+    _instructions:
+      "reviewed: keep only ids you actually reviewed (import refuses when a required id is missing). " +
+      'rejected: [{ "id": <n>, "reason": "<why>" }] — rejected questions never enter the bank and are never repaired. ' +
+      "Fill reviewer + reviewed_at (ISO date), then run: npm run import:questions -- <candidate> --decisions <this file>",
+  };
+}
+
+/** Plan the review for a candidate batch and write the doc + decisions template. */
+export async function writeReviewPlan(candidatePath, opts = {}) {
+  const outDir = opts.outDir ?? DEFAULT_OUT_DIR;
+  const ledgerPath = opts.ledgerPath ?? DEFAULT_LEDGER_PATH;
+  const candidateText = await readFile(candidatePath, "utf8");
+  const batch = JSON.parse(candidateText);
+  const candidateName = basename(candidatePath);
+  const stem = candidateName.replace(/\.candidate\.json$/, "");
+  const plan = await planReview(candidateText, ledgerPath);
+  plan.batchId = stem;
+  const reviewPath = join(outDir, `${stem}-review.md`);
+  const decisionsPath = join(outDir, `${stem}.decisions.json`);
+  if (!opts.force) {
+    try {
+      await readFile(decisionsPath, "utf8");
+      throw new Error(
+        `decisions file already exists: ${decisionsPath}\n` +
+          "it holds human review work — delete it yourself or pass --force to restart the review",
+      );
+    } catch (e) {
+      if (e.code !== "ENOENT") throw e;
+    }
+  }
+  await mkdir(outDir, { recursive: true });
+  await writeFile(reviewPath, renderBatchReview(batch, plan, candidateName));
+  await writeFile(decisionsPath, JSON.stringify(buildDecisionsTemplate(plan, candidateName), null, 2) + "\n");
+  return { plan, reviewPath, decisionsPath };
+}
+
+// --- CLI ---------------------------------------------------------------------
+
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === join(process.argv[1]);
+if (isMain) {
+  try {
+    const argv = process.argv.slice(2);
+    const force = argv.includes("--force");
+    const outAt = argv.indexOf("--out");
+    const ledgerAt = argv.indexOf("--ledger");
+    const positional = argv.filter(
+      (a, i) =>
+        !a.startsWith("--") &&
+        (outAt === -1 || i !== outAt + 1) &&
+        (ledgerAt === -1 || i !== ledgerAt + 1),
+    );
+    if (positional.length === 0) throw new Error("usage: review-question-batch.mjs <candidate.json> [--out dir] [--ledger file] [--force]");
+    const { plan, reviewPath, decisionsPath } = await writeReviewPlan(positional[0], {
+      force,
+      outDir: outAt === -1 ? undefined : argv[outAt + 1],
+      ledgerPath: ledgerAt === -1 ? undefined : argv[ledgerAt + 1],
+    });
+    console.log(`mode: ${plan.mode} — review ${plan.requiredIds.length} of ${plan.questionCount} questions`);
+    console.log(`review doc: ${reviewPath}`);
+    console.log(`decisions:  ${decisionsPath}`);
+  } catch (e) {
+    console.error(`review-plan error: ${e.message}`);
+    process.exit(1);
+  }
+}

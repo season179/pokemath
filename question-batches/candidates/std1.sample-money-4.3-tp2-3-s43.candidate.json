@@ -1,0 +1,691 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.sample-money",
+  "version": 1,
+  "source": "Generated offline by tools/generate-question-batch.mjs v1 (M4, issue #15): seed 43, 4.3 TP2–3, profile dpk3_2026_core, 20 questions; provenance: question-batches/candidates/std1.sample-money-4.3-tp2-3-s43.provenance.json",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.3; TP2–3 candidate batch (pending gate + human review)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "subtraction",
+      "expression": "15 - 5",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "算一算：15 sen - 5 sen = ___",
+      "question_en": "Calculate: 15 sen - 5 sen = ___",
+      "distractors": [
+        {
+          "value": 20,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 0,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "50 + 10 + 20",
+      "answer": 80,
+      "bilingual": {
+        "numeral": "80",
+        "zh_word": "八十"
+      },
+      "question_zh": "妮妮存了一枚 50 sen 和 一枚 10 sen 和 一枚 20 sen，一共存了多少钱？",
+      "question_en": "Nini saved a 50-sen coin and a 10-sen coin and a 20-sen coin. How much did Nini save in total?",
+      "distractors": [
+        {
+          "value": 40,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 75,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 50,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "2 - 1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "算一算：RM2 - RM1 = ___",
+      "question_en": "Calculate: RM2 - RM1 = ___",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "2 + 1",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "算一算：RM2 + RM1 = ___",
+      "question_en": "Calculate: RM2 + RM1 = ___",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "40 + 55",
+      "answer": 95,
+      "bilingual": {
+        "numeral": "95",
+        "zh_word": "九十五"
+      },
+      "question_zh": "算一算：40 sen + 55 sen = ___",
+      "question_en": "Calculate: 40 sen + 55 sen = ___",
+      "distractors": [
+        {
+          "value": 85,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 94,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 97,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "10 + 10",
+      "answer": 20,
+      "bilingual": {
+        "numeral": "20",
+        "zh_word": "二十"
+      },
+      "question_zh": "算一算：10 sen + 10 sen = ___",
+      "question_en": "Calculate: 10 sen + 10 sen = ___",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 30,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 10,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "7 - 5",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "小华有 RM7，买文具用了 RM5，现在还有多少钱？",
+      "question_en": "Xiaohua had RM7 and spent RM5 on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 7,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "5 + 3",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "算一算：RM5 + RM3 = ___",
+      "question_en": "Calculate: RM5 + RM3 = ___",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "20 + 55",
+      "answer": 75,
+      "bilingual": {
+        "numeral": "75",
+        "zh_word": "七十五"
+      },
+      "question_zh": "算一算：20 sen + 55 sen = ___",
+      "question_en": "Calculate: 20 sen + 55 sen = ___",
+      "distractors": [
+        {
+          "value": 85,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 65,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 78,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "subtraction",
+      "expression": "15 - 5",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "小明有 15 sen，买文具用了 5 sen，现在还有多少钱？",
+      "question_en": "Xiaoming had 15 sen and spent 5 sen on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 20,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 15,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "4 + 2",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "美美有 RM4，妈妈又给了 RM2，现在共有多少钱？",
+      "question_en": "Meimei had RM4. Mother gave RM2 more. How much money does Meimei have now?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "10 + 50",
+      "answer": 60,
+      "bilingual": {
+        "numeral": "60",
+        "zh_word": "六十"
+      },
+      "question_zh": "小明存了一枚 10 sen 和 一枚 50 sen，一共存了多少钱？",
+      "question_en": "Xiaoming saved a 10-sen coin and a 50-sen coin. How much did Xiaoming save in total?",
+      "distractors": [
+        {
+          "value": 55,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 10,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 58,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "50 + 5 + 10",
+      "answer": 65,
+      "bilingual": {
+        "numeral": "65",
+        "zh_word": "六十五"
+      },
+      "question_zh": "小明存了一枚 50 sen 和 一枚 5 sen 和 一枚 10 sen，一共存了多少钱？",
+      "question_en": "Xiaoming saved a 50-sen coin and a 5-sen coin and a 10-sen coin. How much did Xiaoming save in total?",
+      "distractors": [
+        {
+          "value": 25,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 60,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 50,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "8 - 3",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "算一算：RM8 - RM3 = ___",
+      "question_en": "Calculate: RM8 - RM3 = ___",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "10 + 10 + 20",
+      "answer": 40,
+      "bilingual": {
+        "numeral": "40",
+        "zh_word": "四十"
+      },
+      "question_zh": "嘉嘉存了一枚 10 sen 和 一枚 10 sen 和 一枚 20 sen，一共存了多少钱？",
+      "question_en": "Jiajia saved a 10-sen coin and a 10-sen coin and a 20-sen coin. How much did Jiajia save in total?",
+      "distractors": [
+        {
+          "value": 35,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 10,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 43,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "5 + 10 + 50",
+      "answer": 65,
+      "bilingual": {
+        "numeral": "65",
+        "zh_word": "六十五"
+      },
+      "question_zh": "小华存了一枚 5 sen 和 一枚 10 sen 和 一枚 50 sen，一共存了多少钱？",
+      "question_en": "Xiaohua saved a 5-sen coin and a 10-sen coin and a 50-sen coin. How much did Xiaohua save in total?",
+      "distractors": [
+        {
+          "value": 60,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 68,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "subtraction",
+      "expression": "85 - 55",
+      "answer": 30,
+      "bilingual": {
+        "numeral": "30",
+        "zh_word": "三十"
+      },
+      "question_zh": "妮妮有 85 sen，买文具用了 55 sen，现在还有多少钱？",
+      "question_en": "Nini had 85 sen and spent 55 sen on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 55,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 85,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 27,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "subtraction",
+      "expression": "60 - 20",
+      "answer": 40,
+      "bilingual": {
+        "numeral": "40",
+        "zh_word": "四十"
+      },
+      "question_zh": "算一算：60 sen - 20 sen = ___",
+      "question_en": "Calculate: 60 sen - 20 sen = ___",
+      "distractors": [
+        {
+          "value": 80,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 50,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 30,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "3 - 2",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "美美有 RM3，买文具用了 RM2，现在还有多少钱？",
+      "question_en": "Meimei had RM3 and spent RM2 on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 2,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "subtraction",
+      "expression": "55 - 30",
+      "answer": 25,
+      "bilingual": {
+        "numeral": "25",
+        "zh_word": "二十五"
+      },
+      "question_zh": "嘉嘉有 55 sen，买文具用了 30 sen，现在还有多少钱？",
+      "question_en": "Jiajia had 55 sen and spent 30 sen on stationery. How much money is left?",
+      "distractors": [
+        {
+          "value": 85,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 30,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 55,
+          "strategy": "raw-operand"
+        }
+      ]
+    }
+  ]
+}

@@ -39,7 +39,8 @@ no fallback content in Woolly (#8).
 ## Approving a new bank version
 
 1. Ship the new immutable bank (`std1/<bank>.v{N+1}.json`) through the normal
-   review (and, from #14/#15, the mechanical validator + generator pipeline).
+   review (and, from #14/#15, the mechanical validator + generator pipeline —
+   see [generation.md](generation.md)).
 2. Author `manifest.v{M+1}.json` whose entry routes the slice to the new
    `(bank_id, version)`. Bump the manifest `version`; never edit a shipped
    manifest.
