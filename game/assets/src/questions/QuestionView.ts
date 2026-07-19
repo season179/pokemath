@@ -11,8 +11,10 @@ import {
   formatObjectiveChoice,
   objectiveHint,
   objectiveKeyIndex,
+  resolveFigureView,
 } from "../../shared/index";
 import { PALETTE, makeButton, makeLabel, makePanel, makeWrappedLabel } from "../ui";
+import { renderFigure } from "./FigureView";
 
 export class QuestionView {
   readonly root = new Node("question");
@@ -57,6 +59,31 @@ export class QuestionView {
       lineWidth: 5,
     });
 
+    // The declarative figure (#16): when the question carries a spec, the
+    // card becomes compact prose above a figure band. The other two modes
+    // — prose and the deliberate prose fallback for renderer-less figure:*
+    // presentations — keep the classic text card, with the world's sprites
+    // behind it. Stepped turns (legacy banks) never carry figures, so the
+    // step layout below is untouched.
+    const figureModel = resolveFigureView(q);
+    if (figureModel.mode === "figure" && !turn.step) {
+      makeWrappedLabel(card, q.question_zh, 0, 137, 760, 56, { fontSize: 20, lineHeight: 26 });
+      makeWrappedLabel(card, q.question_en, 0, 93, 760, 30, {
+        fontSize: 15,
+        color: PALETTE.sub,
+        lineHeight: 19,
+      });
+      renderFigure(card, figureModel.spec, { x: 0, y: -38, width: 740, height: 190 });
+    } else {
+      this.buildProse(card);
+    }
+    this.buildChoices();
+  }
+
+  private buildProse(card: Node): void {
+    const turn = this.round.turn;
+    const q = turn.question;
+
     // Keep the text boxes inside the card: half-height is 165, so a box's
     // center + half its height must stay under ~145 (20px padding).
     const contextH = turn.step ? 84 : 125;
@@ -93,7 +120,10 @@ export class QuestionView {
         color: PALETTE.sub,
       });
     }
+  }
 
+  private buildChoices(): void {
+    const q = this.round.turn.question;
     const positions: Array<[number, number]> = [
       [-205, -126],
       [205, -126],

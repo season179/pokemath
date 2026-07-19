@@ -16,6 +16,7 @@
 //   through the v1 adapter at runtime.
 
 import { CURRICULUM_PROFILES } from "./curriculum";
+import { figurePresentation, parseFigureSpec } from "./figures";
 import {
   record,
   rejectUnknownFields,
@@ -52,7 +53,7 @@ const BANK_FIELDS = new Set([
 const QUESTION_FIELDS = new Set([
   "id", "topic", "tp_level", "profile", "item_format", "format_type", "presentation",
   "answer_form", "answer_unit", "operation", "expression", "answer", "bilingual",
-  "question_zh", "question_en", "table", "distractors", "sequence",
+  "question_zh", "question_en", "table", "distractors", "sequence", "figure",
 ]);
 const BILINGUAL_FIELDS = new Set(["numeral", "zh_word"]);
 const DISTRACTOR_FIELDS = new Set(["value", "strategy"]);
@@ -160,6 +161,20 @@ export function parseQuestionBankV2Data(raw: unknown): VersionedQuestionBankV2Da
         }
         return [key, value];
       }));
+    }
+
+    // The declarative figure (#16). Optional; when present its kind must
+    // match the presentation — a mismatched pair is an authoring error, not
+    // a rendering choice. A `figure:*` presentation without a spec is the
+    // deliberate prose fallback (resolveFigureView), not an error.
+    if (q.figure !== undefined) {
+      const figure = parseFigureSpec(q.figure, `question ${id}.figure`);
+      if (figurePresentation(figure.kind) !== presentation) {
+        throw new Error(
+          `question ${id}.figure.kind "${figure.kind}" does not match presentation "${presentation}"`,
+        );
+      }
+      question.figure = figure;
     }
 
     // Numeric forms serve a 4-choice round (answer + 3 authored choices).

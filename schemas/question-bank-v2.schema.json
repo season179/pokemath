@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pokemath.fun/schemas/question-bank-v2.schema.json",
   "title": "PokeMath question bank v2 (Standard 1)",
-  "description": "Additive Std-1 contract: explicit format, TP, presentation, answer form, distractor strategy, bilingual values, and curriculum-profile gates. The runtime parser (shared/question-v2-validate.ts) is the authority; this schema mirrors it for editors and CI. Cross-field rules the schema cannot express (distractor values distinct from the answer, bilingual.numeral matching the answer, duplicate ids) are enforced by the parser.",
+  "description": "Additive Std-1 contract: explicit format, TP, presentation, answer form, distractor strategy, bilingual values, and curriculum-profile gates. The runtime parser (shared/question-v2-validate.ts) is the authority; this schema mirrors it for editors and CI. Cross-field rules the schema cannot express (distractor values distinct from the answer, bilingual.numeral matching the answer, duplicate ids, figure coins totaling ≤ 100 sen, crossedOut ≤ count) are enforced by the parser.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -178,6 +178,10 @@
         "sequence": {
           "description": "Declared order for answer_form ordering (#12): items in their CORRECT order plus the direction. Forbidden on every other form. The parser additionally enforces unique values.",
           "$ref": "#/$defs/ordering-sequence"
+        },
+        "figure": {
+          "description": "Declarative figure spec (#16) behind a figure:* presentation; its kind must match the presentation. A figure:* presentation WITHOUT a spec is the deliberate prose fallback, not an error.",
+          "$ref": "#/$defs/figure"
         }
       },
       "allOf": [
@@ -240,8 +244,85 @@
           "else": {
             "not": { "required": ["sequence"] }
           }
+        },
+        {
+          "if": { "required": ["figure"] },
+          "then": {
+            "description": "figure.kind must match the presentation (the parser enforces the same rule)",
+            "anyOf": [
+              { "properties": { "figure": { "properties": { "kind": { "const": "ten-frame" } } }, "presentation": { "const": "figure:ten-frame" } } },
+              { "properties": { "figure": { "properties": { "kind": { "const": "clock" } } }, "presentation": { "const": "figure:clock" } } },
+              { "properties": { "figure": { "properties": { "kind": { "const": "coins" } } }, "presentation": { "const": "figure:coins" } } },
+              { "properties": { "figure": { "properties": { "kind": { "const": "objects" } } }, "presentation": { "const": "figure:objects" } } }
+            ]
+          }
         }
       ]
+    },
+    "figure": {
+      "description": "One declarative figure (#16), discriminated by kind",
+      "anyOf": [
+        { "$ref": "#/$defs/figure-ten-frame" },
+        { "$ref": "#/$defs/figure-clock" },
+        { "$ref": "#/$defs/figure-coins" },
+        { "$ref": "#/$defs/figure-objects" }
+      ]
+    },
+    "figure-ten-frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "filled"],
+      "properties": {
+        "kind": { "const": "ten-frame" },
+        "filled": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Counters filling 10-cell frames in reading order; 11..20 draws a second frame (double ten-frame)"
+        }
+      }
+    },
+    "figure-clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "hour", "minute"],
+      "properties": {
+        "kind": { "const": "clock" },
+        "hour": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "minute": {
+          "enum": [0, 15, 30, 45],
+          "description": "Standard 1 reads whole/half/quarter hours only — the minute hand points at 12, 3, 6, or 9"
+        }
+      }
+    },
+    "figure-coins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "coins"],
+      "properties": {
+        "kind": { "const": "coins" },
+        "coins": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": [5, 10, 20, 50] },
+          "description": "Malaysian sen denominations; the parser enforces a total ≤ 100 sen (RM1)"
+        }
+      }
+    },
+    "figure-objects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "icon", "count"],
+      "properties": {
+        "kind": { "const": "objects" },
+        "icon": { "type": "string", "minLength": 1, "description": "One emoji grapheme, e.g. 🐑" },
+        "count": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "crossedOut": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Trailing items drawn struck through (picture-sentence subtraction); must be ≤ count (parser-enforced)"
+        }
+      }
     },
     "ordering-sequence": {
       "type": "object",

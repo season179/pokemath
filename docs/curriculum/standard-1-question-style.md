@@ -322,7 +322,11 @@ item := {
 Key gaps vs. the current numeric-`answer` + `makeChoices()` engine:
 - **Most items are visual.** Counting groups, ten-frames, number bonds, clocks,
   coins, balances, calendars, shapes, pictographs need a small **figure DSL**, not
-  prose — this is the dominant mode at Standard 1, not an edge case.
+  prose — this is the dominant mode at Standard 1, not an edge case. **Landed
+  (M5, #16):** `shared/figures.ts` defines the spec DSL (ten-frame, clock, coins,
+  objects — validated at the v2 trust boundary as the `figure` field) and
+  `game/assets/src/questions/FigureView.ts` renders it; the remaining
+  presentations fall back to prose until their renderers land.
 - **Non-numeric answers.** `match`, `color`, `ordering`, `number-sentence`,
   `chinese-word`, `drawing`, `tick` need answer types and graders the numeric
   field can't hold.

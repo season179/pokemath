@@ -5,6 +5,8 @@
 // the authored JSON bank format. JSON is the content source of truth; this
 // module owns the runtime contract and behavior, not the authored questions.
 
+import type { FigureSpec } from "./figures.ts";
+
 export interface QuestionStep {
   prompt_zh: string;
   prompt_en: string;
@@ -58,6 +60,14 @@ export interface Question {
   // Declared ordering sequence (answer_form "ordering", #12). Never present
   // on legacy banks; served by question-ordering.ts, not QuestionRound.
   sequence?: QuestionSequence;
+  // Presentation marker (schema-v2 vocabulary, question-v2.ts). Optional:
+  // legacy v1 banks omit it and keep prose serving. The FigureView kit
+  // (#16) reads it for the deliberate prose fallback (resolveFigureView).
+  presentation?: string;
+  // Declarative figure spec (schema-v2 wire only, #16): authored content
+  // data rendered by the shared FigureView kit. Absent on legacy banks —
+  // the v1 wire rejects it and the v1 adapter never fabricates one.
+  figure?: FigureSpec;
 }
 
 export interface QuestionBankData {

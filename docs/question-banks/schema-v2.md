@@ -62,6 +62,7 @@ Unknown envelope fields are rejected.
 | `distractors` | exactly 3 `{ "value", "strategy" }`; exactly 1 for true-false; empty (`[]`) for ordering | authored wrong choices; `strategy` is one of the style doc §D misconception ids |
 | `sequence` | ordering only: `{ "direction": ..., "items": [...] }` (below) | the declared correct order (#12) |
 | `table` | optional object of finite numbers | supporting data table |
+| `figure` | optional declarative figure spec (below) | the visual behind a `figure:*` presentation (#16) |
 
 ## Rules the parser enforces (structural)
 
@@ -148,6 +149,45 @@ direction**; shuffling is serve-time UI state and never enters the bank.
 - Scoring is three-valued (see `shared/question-ordering.ts`): an
   unfinished arrangement is `incomplete` (calm hint, no penalty), a full
   wrong arrangement is `incorrect`, and the declared order is `correct`.
+
+## The declarative figure (#16)
+
+Standard-1 items are overwhelmingly visual (style doc §E), so an item can
+carry a small **figure spec** — content data, rendered by the shared
+FigureView kit (`game/assets/src/questions/FigureView.ts`) rather than by
+per-question UI code. The DSL lives in `shared/figures.ts`; the four kinds
+cover the highest-frequency Standard 1 visuals:
+
+| `figure.kind` | Shape | Renders |
+|---|---|---|
+| `"ten-frame"` | `{ "kind", "filled": 0–20 }` | counters filling 10-cell frames in reading order (11–20 draws the double frame, 二十格); empty cells stay visible so bonds to 10/20 read off the gaps |
+| `"clock"` | `{ "kind", "hour": 1–12, "minute": 0\|15\|30\|45 }` | an analog face with all twelve numerals; the hour hand travels with the minutes (3:30 points halfway between 3 and 4) |
+| `"coins"` | `{ "kind", "coins": [5\|10\|20\|50, ...] }` | Malaysian sen coins (silver; 50 sen gold), sized by value, labeled with the denomination; the pile must total ≤ 100 sen (RM1) |
+| `"objects"` | `{ "kind", "icon": "🐑", "count": 1–100, "crossedOut"? }` | rows of one emoji (10 per row); the trailing `crossedOut` icons are struck through — the picture-sentence (看图列式) subtraction convention |
+
+Wire rules (structural; `parseFigureSpec`):
+
+- The spec is strict: unknown fields, out-of-range values, non-sen
+  denominations, and off-scope clocks (any minute outside 0/15/30/45) are
+  rejected at the trust boundary.
+- When `figure` is present its `kind` **must match** `presentation`
+  (`figure.kind: "clock"` requires `presentation: "figure:clock"`).
+- A `figure:*` presentation **without** a spec is not an error — it is the
+  deliberate fallback: the question layout renders the bilingual prose with
+  the world's sprites behind it (see `resolveFigureView`). This is how the
+  remaining presentations (`figure:pictograph`, `figure:number-bond`, …)
+  serve safely until their renderers land.
+- Whether the figure matches the *content* (does the ten-frame show the
+  question's known part?) is an authoring-review concern, not structural —
+  the canonical examples live in the gallery bank
+  (`game/assets/resources/question-banks/std1/figure-gallery.v1.json`,
+  executed by `shared/tests/figures.test.ts`).
+
+Figures are a **schema-v2 feature**: the v1 wire stays frozen (its
+unknown-field guard rejects `figure`), and the v1 adapter never fabricates
+a figure for legacy content.
+
+Executed examples: [below](#valid-clock-item-with-a-figure-16).
 
 ## Rules the verifier enforces (content, authoring/CI)
 
@@ -418,6 +458,120 @@ carry the tile text; values are step identities).
           { "value": 3, "label_zh": "上学", "label_en": "go to school" }
         ]
       }
+    }
+  ]
+}
+```
+
+### Valid: clock item with a figure (#16)
+
+<!-- example: valid -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-example",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": { "numeral": "3", "zh_word": "三" },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What time is shown on the clock face?",
+      "figure": { "kind": "clock", "hour": 3, "minute": 0 },
+      "distractors": [
+        { "value": 2, "strategy": "off-by-one-count" },
+        { "value": 4, "strategy": "off-by-one-count" },
+        { "value": 12, "strategy": "clock-hand-swap" }
+      ]
+    }
+  ]
+}
+```
+
+### Invalid: figure kind does not match the presentation
+
+<!-- example: invalid: /question 1\.figure\.kind "objects" does not match presentation "figure:clock"/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-example",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": { "numeral": "3", "zh_word": "三" },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What time is shown on the clock face?",
+      "figure": { "kind": "objects", "icon": "🐑", "count": 3 },
+      "distractors": [
+        { "value": 2, "strategy": "off-by-one-count" },
+        { "value": 4, "strategy": "off-by-one-count" },
+        { "value": 12, "strategy": "clock-hand-swap" }
+      ]
+    }
+  ]
+}
+```
+
+### Invalid: an off-scope clock
+
+<!-- example: invalid: /question 1\.figure\.minute must be one of: 0, 15, 30, 45/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-example",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": { "numeral": "3", "zh_word": "三" },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What time is shown on the clock face?",
+      "figure": { "kind": "clock", "hour": 3, "minute": 22 },
+      "distractors": [
+        { "value": 2, "strategy": "off-by-one-count" },
+        { "value": 4, "strategy": "off-by-one-count" },
+        { "value": 12, "strategy": "clock-hand-swap" }
+      ]
     }
   ]
 }
