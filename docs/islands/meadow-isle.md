@@ -342,12 +342,20 @@ area_context := {
 
 ## Creature roster (Meadow Isle)
 
-The table below records current **art candidates**, not save identity. Licensed
-Pocket Creature Tamer strips may be streamed from private R2, and original
-PokeMath strips may be produced by `tools/generate-creature.mjs`. Every family
-receives a permanent semantic `speciesId` after the bilingual naming pass;
-its species data points to a replaceable `artRef`. Pack paths, generated
-filenames, and bucket keys must never become `speciesId` values.
+**Source of truth: the code registry.** Species identity, bilingual names,
+stages, rarity, and replaceable art bindings live in `shared/creature.ts`
+(`SPECIES_BY_ID`); habitat membership and rarity live in
+`shared/habitats.ts` (`MEADOW_HABITATS`). Both were ratified by the approved
+bilingual naming slate ([meadow-naming-slate.md](meadow-naming-slate.md),
+issue #4, 2026-07-19). This table is a human-readable summary — when it and
+the registry disagree, the registry wins.
+
+Save identity is the semantic `speciesId` only. Licensed Pocket Creature
+Tamer strips stream from private R2, and original PokeMath strips come from
+`tools/generate-creature.mjs`; both bind through the replaceable `artRef`.
+Pack paths, generated filenames, and bucket keys must never become
+`speciesId` values — a missing or swapped sheet falls back to the
+placeholder blob with identity untouched.
 
 Each strip contains all evolution stages; alternate palettes are variants,
 not a separate species or a separate rarity. Working reads describe the whole
@@ -355,28 +363,32 @@ line because a family chosen for its cute stage 1 will be played at every
 stage. Meadow wild encounters are mostly stage-1 forms; later forms appear
 mainly as evolved player pets.
 
-| Current artRef candidate | Working read (all stages) | Stages | Rarity | Where |
-|---|---|---|---|---|
-| `3EVO/05` | larva → cocoon → great moth | 3 | common | Dockside, Pattern Gardens |
-| `3EVO/06` | fluffball → winged lambkin → meadow fae | 3 | common | Woolly Meadows (the flocks) |
-| `2EVO/10` | pufftail mouse → roly-poly mouse | 2 | common | everywhere, Barn |
-| `3EVO/21` | chick → gamefowl → plumed strider | 3 | common | Orchard, Barn |
-| `3EVO/13` | ball-tail hare (quadruped throughout) | 3 | uncommon | Woolly Meadows, Gardens |
-| `3EVO/02` | sprout kitten → leaf cat → orchard lynx | 3 | starter | Sproutkit (provisional name) — starters don't spawn wild |
-| `3EVO/08` | pink squirrel kit → squirrel-fox → blossom fox | 3 | uncommon | Orchard, Ticktock base |
-| `2EVO/04` | round chick → owl | 2 | uncommon | Ticktock Knoll |
-| `2EVO/06` | farm pup → hound | 2 | uncommon | Barn |
-| `2EVO/03` | woolly ram → bull | 2 | **rare** | Hundred Stones edge |
-| `3EVO/01` | petal sprite → blossom fae | 3 | **rare** | Festival Green (dusk) |
-| `Uniques/03` | **Cloud-Maned Horse — guardian** | 1 | guardian | The Hundred Stones |
+| speciesId | EN / 中文 | Line (all stages) | Stages | Rarity | Habitat |
+|---|---|---|---|---|---|
+| `meadow/mothling` | Mothling / 毛毛虫 | larva → cocoon → great moth | 3 | common | Dockside, Pattern Gardens |
+| `woolly/fluffball` | Fluffball / 毛球 | fluffball → winged lambkin → meadow fae | 3 | common | Woolly Meadows (the flocks) |
+| `meadow/pufftail` | Pufftail / 团子鼠 | pufftail mouse → roly-poly mouse | 2 | common | everywhere (background mouse) |
+| `meadow/plumelet` | Plumelet / 小羽 | chick → gamefowl → plumed strider | 3 | common | Orchard, Barn |
+| `woolly/hare` | Balltail Hare / 球尾兔 | ball-tail hare (quadruped throughout) | 3 | uncommon | Woolly Meadows, Gardens |
+| `sproutkit` | Sproutkit / 苗苗 | sprout kitten → leaf cat → orchard lynx | 3 | starter | starters don't spawn wild |
+| `meadow/blossomfox` | Blossomfox / 花狐 | pink squirrel kit → squirrel-fox → blossom fox | 3 | uncommon | Orchard, Ticktock base |
+| `meadow/owlet` | Owlet / 咕咕 | round chick → owl | 2 | uncommon | Ticktock Knoll |
+| `meadow/barnpup` | Barnpup / 汪汪 | farm pup → hound | 2 | uncommon | Barn |
+| `woolly/ram` | Woolly Ram / 卷卷 | woolly ram → bull | 2 | **rare** | Woolly Meadows near the Stones, Hundred Stones |
+| `meadow/petalfae` | Petalfae / 朵朵 | petal sprite → blossom fae | 3 | **rare** | Festival Green (dusk) |
+| `meadow/cloudmane` | Cloudmane / 天马 | **Cloud-Maned Horse — guardian** | 1 | guardian | The Hundred Stones (authored battle, never wild) |
 
-**Bound art (2026-07-18, #46):** the Woolly Meadows preview roster — `3EVO/06`
-(Fluffball), `3EVO/13` (Balltail Hare), and `2EVO/03` (Woolly Ram) — is bound
-via `Species.art` in `shared/creature.ts`; all other rows remain art
-candidates until their habitat tables land (#9). The hare keeps `3EVO/13`:
-the locked starter trio (Cloudhorn, Lumentail, Sproutkit `3EVO/02`) no longer
-claims any wild family's sheet, so no sheet is double-booked. (2EVO strips
-are 144×48 with an empty leading cell — stage 1 is the middle 48px cell.)
+The other two starters (`cloudhorn` Cloudhorn / 云角, `lumentail` Lumentail /
+灯尾) are registered in the same module; they spawn nowhere wild.
+
+**Bound art (2026-07-19, #4):** every row above is bound via
+`Species.artRef` in `shared/creature.ts`, verified against the R2 pack
+routes. Per family the pack strip is: mothling `3EVO/05`, fluffball
+`3EVO/06`, pufftail `2EVO/10`, plumelet `3EVO/21`, hare `3EVO/13`, sproutkit
+`3EVO/02`, blossomfox `3EVO/08`, owlet `2EVO/04`, barnpup `2EVO/06`, ram
+`2EVO/03`, petalfae `3EVO/01`, guardian `Uniques/03`. These pack codes are
+art candidates only — replaceable, never identity. (2EVO strips are 144×48
+with an empty leading cell — stage 1 is the middle 48px cell.)
 
 Reserved for later islands (seen in the pack, wrong biome here): the sea
 serpents (`3EVO/09`, `3EVO/10`) → Tidepool Coast; the sun-maned lion
@@ -436,9 +448,10 @@ These foundations land in **M1.5 before broad encounters**:
 
 ## Open questions
 
-- **Bilingual creature naming.** Every species needs a Chinese + English
-  name and permanent semantic `speciesId`; the working reads above are just
-  visual notes.
+- ~~**Bilingual creature naming.**~~ **Resolved (2026-07-19, #4):** the
+  approved naming slate ([meadow-naming-slate.md](meadow-naming-slate.md))
+  fixed every Meadow family's bilingual name and permanent semantic
+  `speciesId`; the code registry is `shared/creature.ts`.
 - Do landmark interactions (moving sheep between pens, setting clock hands)
   become first-class `activity` answer forms, or stay flavour around
   standard answer forms?

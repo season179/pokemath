@@ -15,3 +15,4 @@ export * from "./player-progression";
 export * from "./save-v2";
 export * from "./save-v2-validate";
 export * from "./save-migrate";
+export * from "./habitats";
