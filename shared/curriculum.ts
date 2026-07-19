@@ -45,12 +45,13 @@ export function gateQuestionsByProfile<T extends { profile?: string }>(
     );
   }
   return questions.filter((q) => {
-    if (q.profile !== undefined && !isCurriculumProfile(q.profile)) {
+    const profile = q.profile ?? "dpk3_2026_core";
+    if (!isCurriculumProfile(profile)) {
       throw new Error(
         `question has unknown curriculum profile "${q.profile}" ` +
           `(expected one of: ${CURRICULUM_PROFILES.join(", ")})`,
       );
     }
-    return servesProfile(q.profile ?? "dpk3_2026_core", activeProfile);
+    return servesProfile(profile, activeProfile);
   });
 }
