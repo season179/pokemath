@@ -3,31 +3,34 @@
 
 import { JsonAsset, resources } from "cc";
 import {
-  QuestionBank,
   parseQuestionBankData,
   type AnyVersionedQuestionBankData,
 } from "../../shared/index";
 
-export function loadQuestionBankData(path: string): Promise<AnyVersionedQuestionBankData> {
+/**
+ * Load any JSON asset under assets/resources by its extension-less path.
+ * Shared by bank and manifest loading so every content load fails the same
+ * way (reject with the resource path in the message).
+ */
+export function loadJsonAsset(path: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     resources.load(path, JsonAsset, (error, asset) => {
       if (error) {
-        reject(new Error(`Could not load question bank "${path}": ${error.message}`));
+        reject(new Error(`Could not load "${path}": ${error.message}`));
         return;
       }
-      try {
-        resolve(parseQuestionBankData(asset.json));
-      } catch (cause) {
-        const detail = cause instanceof Error ? `: ${cause.message}` : "";
-        reject(new Error(`Invalid question bank "${path}"${detail}`));
-      }
+      resolve(asset.json);
     });
   });
 }
 
-export async function loadQuestionBank(
-  path: string,
-  rng: () => number = Math.random,
-): Promise<QuestionBank> {
-  return new QuestionBank(await loadQuestionBankData(path), rng);
+export function loadQuestionBankData(path: string): Promise<AnyVersionedQuestionBankData> {
+  return loadJsonAsset(path).then((json) => {
+    try {
+      return parseQuestionBankData(json);
+    } catch (cause) {
+      const detail = cause instanceof Error ? `: ${cause.message}` : "";
+      throw new Error(`Invalid question bank "${path}"${detail}`);
+    }
+  });
 }
