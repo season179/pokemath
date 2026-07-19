@@ -37,7 +37,7 @@ report for the human reviewer.
 | `RAW-IDS` | adversarial | Duplicate or malformed question ids in the raw JSON | [schema-v2.md](schema-v2.md) |
 | `UNIT-TOPIC` | adversarial | `answer_unit` RM/sen outside topic 4.3 | scope doc §4.3 |
 | `STRATEGY-TOPIC` | adversarial | `money-denom-miscount` on non-money items; `clock-hand-swap` outside topic 4.4 | style doc §D |
-| `EXTRA-PROFILE` | adversarial | `topic: "extra"` not gated to `original_dskp_extra`, or core topics gated to the extra profile | scope doc §1/§5 |
+| `EXTRA-PROFILE` | adversarial | `topic: "extra"` not gated to `original_dskp_extra`; core topics gated to the extra profile warn (hidden from core-profile children) | scope doc §1/§5 |
 | `ZH-WORD-DRIFT` | adversarial (⚠) | Raw `zh_word` differing from the derived Chinese number word — human-review evidence, not a hard fail | style doc §B |
 
 ## Money scope, precisely (scope doc §4.3)

@@ -26,7 +26,7 @@
 | RAW-IDS | adversarial | ✅ | Question ids are unique positive integers in the raw JSON. |
 | UNIT-TOPIC | adversarial | ✅ | answer_unit RM/sen appears only on topic 4.3 (money); money items outside 4.3 are incoherent. |
 | STRATEGY-TOPIC | adversarial | ✅ | money-denom-miscount distractors only on money items; clock-hand-swap only on topic 4.4 (time). |
-| EXTRA-PROFILE | adversarial | ✅ | topic "extra" requires profile original_dskp_extra; core topics (4.1–4.7) are authored as dpk3_2026_core. |
+| EXTRA-PROFILE | adversarial | ✅ | topic "extra" requires profile original_dskp_extra; core topics gated to the extra profile warn (they are hidden from core-profile children). |
 | ZH-WORD-DRIFT | adversarial | ✅ | Raw bilingual.zh_word matches the independently derived Chinese number word (human-review evidence on drift). |
 
 Every checklist row passed. The bank may enter an approved bank.

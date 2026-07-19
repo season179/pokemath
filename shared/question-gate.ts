@@ -173,7 +173,8 @@ export const CORPUS_CHECKLIST: readonly ChecklistRow[] = [
     rule: "EXTRA-PROFILE",
     phase: "adversarial",
     source: "scope doc §1/§5",
-    description: "topic \"extra\" requires profile original_dskp_extra; core topics (4.1–4.7) are authored as dpk3_2026_core.",
+    description:
+      "topic \"extra\" requires profile original_dskp_extra; core topics gated to the extra profile warn (they are hidden from core-profile children).",
   },
   {
     rule: "ZH-WORD-DRIFT",
@@ -298,13 +299,17 @@ export function auditBankAdversarial(raw: unknown): GateFinding[] {
       );
     }
     if (CORE_TOPIC.test(topic) && q.profile !== "dpk3_2026_core") {
+      // Not a hard violation: original_dskp_extra is defined as core PLUS
+      // extras, so a full-DSKP batch legitimately contains core items. But
+      // gating a core item to the extra profile hides it from core-profile
+      // children, so it surfaces as human-review evidence.
       findings.push(
         find(
           "EXTRA-PROFILE",
           "adversarial",
-          "error",
+          "warn",
           "adv-core-profile",
-          `core topic "${topic}" should be authored as profile "dpk3_2026_core", got ${JSON.stringify(q.profile)}`,
+          `core topic "${topic}" is gated to profile ${JSON.stringify(q.profile)}; it will not be served to dpk3_2026_core children`,
           id,
         ),
       );

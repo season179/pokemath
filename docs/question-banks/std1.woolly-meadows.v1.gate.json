@@ -1,6 +1,6 @@
 {
   "tool": "tools/validate-question-bank.mjs",
-  "generatedAt": "2026-07-19T09:47:19.057Z",
+  "generatedAt": "2026-07-19T09:51:24.811Z",
   "source": "woolly-meadows.v1.json",
   "sha256": "5ae1011a6639b713887161a7394c212ce9963506d106bd4d5049015dbb287b89",
   "accept": true,
@@ -154,7 +154,7 @@
       "rule": "EXTRA-PROFILE",
       "phase": "adversarial",
       "source": "scope doc §1/§5",
-      "description": "topic \"extra\" requires profile original_dskp_extra; core topics (4.1–4.7) are authored as dpk3_2026_core.",
+      "description": "topic \"extra\" requires profile original_dskp_extra; core topics gated to the extra profile warn (they are hidden from core-profile children).",
       "result": "pass",
       "findings": []
     },

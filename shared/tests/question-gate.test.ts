@@ -217,6 +217,26 @@ test("adversarial: legacy v1 banks skip v2 coherence rows", () => {
   assert.ok(!findings.some((f) => f.rule === "UNIT-TOPIC" || f.rule === "EXTRA-PROFILE"));
 });
 
+test("adversarial: core topics gated to the extra profile warn, not reject", () => {
+  const raw = {
+    schema_version: 2,
+    questions: [
+      {
+        id: 1,
+        topic: "4.2",
+        profile: "original_dskp_extra",
+        answer: 8,
+        bilingual: { numeral: "8", zh_word: "八" },
+      },
+    ],
+  };
+  const findings = auditBankAdversarial(raw);
+  const hit = findings.find((f) => f.code === "adv-core-profile");
+  assert.ok(hit, JSON.stringify(findings));
+  assert.equal(hit.severity, "warn");
+  assert.equal(hit.rule, "EXTRA-PROFILE");
+});
+
 test("adversarial: clock-hand-swap outside topic 4.4 is incoherent", () => {
   const raw = {
     schema_version: 2,
