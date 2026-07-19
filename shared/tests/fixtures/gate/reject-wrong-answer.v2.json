@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-wrong-answer.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "36 + 14",
+      "answer": 49,
+      "bilingual": {
+        "numeral": "49",
+        "zh_word": "四十九"
+      },
+      "question_zh": "36 + 14 = ___",
+      "question_en": "36 + 14 = ___",
+      "distractors": [
+        {
+          "value": 50,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 40,
+          "strategy": "no-carry-concat"
+        },
+        {
+          "value": 48,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}

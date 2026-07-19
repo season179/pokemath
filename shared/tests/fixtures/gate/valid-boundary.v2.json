@@ -1,0 +1,346 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-valid-boundary",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "picture",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "100",
+      "answer": 100,
+      "bilingual": {
+        "numeral": "100",
+        "zh_word": "一百"
+      },
+      "question_zh": "数一数，共有几颗豆子？",
+      "question_en": "Count the beans. How many are there?",
+      "distractors": [
+        {
+          "value": 99,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 90,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "64 + 36",
+      "answer": 100,
+      "bilingual": {
+        "numeral": "100",
+        "zh_word": "一百"
+      },
+      "question_zh": "64 + 36 = ___",
+      "question_en": "64 + 36 = ___",
+      "distractors": [
+        {
+          "value": 90,
+          "strategy": "no-carry-concat"
+        },
+        {
+          "value": 99,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 96,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "20 + 20 + 20 + 20 + 20",
+      "answer": 100,
+      "bilingual": {
+        "numeral": "100",
+        "zh_word": "一百"
+      },
+      "question_zh": "5 个盘子，每盘 20 颗葡萄，一共有几颗？",
+      "question_en": "Five plates of 20 grapes each — how many grapes in all?",
+      "distractors": [
+        {
+          "value": 80,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 25,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 90,
+          "strategy": "no-carry-concat"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "addition",
+      "expression": "6 + 4",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "RM6 加 RM4 一共是多少钱？",
+      "question_en": "How much is RM6 plus RM4?",
+      "distractors": [
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "50 + 20 + 30",
+      "answer": 100,
+      "bilingual": {
+        "numeral": "100",
+        "zh_word": "一百"
+      },
+      "question_zh": "50 sen、20 sen 和 30 sen 一共是多少？",
+      "question_en": "How much is 50 sen, 20 sen and 30 sen altogether?",
+      "distractors": [
+        {
+          "value": 90,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 80,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 99,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "picture",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "50 sen 可以换几枚 10 sen？",
+      "question_en": "How many 10-sen coins make 50 sen?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "money-denom-miscount"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "7 + 5 = 12",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：7 + 5 = 12",
+      "question_en": "Mark ✓ for true and ✗ for false: 7 + 5 = 12",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "wrong-operation"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.1",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3 < 5 < 8 < 9",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "从小到大排列：5、3、9、8",
+      "question_en": "Arrange from smallest to largest: 5, 3, 9, 8",
+      "distractors": [],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          {
+            "value": 3
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 9
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "钟面上是几点？",
+      "question_en": "What time does the clock show?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 6,
+          "strategy": "clock-hand-swap"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "5 - 5",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "5 − 5 = ___",
+      "question_en": "5 − 5 = ___",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 2,
+          "strategy": "raw-operand"
+        }
+      ]
+    }
+  ]
+}

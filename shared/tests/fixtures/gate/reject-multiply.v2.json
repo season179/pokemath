@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-multiply.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "5 × 3",
+      "answer": 15,
+      "bilingual": {
+        "numeral": "15",
+        "zh_word": "十五"
+      },
+      "question_zh": "5 × 3 = ___",
+      "question_en": "5 × 3 = ___",
+      "distractors": [
+        {
+          "value": 12,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 53,
+          "strategy": "no-carry-concat"
+        }
+      ]
+    }
+  ]
+}

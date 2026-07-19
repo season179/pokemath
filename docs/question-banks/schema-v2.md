@@ -151,15 +151,23 @@ direction**; shuffling is serve-time UI state and never enters the bank.
 
 ## Rules the verifier enforces (content, authoring/CI)
 
-`shared/question-verify.ts` stays the authoring gate (#14 hardens it): it
+`shared/question-verify.ts` is the mechanical gate (#14 hardened it): it
 re-derives the answer from `expression` — for true-false, by evaluating the
 comparison claim (each side must independently stay in scope and single-
 step); for ordering, by checking the declared order against the direction
 (sortedness for ascending/descending, the label cross-check for forward) —
-enforces the scope (numbers ≤ 100, `+ −` only, single-step), and flags `bilingual` mismatches: a wrong `numeral` is an error, and a `zh_word`
+enforces the scope (numbers ≤ 100, `+ −` only, single-step), tightens it for
+money items (RM amounts ≤ RM10, sen ≤ RM1, table values included, and mixed
+coin-note exchange rejected from prompt text), and flags `bilingual` mismatches: a wrong `numeral` is an error, and a `zh_word`
 that differs from the derived `chineseNumeral(answer)` reading warns with
 the suggestion (the gloss is a translation; a human reviews variants). The
 trust boundary never re-derives content.
+
+The full offline gate — structural + mechanical + an adversarial corpus
+checklist pass over the raw JSON, with accept/reject evidence — is
+`shared/question-gate.ts`, driven by `tools/validate-question-bank.mjs`
+(`npm run validate:questions`). The checklist contract is
+[std1-corpus-checklist.md](std1-corpus-checklist.md).
 
 ## Curriculum-profile gating
 

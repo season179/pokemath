@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-money-sen-over-100.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "80 + 70",
+      "answer": 150,
+      "bilingual": {
+        "numeral": "150",
+        "zh_word": "一百五十"
+      },
+      "question_zh": "80 sen 加 70 sen 一共是多少？",
+      "question_en": "How much is 80 sen plus 70 sen?",
+      "distractors": [
+        {
+          "value": 140,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 100,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 90,
+          "strategy": "money-denom-miscount"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-table-out-of-scope.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "tally",
+      "presentation": "figure:pictograph",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "看 pictograph：苹果有几个？",
+      "question_en": "Read the pictograph: how many apples are there?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "table": {
+        "苹果": 500,
+        "香蕉": 4
+      }
+    }
+  ]
+}

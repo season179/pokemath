@@ -1,0 +1,18 @@
+{
+  "schema_version": 3,
+  "bank_id": "std1.fixture-reject-schema-version",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "question_zh": "1 + 1 = ___",
+      "question_en": "1 + 1 = ___",
+      "operation": "addition",
+      "expression": "1 + 1",
+      "answer": 2
+    }
+  ]
+}

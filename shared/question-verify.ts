@@ -7,6 +7,12 @@
 // True-false items (#11) express their claim as a comparison
 // (`E = E`, `E > E`, `E < E` — each side a Std-1 arithmetic expression) and
 // the re-derived truth value (1 = 对/✓, 0 = 错/✗) must equal the answer.
+// Money items (#14) tighten the scope by unit: RM amounts stay ≤ RM10 and
+// sen amounts ≤ 100 (RM1), and a prompt that makes or exchanges equivalent
+// value across the coin/note boundary (ringgit AND sen amounts plus
+// exchange language) is rejected — scope doc §4.3 forbids mixed coin-note
+// exchange. Multiplication/division of money is already impossible: the
+// expression grammar rejects × ÷ for every item.
 //
 // The scope rules come from docs/curriculum/standard-1-sjkc-math.md §2
 // (hard constraints). Misconception *labels* on distractors are review
@@ -40,7 +46,8 @@ export interface Finding {
 
 export interface VerifyOptions {
   // Inclusive upper bound on every number in the problem (operands, answer,
-  // and distractors). Standard-1 default is 100.
+  // distractors, and table values). Standard-1 default is 100. Money items
+  // ignore this option: the curriculum caps (RM ≤ 10, sen ≤ 100) always win.
   maxNumber?: number;
 // How many authored distractors a question must carry when it carries any.
   // The current UI is a 4-option MCQ (answer + 3), so the default is 3.
@@ -51,6 +58,28 @@ export interface VerifyOptions {
 
 const DEFAULT_MAX = 100;
 const DEFAULT_DISTRACTORS = 3;
+
+// Money caps (scope doc §4.3): ringgit amounts ≤ RM10, sen amounts ≤ RM1.
+const RM_MAX = 10;
+const SEN_MAX = 100;
+
+// Mixed coin-note exchange (scope doc §4.3): an item that makes/exchanges
+// equivalent value across the coin/note boundary is out of scope. The
+// mechanical signal is the prompt text: ringgit-denominated amounts AND
+// sen-denominated amounts AND exchange/equivalence language. Mixed note+coin
+// *totals* (RM1.40-style "how much altogether", style doc §C.3 caveat) carry
+// no exchange language and stay legal.
+const RM_AMOUNT_TEXT = /RM\s*\d|\d+\s*(?:令吉|元|块)/i;
+const SEN_AMOUNT_TEXT = /\d+\s*(?:sen|仙)/i;
+const EXCHANGE_TEXT =
+  /相等于|相等|兑换|可以换|换成|换几个|equivalent|exchange|equal value|same value/i;
+
+/** Inclusive upper bound for a question's numbers, money caps included. */
+export function scopeMaxFor(q: Question, opts: VerifyOptions = {}): number {
+  if (q.answer_unit === "RM") return RM_MAX;
+  if (q.answer_unit === "sen") return SEN_MAX;
+  return opts.maxNumber ?? DEFAULT_MAX;
+}
 
 type Tok = { t: "num"; v: number } | { t: "op"; v: "+" | "-" };
 
@@ -455,7 +484,7 @@ function verifyExpression(
  * an empty array means the item passes every mechanical check.
  */
 export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[] {
-  const max = opts.maxNumber ?? DEFAULT_MAX;
+  const max = scopeMaxFor(q, opts);
   const answerForm = (q as { answer_form?: string }).answer_form;
   const trueFalse = answerForm === TRUE_FALSE_FORM;
   const ordering = answerForm === ORDERING_FORM;
@@ -525,6 +554,29 @@ export function verifyQuestion(q: Question, opts: VerifyOptions = {}): Finding[]
     if (values.length + 1 !== seen.size) {
       here("warn", "distractor-collision", `answer + distractors are not all distinct`);
     }
+  }
+
+  // --- table payload values stay inside the scope (they are problem numbers) ---
+  if (q.table) {
+    for (const [key, value] of Object.entries(q.table)) {
+      if (!Number.isFinite(value) || value < 0 || value > max) {
+        here("error", "table-out-of-range", `table.${key} = ${value} outside [0, ${max}]`);
+      }
+    }
+  }
+
+  // --- money: no mixed coin-note exchange (scope doc §4.3) ---
+  const promptText = `${q.question_zh ?? ""}\n${q.question_en ?? ""}`;
+  if (
+    RM_AMOUNT_TEXT.test(promptText) &&
+    SEN_AMOUNT_TEXT.test(promptText) &&
+    EXCHANGE_TEXT.test(promptText)
+  ) {
+    here(
+      "error",
+      "money-mixed-exchange",
+      "prompt makes/exchanges equivalent value across the coin/note boundary (ringgit and sen in one exchange); keep exchanges single-unit",
+    );
   }
 
   // --- bilingual values (schema v2; content check, not the trust boundary) ---

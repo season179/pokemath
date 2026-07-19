@@ -1,0 +1,45 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-order-unsorted.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5 < 3 < 8",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "从小到大排列：5、3、8",
+      "question_en": "Arrange from smallest to largest: 5, 3, 8",
+      "distractors": [],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          {
+            "value": 5
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 8
+          }
+        ]
+      }
+    }
+  ]
+}

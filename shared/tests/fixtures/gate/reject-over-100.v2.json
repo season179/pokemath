@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.fixture-reject-over-100.v2",
+  "version": 1,
+  "source": "shared/tests/fixtures/gate (issue #14)",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "60 + 41",
+      "answer": 101,
+      "bilingual": {
+        "numeral": "101",
+        "zh_word": "一百零一"
+      },
+      "question_zh": "60 + 41 = ___",
+      "question_en": "60 + 41 = ___",
+      "distractors": [
+        {
+          "value": 100,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 110,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 99,
+          "strategy": "digit-reversal"
+        }
+      ]
+    }
+  ]
+}
