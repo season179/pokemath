@@ -4,13 +4,16 @@
 // `ownedCreatures` is the authoritative collection record. `team` holds
 // Creature battle views aligned by index with `teamIds`; their stats are
 // merged back into the owned record on toSave(), while creatures in storage
-// pass through untouched. Everything else (player seed, Field Guide, badges,
-// profile, location) round-trips as-is.
+// pass through untouched. The Field Guide advances via markSeenEntry (wild
+// battles) and capture; everything else (player seed, badges, profile,
+// location) round-trips as-is.
 
 import {
   Creature,
   captureCreature,
+  markSeen,
   mintCreatureId,
+  setTeam as setSaveTeam,
   type BagState,
   type CaptureOutcome,
   type CurriculumProfile,
@@ -77,12 +80,72 @@ export class GameState {
     this.team.forEach((c) => c.healFull());
   }
 
+  // --- Field Guide + Sanctuary views (issue #5) ---
+
+  /** Field Guide entries as of now (defensive copies — mutate via the methods). */
+  get fieldGuideEntries(): FieldGuideEntryState[] {
+    return this.fieldGuide.map((e) => ({ ...e, variants: [...e.variants] }));
+  }
+
+  /** Team roster as creatureIds (aligned with `team`). */
+  get teamIdList(): string[] {
+    return [...this.teamIds];
+  }
+
+  /** The leading creature's id (always a member of the team). */
+  get activeTeamId(): string {
+    return this.teamIds[this.activeIndex];
+  }
+
+  isOnTeam(creatureId: string): boolean {
+    return this.teamIds.includes(creatureId);
+  }
+
+  /**
+   * The whole collection with live stats: team members' battle-view numbers
+   * are merged into their owned records, storage passes through. This is the
+   * same merge toSave() persists, so what the Sanctuary shows is exactly what
+   * the next checkpoint writes.
+   */
+  ownedView(): OwnedCreatureState[] {
+    return this.toSave().ownedCreatures;
+  }
+
+  /**
+   * A wild battle begins: record the species (and palette) as seen. Running
+   * away still counts — you saw it. Returns true when the guide changed, so
+   * the caller can skip a checkpoint for an already-recorded sighting.
+   */
+  markSeenEntry(speciesId: string, variant = "normal"): boolean {
+    const next = markSeen(this.fieldGuide, speciesId, variant);
+    if (next === this.fieldGuide) return false;
+    this.fieldGuide = next;
+    return true;
+  }
+
+  /**
+   * Replace the active team (Harbor Sanctuary). Guards live in the UI and the
+   * shared mechanic throws on anything invalid (empty, >6, duplicates, ids
+   * not owned) — a throw here means a caller bug. Rebuilds the team's battle
+   * views from the merged owned records so live stats survive the swap, and
+   * keeps the lead on the same creature while it stays on the team.
+   */
+  setTeam(teamIds: string[]): void {
+    const result = setSaveTeam(this.toSave(), teamIds);
+    // Identity (creatureId/speciesId/stage/variant) comes from the owned
+    // record; only battle stats come from the Creature view — nothing is
+    // lost by round-tripping through toSave() here.
+    const ownedById = new Map(result.ownedCreatures.map((c) => [c.creatureId, c]));
+    this.teamIds = [...result.teamIds];
+    this.team = this.teamIds.map((id) => Creature.fromState(ownedById.get(id)!));
+    this.activeIndex = this.teamIds.indexOf(result.activeTeamId);
+  }
+
   /**
    * A successful catch is always kept (meadow-isle.md collection contract,
    * issue #3): it joins the active team while there is room, otherwise it
    * goes to owned storage. Returns the outcome so the battle can say where
-   * the new friend went. Storage becomes inspectable at the Harbor
-   * Sanctuary (#5); the creature is safe in the save until then.
+   * the new friend went. Storage is inspectable at the Harbor Sanctuary (#5).
    */
   capture(wild: Creature): CaptureOutcome {
     if (wild.speciesId === null) throw new Error("cannot capture a creature without a speciesId");

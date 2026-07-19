@@ -80,6 +80,43 @@ export function paintMapIcon(g: Graphics, size: number): void {
   g.fill();
 }
 
+// An open field-guide book — the Field Guide HUD button (#5).
+export function paintGuideIcon(g: Graphics, size: number): void {
+  const half = size / 2;
+
+  g.fillColor = new Color(255, 245, 220, 255);
+  g.strokeColor = INK;
+  g.lineWidth = Math.max(2, size * 0.08);
+  // Two pages fanning out from the spine.
+  g.roundRect(-half * 0.85, -half * 0.6, size * 0.42, size * 0.72, size * 0.06);
+  g.fill();
+  g.stroke();
+  g.roundRect(half * 0.02, -half * 0.6, size * 0.42, size * 0.72, size * 0.06);
+  g.fill();
+  g.stroke();
+
+  // Spine.
+  g.moveTo(0, -half * 0.6);
+  g.lineTo(0, size * 0.12);
+  g.stroke();
+
+  // Text lines on the left page, a paw-ish dot sketch on the right.
+  g.lineWidth = Math.max(1.5, size * 0.05);
+  for (const y of [-size * 0.28, -size * 0.08, size * 0.0]) {
+    g.moveTo(-half * 0.68, y);
+    g.lineTo(-half * 0.2, y);
+    g.stroke();
+  }
+  g.fillColor = BALL;
+  g.circle(half * 0.24, -size * 0.2, size * 0.09);
+  g.fill();
+  g.fillColor = INK;
+  g.circle(half * 0.1, size * 0.0, size * 0.035);
+  g.circle(half * 0.24, size * 0.04, size * 0.035);
+  g.circle(half * 0.38, size * 0.0, size * 0.035);
+  g.fill();
+}
+
 export function paintItemIcon(g: Graphics, kind: ItemIconKind, size: number): void {
   if (kind === "potion") paintPotion(g, size);
   else paintBall(g, size);
