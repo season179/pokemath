@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "full_review_quota": 200,
+  "sample_rate": 0.05,
+  "reviewed_total": 20,
+  "history": [
+    {
+      "at": "2026-07-12T00:00:00.000Z",
+      "kind": "seed",
+      "note": "Issue #6: the hand-authored Woolly Meadows v1 bank (20 questions) received 100% human review (docs/question-banks/std1-woolly-meadows-v1-review.md). Seeded so the first-200 quota counts every reviewed question.",
+      "reviewed": 20
+    }
+  ]
+}

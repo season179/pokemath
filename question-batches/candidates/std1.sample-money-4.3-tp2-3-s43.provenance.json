@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.sample-money-4.3-tp2-3-s43",
+  "generator": {
+    "tool": "tools/generate-question-batch.mjs",
+    "version": 1
+  },
+  "generated_at": "2026-07-19T14:31:51.229Z",
+  "params": {
+    "bank_id": "std1.sample-money",
+    "grade": "std1",
+    "topic": "4.3",
+    "tp_min": 2,
+    "tp_max": 3,
+    "profile": "dpk3_2026_core",
+    "count": 20,
+    "seed": 43,
+    "bank_version": 1
+  },
+  "question_count": 20,
+  "template_counts": {
+    "fill-blank": 9,
+    "count-write": 5,
+    "word-single": 6
+  },
+  "sha256": "2d13b7cfe60bc64849788221c6903217e7764f9aec2fcd3bb24e2ecddebcff76",
+  "reproduce": "node tools/generate-question-batch.mjs --bank std1.sample-money --topic 4.3 --tp 2-3 --profile dpk3_2026_core --count 20 --seed 43"
+}
