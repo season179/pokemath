@@ -1,7 +1,8 @@
 // Woolly Meadows: fenced counting pens on the north-west stretch of the ring.
 // The first area with wild encounters (preview, issue #8): tall grass (`g`)
 // can start battles drawn from the ordinary Woolly roster below. No boss and
-// no Unique appear here.
+// no Unique appear here. Since M2B (#9) every Meadow monster region hosts its
+// own table; this one stays exactly as the playtest shipped it.
 
 import { guide } from "./meadow-shared";
 import type { RegionDef } from "./types";
@@ -43,7 +44,10 @@ export const MEADOW_WOOLLY: RegionDef = {
   // 100 so they read as percentages — clear common / uncommon / rare rates.
   //   Fluffball (common) 65 · Balltail Hare (uncommon) 27 · Woolly Ram (rare) 8
   // Encounters fire only on the `g` tiles above, at the rate below per step,
-  // and only when isEncounterRegion(this region) is true (the #29 preview gate).
+  // and only when isEncounterRegion(this region) is true (the open-region
+  // scope in regions/index.ts). Shipped in the kids playtest and deliberately
+  // untouched by M2B: the habitat registry's woolly rows also list Pufftail,
+  // making this live table a grandfathered subset of them.
   encounters: {
     rate: 0.2,
     entries: [

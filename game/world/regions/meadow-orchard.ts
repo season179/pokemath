@@ -1,4 +1,6 @@
 // Appledore Orchard: tree rows for grouping and arrays, east of the knoll.
+// M2B (issue #9): tall grass (`g`) between the tree rows hosts the Orchard's
+// ordinary roster.
 
 import { POCKET_MESSAGE, guide } from "./meadow-shared.ts";
 import type { RegionDef } from "./types.ts";
@@ -13,27 +15,39 @@ export const MEADOW_ORCHARD: RegionDef = {
     "T.............p..............T",
     "T.............p.N............T",
     "T...T..T..T...p...T..T..T....T",
-    "T.............p..............T",
-    "T.............p..............T",
+    "T.gggg........p..............T",
+    "T.gggg........p..............T",
     "T...T..T..T...p...T..T..T....T",
-    "T.............p..............T",
-    "T.............p..............T",
+    "T.............p...gggg.......T",
+    "T.............p...gggg.......T",
     "T...T..T..T...p...T..T..T....T",
-    "T.............p..............T",
+    "T.............p.........gggg.T",
     "..............p..............T",
     "T.............p..............T",
     "T...T..T..T...p...T..T..T....T",
-    "T.............p..............T",
-    "T.............p..............T",
+    "T.gggg........p..............T",
+    "T.gggg........p..............T",
     "T...T..T..T...p...T..T..T....T",
-    "T.............p..............T",
-    "T.............p..............T",
+    "T.............p...gggg.......T",
+    "T.............p...gggg.......T",
     "T...XXXX......p..............T",
     "T...X..X......p..............T",
     "TTTTTTTTTTTTTTpTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 14, y: 1 },
   npcs: [guide(16, 2, "characters/character_7/character07-sheet.png")],
+  // M2B roster (issue #9): Plumelet anchors the orchard flocks. Weights sum
+  // to 100 (percentages); membership and rarity match the MEADOW_HABITATS
+  // rows for "meadow/orchard" exactly, with Pufftail below the area anchor.
+  //   Plumelet (common) 60 · Blossomfox (uncommon) 25 · Pufftail (common) 15
+  encounters: {
+    rate: 0.2,
+    entries: [
+      { speciesId: "meadow/plumelet", weight: 60, rarity: "common" },
+      { speciesId: "meadow/blossomfox", weight: 25, rarity: "uncommon" },
+      { speciesId: "meadow/pufftail", weight: 15, rarity: "common" },
+    ],
+  },
   gateways: [
     {
       name: "north",

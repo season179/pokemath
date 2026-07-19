@@ -99,7 +99,7 @@ export class GameApp {
   // Swap the world to another region, arriving through the named gateway.
   // The player name is rebuilt so it stays above the new world.
   private travel(regionId: string, gateway: string | null): void {
-    // Defense-in-depth for the preview seal (#29): gateway arrival already
+    // Defense-in-depth for the area seal (#29/#9): gateway arrival already
     // refuses sealed targets with a notice (canTraverseGateway), and the
     // region tests prove no NPC offer targets a sealed region either. This
     // guard is the last line at the single region-entry choke point — never
@@ -197,8 +197,9 @@ export class GameApp {
   }
 
   // A wild encounter (started from Woolly Meadows' tall grass) opens the
-  // battle screen with a fresh wild creature. Guards: only in a preview
-  // encounter region (#29), and only once the reviewed Std-1 bank has loaded.
+  // battle screen with a fresh wild creature. Guards: only in an
+  // encounter-capable region (the open-region scope), and only once the
+  // reviewed Std-1 bank has loaded.
   private startBattle(wild: Creature): void {
     if (!isEncounterRegion(this.world.regionId)) {
       console.warn(`Refusing battle in non-encounter region: ${this.world.regionId}`);

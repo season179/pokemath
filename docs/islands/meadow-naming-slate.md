@@ -138,9 +138,14 @@ the Festival column shows only its anchor (`meadow/petalfae` at dusk): per roste
 Festival also draws "spillover from everywhere," which the code tables express
 as a share of the island-wide common pool, not as extra rows here.
 
-Numeric weights are set per area when the tables land in code (post-approval);
-the preview's Woolly Meadows weights above are the only ones shipped so far,
-and this slate leaves them untouched.
+Numeric weights are set per area when the tables land in code (post-approval).
+**Landed in M2B (#9, 2026-07):** every Meadow monster region's live table
+sits in its region file (`game/world/regions/meadow-*.ts`), mechanically
+kept consistent with the matrix above by the regions test suite. The
+preview's Woolly Meadows weights remain untouched, as this slate requires —
+the live Woolly table omits `meadow/pufftail`, a grandfathered subset of its
+matrix row. Meadow Dock's row awaits the Dockside tutorial slice (its
+"first guaranteed encounter" is a scripted beat, not a weighted roll).
 
 ## After approval (the code work, in order)
 
