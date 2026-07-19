@@ -1,5 +1,11 @@
 # pokemath — agent guide
 
+## Working style
+
+- Don't over-think: pick the obvious approach and act. Skip extended deliberation, deep tradeoff analysis, and exploring alternatives you won't take.
+- Don't over-engineer: smallest change that satisfies the issue's acceptance criteria. No speculative abstractions, no unrequested hardening, no scope creep.
+- Work fast: batch independent tool calls, prefer quick checks over exhaustive verification, don't re-read files you already know.
+
 ## Never
 
 - No `Co-Authored-By` or AI attribution in commits — write messages like a human.
