@@ -3,7 +3,7 @@
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { Color, EventKeyboard, Input, KeyCode, Label, Node, UITransform, input, view } from "cc";
-import { Creature, QuestionBank, type SaveStateV2 } from "../shared/index";
+import { Creature, QuestionBank, SPECIES_BY_ID, type SaveStateV2 } from "../shared/index";
 import { loadRoutedQuestionBank } from "./questions/loadQuestionBankManifest";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
@@ -26,6 +26,15 @@ import {
   topicsForRegion,
 } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
+import {
+  ArcCritter,
+  FERN_ACCEPTED,
+  FLAG_WOOLLY_PEN,
+  PEN_REPAIRED_NOTICE,
+  WOOLLY_PEN_REWARD_BALLS,
+  arcBattleTopicsFor,
+  settleArcBattle,
+} from "./world/arc";
 import { WorldMapScreen } from "./world/WorldMapScreen";
 import { PALETTE, makeLabel, makePanel } from "./ui";
 
@@ -78,6 +87,9 @@ export class GameApp {
   // Ticktock arc progress (#19): session counter toward the re-chime badge.
   private ticktockWins = 0;
   private arcBadgeJustAwarded = false;
+  // The in-flight scripted arc battle's terminal outcome (#17): onOutcome
+  // always fires before the exit callback, so endArcBattle reads it here.
+  private arcOutcome: BattleOutcome | null = null;
   private screen: Screen = "world";
   private world: WorldScreen;
   private party: PartyScreen | null = null;
@@ -123,11 +135,13 @@ export class GameApp {
     onMap: () => this.openMap(),
     onGuide: () => this.startGuide(),
     onSanctuary: () => this.startSanctuary(),
+    onArcBattle: (critter) => this.startArcBattle(critter),
+    onArcAccept: (arcId) => this.acceptArc(arcId),
   };
 
   // Swap the world to another region, arriving through the named gateway.
   // The player name is rebuilt so it stays above the new world.
-  private travel(regionId: string, gateway: string | null): void {
+  private travel(regionId: string, gateway: string | null, startAt: { x: number; y: number } | null = null): void {
     // Defense-in-depth for the area seal (#29/#9): gateway arrival already
     // refuses sealed targets with a notice (canTraverseGateway), and the
     // region tests prove no NPC offer targets a sealed region either. This
@@ -139,7 +153,10 @@ export class GameApp {
     }
     this.world.releaseAll();
     this.world.root.destroy();
-    this.world = new WorldScreen(this.state, this.worldActions, regionId, gateway);
+    this.world = new WorldScreen(this.state, this.worldActions, regionId, gateway, startAt);
+    for (const topic of arcBattleTopicsFor(regionId, this.state.arcFlags())) {
+      void this.loadBankFor(topic);
+    }
     this.canvasNode.addChild(this.world.root);
     this.showPlayerName();
     this.screen = "world";
@@ -161,9 +178,13 @@ export class GameApp {
     view.on("design-resolution-changed", this.onViewResize, this);
     this.showPlayerName();
     // Load the routed Std-1 banks for the starting region's topics so
-    // encounters can start. If any manifest/bank boundary fails, those
-    // topics' encounters stay off (see loadBankFor).
+    // encounters can start (arc battle beats load their topics too, #17).
+    // If any manifest/bank boundary fails, those topics' encounters stay
+    // off (see loadBankFor).
     topicsForRegion(this.world.regionId).forEach((topic) => void this.loadBankFor(topic));
+    for (const topic of arcBattleTopicsFor(this.world.regionId, this.state.arcFlags())) {
+      void this.loadBankFor(topic);
+    }
   }
 
   /**
@@ -308,6 +329,83 @@ export class GameApp {
       this.world.showNotice(TICKTOCK_ARC_CLUE);
     }
     this.checkpoint();
+  }
+
+  /**
+   * A visible arc creature (the dock mothling, a wandering fluffball) starts
+   * a scripted, calm battle drawn from the routed bank for the beat's topic
+   * (#17). Scripted beats are the design's "first guaranteed encounter" —
+   * they bypass the tall-grass table but never the manifest's bank routing.
+   */
+  private startArcBattle(critter: ArcCritter): void {
+    if (this.screen !== "world") return;
+    const bank = this.banks.get(critter.topic);
+    if (!bank) {
+      // The routed bank for this beat hasn't landed — start the load and ask
+      // for one more gentle bump. We never fall back to SAMPLE_BANK (#8).
+      void this.loadBankFor(critter.topic);
+      this.world.showNotice("Your new friend isn't ready yet — one moment! 小伙伴还没准备好，等一下下！");
+      return;
+    }
+    const species = SPECIES_BY_ID[critter.speciesId];
+    if (!species) {
+      console.warn(`Arc critter names an unknown speciesId: ${critter.speciesId}`);
+      return;
+    }
+    const wild = Creature.fromSpecies(species);
+    if (wild.speciesId && this.state.markSeenEntry(wild.speciesId)) {
+      this.checkpoint();
+    }
+    this.screen = "battle";
+    this.hideWorld();
+    this.arcOutcome = null;
+    this.battle = new BattleScreen(this.state, wild, bank, {
+      onExit: () => this.endArcBattle(critter, this.arcOutcome ?? "fled"),
+      onRespawn: () => this.endArcBattle(critter, "defeated"),
+      // The terminal outcome always fires before the exit callback (#19's
+      // onOutcome channel), so endArcBattle can settle the round-up.
+      onOutcome: (outcome) => {
+        this.arcOutcome = outcome;
+      },
+    }, this.telemetry);
+    this.canvasNode.addChild(this.battle.root);
+  }
+
+  private endArcBattle(critter: ArcCritter, outcome: "won" | "captured" | "fled" | "defeated"): void {
+    this.battle?.root.destroy();
+    this.battle = null;
+    const settlement = settleArcBattle(this.state.arcFlags(), critter.id, outcome);
+    if (settlement) {
+      for (const [key, value] of Object.entries(settlement.flags)) {
+        this.state.setFlag(key, value);
+      }
+    }
+    this.returnToWorld(outcome === "defeated");
+    if (settlement?.penRepaired) {
+      // The payoff (#17): the fence visibly mends and the flock comes home.
+      // The def patch applies at world construction, so rebuild the region
+      // under the player's feet (the saved tile is validated walkable).
+      this.state.bag.ball += WOOLLY_PEN_REWARD_BALLS;
+      this.travel(this.world.regionId, null, this.world.playerTile);
+      this.world.showNotice(PEN_REPAIRED_NOTICE);
+    } else if (settlement) {
+      // A wanderer home or the mothling met: refresh the creatures only.
+      this.world.refreshArc();
+    }
+    this.checkpoint();
+  }
+
+  // Accepting Fern's intention (#17): persist the promise, make sure the
+  // wanderers' battle slice is loading, and reveal them in the tall grass.
+  private acceptArc(arcId: string): void {
+    if (arcId !== "woolly-pen") return;
+    this.state.setFlag(FLAG_WOOLLY_PEN, 1);
+    for (const topic of arcBattleTopicsFor(this.world.regionId, this.state.arcFlags())) {
+      void this.loadBankFor(topic);
+    }
+    this.checkpoint();
+    this.world.refreshArc();
+    this.world.showNotice(`Shepherd Fern: ${FERN_ACCEPTED}`);
   }
 
   private startShop(): void {

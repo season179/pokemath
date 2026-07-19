@@ -8,6 +8,8 @@ export const MEADOW_DOCK: RegionDef = {
   id: "meadow/dock",
   title: "MEADOW DOCK  ·  青草码头",
   art: "meadow",
+  // Dockside Path (meadow-isle.md §1): arrival & tutorial — counting small
+  // groups within 10 and numeral ↔ Chinese word (#17 arc; its topic lives in REGION_TOPICS).
   map: { group: "meadow", role: "transit", position: { x: 28, y: 52 } },
   rows: [
     "TTTTTTTT..TTTTTTTTTTTTTT",

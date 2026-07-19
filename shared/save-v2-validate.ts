@@ -30,6 +30,7 @@ const MAX_NAME_LENGTH = 40;
 const MAX_ID_LENGTH = 64; // creatureId (uuid = 36), speciesId, regionId, variant
 const MAX_COLLECTION = 1_000; // owned creatures / field-guide entries
 const MAX_BADGES = 64;
+const MAX_FLAGS = 128;
 const MAX_COORD = 10_000;
 
 export function validateSaveV2(value: unknown): value is SaveStateV2 {
@@ -59,6 +60,7 @@ export function validateSaveV2(value: unknown): value is SaveStateV2 {
   if (!isLocationOrNull(value.location)) return false;
   if (!isFieldGuide(value.fieldGuide)) return false;
   if (!isBadges(value.badges)) return false;
+  if (!isFlags(value.flags)) return false;
   if (!isProfile(value.profile)) return false;
   if (typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
   return true;
@@ -126,6 +128,17 @@ function isBadges(value: unknown): value is readonly string[] {
   if (value.length > MAX_BADGES) return false;
   if (!value.every(isId)) return false;
   return new Set(value).size === value.length;
+}
+
+// World/arc flags (#17): stable string ids → small counters. Bounds match
+// the other save ceilings — reject garbage, never a real playthrough.
+function isFlags(value: unknown): value is Record<string, number> {
+  if (!isRecord(value)) return false;
+  const entries = Object.entries(value);
+  if (entries.length > MAX_FLAGS) return false;
+  return entries.every(
+    ([key, flag]) => key.length > 0 && key.length <= MAX_ID_LENGTH && isBoundedInt(flag, 0, MAX_STAT),
+  );
 }
 
 function isProfile(value: unknown): value is CurriculumProfile {

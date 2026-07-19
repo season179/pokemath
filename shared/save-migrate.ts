@@ -91,6 +91,7 @@ export function migrateSave(raw: unknown, options: MigrateOptions = {}): SaveSta
     location: null, // v1 never persisted location; client spawns at the safe gateway
     fieldGuide,
     badges: [],
+    flags: {},
     profile: "dpk3_2026_core",
     savedAt: v1.savedAt,
   };
@@ -112,6 +113,11 @@ export function normalizeSave(raw: unknown, options: MigrateOptions = {}): SaveS
   if (raw !== null && typeof raw === "object") {
     const version = (raw as { version?: unknown }).version;
     if (version === SAVE_VERSION) {
+      // Additive v2 fields backfill on this single read/write path (#17):
+      // a v2 row stored before `flags` existed gains an empty record here
+      // rather than dying as "unreadable" — migrate on read, not a shim.
+      const record = raw as Record<string, unknown>;
+      if (record.flags === undefined) record.flags = {};
       if (validateSaveV2(raw)) return raw as SaveStateV2;
       throw new SaveMigrationError("version-2 save failed validation");
     }

@@ -11,6 +11,8 @@ export const MEADOW_WOOLLY: RegionDef = {
   id: "meadow/woolly",
   title: "WOOLLY MEADOWS  ·  羊毛草原",
   art: "meadow",
+  // Woolly Meadows (meadow-isle.md §2): counting country — whole numbers to
+  // 100, comparing, ten-frame number bonds (#17 arc; its topic lives in REGION_TOPICS).
   map: { group: "meadow", role: "monster", position: { x: 44, y: 74 } },
   rows: [
     "TTTTTTTTTTTTTTTTpTTTTTTTTTTTTTTT",
@@ -27,7 +29,7 @@ export const MEADOW_WOOLLY: RegionDef = {
     "T.N.................ggggggggg..T",
     "T.................XXXXXXXX.....T",
     "T.................X......X.....T",
-    "T........................X.....T",
+    "T................N.......X.....T",
     "T.................X......X.....T",
     "T.................X......X.....T",
     "T.................XXXXXXXX.....T",
@@ -39,7 +41,22 @@ export const MEADOW_WOOLLY: RegionDef = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 10 },
-  npcs: [guide(2, 11, "characters/character_5/character05-sheet.png")],
+  npcs: [
+    guide(2, 11, "characters/character_5/character05-sheet.png"),
+    {
+      // The broken-pen intention (#17): the shipped south pen has a gap in
+      // its west wall (x 18, row 14); Fern stands watch beside it. Her
+      // dialog is arc-driven (offer → progress → repaired + shortcut), and
+      // rounding up the three wanderers mends the fence for good.
+      x: 17,
+      y: 14,
+      name: "Shepherd Fern",
+      message:
+        "Oh no — the pen fence broke, and three little fluffballs wandered into the tall grass! 哎呀——羊圈的栅栏破了，三只小毛球跑进了草丛！",
+      characterSheet: "characters/character_4/character04-sheet.png",
+      arcId: "woolly-pen",
+    },
+  ],
   // Preview roster (M2A): three ordinary, catchable creatures. Weights sum to
   // 100 so they read as percentages — clear common / uncommon / rare rates.
   //   Fluffball (common) 65 · Balltail Hare (uncommon) 27 · Woolly Ram (rare) 8

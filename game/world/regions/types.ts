@@ -68,6 +68,13 @@ export interface NpcDef {
    * just closing the banner (the Harbor Sanctuary keeper, issue #5).
    */
   readonly opens?: "sanctuary";
+  /**
+   * If set, this NPC's dialog is resolved by the arc module (world/arc.ts)
+   * from the save's world flags — multi-state intention givers whose copy
+   * and offers change with progress (Shepherd Fern, #17). The static
+   * `message` above is only a fallback for tooling.
+   */
+  readonly arcId?: string;
 }
 
 export type TileHandler = "heal" | "shop" | "workshop";

@@ -119,7 +119,7 @@ export const SEALED_GATEWAY_MESSAGE =
 // default (4.1) until their arc lands. Later arcs add their case here —
 // nothing else in the battle path names a topic.
 export const REGION_TOPICS: Readonly<Record<string, readonly string[]>> = {
-  "meadow/woolly": ["4.1"], // whole numbers to 100
+  "meadow/woolly": ["4.1"], // whole numbers to 100; ten-frame bonds (#17)
   "meadow/ticktock": ["4.4"], // time & calendar (#19)
   "meadow/orchard": ["4.2", "4.3"], // arithmetic & fruit-stand money (#18)
 };

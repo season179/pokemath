@@ -43,7 +43,8 @@ import {
   regionW,
   tileAt,
 } from "./regions/index";
-import { Creature, pickEncounter, rollEncounter } from "../../shared/index";
+import { Creature, SPECIES_BY_ID, pickEncounter, rollEncounter } from "../../shared/index";
+import { ArcCritter, arcCrittersFor, fernDialogFor, patchRegionForArc } from "./arc";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
 import { paintBagIcon, paintGuideIcon, paintMapIcon } from "../ui-icons";
@@ -109,6 +110,10 @@ export interface WorldActions {
   onGuide: () => void;
   /** Open the Harbor Sanctuary (Keeper Flo's dialog, issue #5). */
   onSanctuary: () => void;
+  /** A visible arc creature was bumped; start its scripted battle (#17). */
+  onArcBattle: (critter: ArcCritter) => void;
+  /** An arc intention was accepted (Fern's broken pen); persist + refresh (#17). */
+  onArcAccept: (arcId: string) => void;
 }
 
 export class WorldScreen {
@@ -168,7 +173,9 @@ export class WorldScreen {
     startAt: { x: number; y: number } | null = null,
   ) {
     this.regionId = regionId;
-    this.def = region(regionId);
+    // Arc state (save flags) patches the shipped region data before anything
+    // reads it (#17): the mended Woolly pen fence is one swapped character.
+    this.def = patchRegionForArc(region(regionId), state.arcFlags());
     this.w = regionW(this.def);
     this.h = regionH(this.def);
     this.root = new Node(`world-${regionId}`);
@@ -222,6 +229,7 @@ export class WorldScreen {
 
     this.snapPlayer();
     this.resetCompanion();
+    this.buildArcCritters();
     this.refreshHud();
     this.applyCamera();
     if (this.def.art === "harbor") void this.loadHarborArt();
@@ -232,6 +240,53 @@ export class WorldScreen {
     if (this.def.id === "meadow/ticktock" && this.state.hasBadge(TICKTOCK_ARC_BADGE)) {
       this.showNotice(TICKTOCK_ARC_CLUE);
     }
+  }
+
+  /** The tile the player stands on — same-spot world rebuilds (#17 payoff). */
+  get playerTile(): { x: number; y: number } {
+    return { x: this.px, y: this.py };
+  }
+
+  // --- arc creatures (#17) ---
+  private arcCritters: ArcCritter[] = [];
+  private arcCritterNodes = new Map<string, Node>();
+
+  /**
+   * Render the region's current arc creatures (visible wild friends and the
+   * flock home in its pen). Rebuilt from flags, so the world and the save
+   * never disagree. Portraits fall back to the blob when art can't load.
+   */
+  private buildArcCritters() {
+    this.arcCritterNodes.forEach((node) => node.destroy());
+    this.arcCritterNodes.clear();
+    this.arcCritters = arcCrittersFor(this.regionId, this.state.arcFlags());
+    for (const critter of this.arcCritters) {
+      const [px, py] = this.gridToLocal(critter.x, critter.y);
+      const node = makeCreaturePortrait(
+        this.actors,
+        {
+          speciesId: critter.speciesId,
+          color: SPECIES_BY_ID[critter.speciesId]?.color ?? "#8a8a8a",
+          boss: false,
+        },
+        18,
+      );
+      node.setPosition(px + TILE / 2, py + TILE / 2, 0);
+      this.arcCritterNodes.set(critter.id, node);
+    }
+  }
+
+  /**
+   * Re-read arc creature state after a flag change (a wanderer rounded up,
+   * the mothling met, the intention accepted) without rebuilding the world.
+   */
+  refreshArc() {
+    this.buildArcCritters();
+  }
+
+  /** A solid arc creature blocking tile (x, y), if one stands there. */
+  private battleCritterAt(x: number, y: number): ArcCritter | undefined {
+    return this.arcCritters.find((c) => c.kind === "battle" && c.x === x && c.y === y);
   }
 
   pressDir(direction: Direction) {
@@ -281,7 +336,12 @@ export class WorldScreen {
         const [dx, dy] = DIR_DELTA[direction];
         const nextX = this.px + dx;
         const nextY = this.py + dy;
-        if (isWalkable(this.def, nextX, nextY)) {
+        const critter = this.battleCritterAt(nextX, nextY);
+        if (critter) {
+          // A visible arc friend blocks its tile like an NPC; bumping it
+          // starts its scripted battle (#17).
+          this.startArcCritterBattle(critter);
+        } else if (isWalkable(this.def, nextX, nextY)) {
           this.beginCompanionMove(this.px, this.py);
           this.px = nextX;
           this.py = nextY;
@@ -339,8 +399,18 @@ export class WorldScreen {
 
   private interactAhead() {
     const [dx, dy] = DIR_DELTA[this.dir];
+    const critter = this.battleCritterAt(this.px + dx, this.py + dy);
+    if (critter) {
+      this.startArcCritterBattle(critter);
+      return;
+    }
     const npc = npcAt(this.def, this.px + dx, this.py + dy);
     if (npc) this.showNpcDialog(npc);
+  }
+
+  private startArcCritterBattle(critter: ArcCritter) {
+    this.releaseAll();
+    this.actions.onArcBattle(critter);
   }
 
   private onArrive() {
@@ -389,6 +459,10 @@ export class WorldScreen {
   }
 
   private showNpcDialog(npc: NpcDef) {
+    if (npc.arcId) {
+      this.showArcDialog(npc);
+      return;
+    }
     if (npc.sailTo) {
       this.showTravelDialog(npc);
       return;
@@ -417,9 +491,55 @@ export class WorldScreen {
     }
   }
 
-  // Travel NPCs offer an explicit choice: bumping the captain or a guide
-  // must never teleport the player by itself.
+  /**
+   * Arc intention givers (#17): dialog resolved from world flags — offer →
+   * progress → payoff. Accepting is always an explicit button, never a bump.
+   */
+  private showArcDialog(npc: NpcDef) {
+    if (npc.arcId !== "woolly-pen") return;
+    const dialog = fernDialogFor(this.state.arcFlags());
+    if (dialog.kind === "offer") {
+      this.showChoiceDialog(npc.name, dialog.message, "Help! 好的！", () =>
+        this.actions.onArcAccept(npc.arcId!),
+      );
+    } else if (dialog.kind === "progress") {
+      this.showNotice(`${npc.name}: ${dialog.message}`);
+    } else {
+      this.showSailDialog(npc.name, dialog.message, {
+        to: dialog.sailTo,
+        arrive: dialog.sailArrive,
+      });
+    }
+  }
+
+  // Travel NPCs offer an explicit choice: bumping the captain, a guide, or a
+  // grateful shepherd must never teleport the player by itself.
   private showTravelDialog(npc: NpcDef) {
+    this.showSailDialog(npc.name, npc.message, { to: npc.sailTo!, arrive: npc.sailArrive ?? null });
+  }
+
+  private showSailDialog(name: string, message: string, sail: { to: string; arrive: string | null }) {
+    this.showChoiceDialog(
+      name,
+      message,
+      "Go! 走吧",
+      () => this.actions.onTravel(sail.to, sail.arrive),
+      sail,
+    );
+  }
+
+  /**
+   * The shared two-button offer panel: message + primary action + ✕.
+   * Space/Enter (tap) confirms the primary action — through pendingSail for
+   * travel offers, pendingOpen otherwise; touch players can always decline.
+   */
+  private showChoiceDialog(
+    name: string,
+    message: string,
+    goLabel: string,
+    onGo: () => void,
+    sail: { to: string; arrive: string | null } = null,
+  ) {
     this.releaseAll();
     this.pendingSail = null;
     this.pendingOpen = null;
@@ -432,24 +552,24 @@ export class WorldScreen {
     // padding on the left and even ~17px gaps between text, Go, ✕, and the
     // right edge. The label node is center-anchored, so x is the box
     // center, not its left edge.
-    makeWrappedLabel(box, `${npc.name}: ${npc.message}`, -101, 0, 478, 74, {
+    makeWrappedLabel(box, `${name}: ${message}`, -101, 0, 478, 74, {
       fontSize: 18,
       lineHeight: 23,
     });
-    const sail = { to: npc.sailTo!, arrive: npc.sailArrive ?? null };
     makeButton(box, {
       x: 214,
       y: 0,
       w: 118,
       h: 50,
-      label: "Go! 走吧",
+      label: goLabel,
       color: PALETTE.actionBlue,
       fontSize: 19,
       onTap: () => {
         this.banner?.destroy();
         this.banner = null;
         this.pendingSail = null;
-        this.actions.onTravel(sail.to, sail.arrive);
+        this.pendingOpen = null;
+        onGo();
       },
     });
     makeButton(box, {
@@ -464,10 +584,11 @@ export class WorldScreen {
         this.banner?.destroy();
         this.banner = null;
         this.pendingSail = null;
+        this.pendingOpen = null;
       },
     });
-    // Space/Enter (tap) confirms "Go"; touch players can always decline.
-    this.pendingSail = sail;
+    if (sail) this.pendingSail = sail;
+    else this.pendingOpen = onGo;
     this.banner = box;
   }
 
