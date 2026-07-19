@@ -1,0 +1,85 @@
+# Seeded battle transcripts of the legacy banks, served through the v1 path.
+# The v1→v2 adapter must produce byte-for-byte identical transcripts (see
+# the parity tests). Regenerate only after a deliberate engine change:
+# UPDATE_GOLDENS=1 npm test
+== woolly-meadows.v1 (seed 20260719, 40 rounds) ==
+round=00 q=9 turn=1/1 expr=30 + 10 answer=40 choices=35|50|40|31 judged=FFTF
+round=01 q=17 turn=1/1 expr=60 + 4 answer=64 choices=60|46|10|64 judged=FFFT
+round=02 q=6 turn=1/1 expr=50 + 6 answer=56 choices=11|56|65|50 judged=FTFF
+round=03 q=10 turn=1/1 expr=13 - 1 answer=12 choices=13|12|11|14 judged=FTFF
+round=04 q=19 turn=1/1 expr=19 answer=19 choices=32|41|23|19 judged=FFFT
+round=05 q=10 turn=1/1 expr=13 - 1 answer=12 choices=13|12|11|14 judged=FTFF
+round=06 q=17 turn=1/1 expr=60 + 4 answer=64 choices=10|64|60|46 judged=FTFF
+round=07 q=9 turn=1/1 expr=30 + 10 answer=40 choices=35|31|50|40 judged=FFFT
+round=08 q=14 turn=1/1 expr=9 - 6 answer=3 choices=15|3|9|6 judged=FTFF
+round=09 q=13 turn=1/1 expr=10 - 6 answer=4 choices=16|10|4|6 judged=FFTF
+round=10 q=17 turn=1/1 expr=60 + 4 answer=64 choices=10|46|60|64 judged=FFFT
+round=11 q=8 turn=1/1 expr=6 + 2 answer=8 choices=7|10|9|8 judged=FFFT
+round=12 q=6 turn=1/1 expr=50 + 6 answer=56 choices=11|65|50|56 judged=FFFT
+round=13 q=2 turn=1/1 expr=12 answer=12 choices=10|13|11|12 judged=FFFT
+round=14 q=15 turn=1/1 expr=8 - 5 answer=3 choices=3|13|5|8 judged=TFFF
+round=15 q=6 turn=1/1 expr=50 + 6 answer=56 choices=65|50|11|56 judged=FFFT
+round=16 q=7 turn=1/1 expr=30 + 2 answer=32 choices=23|32|30|5 judged=FTFF
+round=17 q=16 turn=1/1 expr=20 - 13 answer=7 choices=13|20|33|7 judged=FFFT
+round=18 q=2 turn=1/1 expr=12 answer=12 choices=10|11|13|12 judged=FFFT
+round=19 q=7 turn=1/1 expr=30 + 2 answer=32 choices=5|23|30|32 judged=FFFT
+round=20 q=4 turn=1/1 expr=20 answer=20 choices=19|21|18|20 judged=FFFT
+round=21 q=20 turn=1/1 expr=40 answer=40 choices=40|42|2|4 judged=TFFF
+round=22 q=15 turn=1/1 expr=8 - 5 answer=3 choices=8|5|13|3 judged=FFFT
+round=23 q=1 turn=1/1 expr=8 answer=8 choices=8|9|10|7 judged=TFFF
+round=24 q=20 turn=1/1 expr=40 answer=40 choices=42|2|40|4 judged=FFTF
+round=25 q=4 turn=1/1 expr=20 answer=20 choices=21|20|18|19 judged=FTFF
+round=26 q=2 turn=1/1 expr=12 answer=12 choices=11|13|10|12 judged=FFFT
+round=27 q=14 turn=1/1 expr=9 - 6 answer=3 choices=3|6|9|15 judged=TFFF
+round=28 q=9 turn=1/1 expr=30 + 10 answer=40 choices=50|40|31|35 judged=FTFF
+round=29 q=1 turn=1/1 expr=8 answer=8 choices=10|7|9|8 judged=FFFT
+round=30 q=13 turn=1/1 expr=10 - 6 answer=4 choices=16|6|4|10 judged=FFTF
+round=31 q=1 turn=1/1 expr=8 answer=8 choices=8|7|9|10 judged=TFFF
+round=32 q=15 turn=1/1 expr=8 - 5 answer=3 choices=3|8|5|13 judged=TFFF
+round=33 q=5 turn=1/1 expr=70 + 3 answer=73 choices=37|70|73|3 judged=FFTF
+round=34 q=16 turn=1/1 expr=20 - 13 answer=7 choices=13|33|7|20 judged=FFTF
+round=35 q=2 turn=1/1 expr=12 answer=12 choices=11|10|12|13 judged=FFTF
+round=36 q=16 turn=1/1 expr=20 - 13 answer=7 choices=33|13|20|7 judged=FFFT
+round=37 q=14 turn=1/1 expr=9 - 6 answer=3 choices=9|15|3|6 judged=FFTF
+round=38 q=7 turn=1/1 expr=30 + 2 answer=32 choices=32|23|30|5 judged=TFFF
+round=39 q=2 turn=1/1 expr=12 answer=12 choices=10|12|13|11 judged=FTFF
+== legacy.sample (seed 20260720, 30 rounds) ==
+round=00 q=7 turn=1/2 expr=8530 × 2 answer=RM 17 060 choices=RM 17 060|RM 12 060|RM 15 060|RM 19 060 judged=TFFF
+round=00 q=7 turn=2/2 expr=17060 ÷ 10 answer=RM 1 706 choices=RM 1 506|RM 2 206|RM 1 406|RM 1 706 judged=FFFT
+round=01 q=6 turn=1/2 expr=7800 + 4500 answer=RM 12 300 choices=RM 11 300|RM 12 300|RM 7 300|RM 13 300 judged=FTFF
+round=01 q=6 turn=2/2 expr=7800 + 12300 answer=RM 20 100 choices=RM 20 100|RM 19 100|RM 18 100|RM 25 100 judged=TFFF
+round=02 q=3 turn=1/1 expr=9480 ÷ 12 answer=RM 790 choices=RM 790|RM 800|RM 810|RM 780 judged=TFFF
+round=03 q=4 turn=1/1 expr=85400 + 7900 answer=RM 93 300 choices=RM 94 300|RM 93 300|RM 98 300|RM 95 300 judged=FTFF
+round=04 q=6 turn=1/2 expr=7800 + 4500 answer=RM 12 300 choices=RM 7 300|RM 12 300|RM 15 300|RM 9 300 judged=FTFF
+round=04 q=6 turn=2/2 expr=7800 + 12300 answer=RM 20 100 choices=RM 20 100|RM 17 100|RM 23 100|RM 15 100 judged=TFFF
+round=05 q=5 turn=1/2 expr=8655 + 40256 answer=RM 48 911 choices=RM 51 911|RM 43 911|RM 48 911|RM 50 911 judged=FFTF
+round=05 q=5 turn=2/2 expr=48911 - 14500 answer=RM 34 411 choices=RM 39 411|RM 31 411|RM 33 411|RM 34 411 judged=FFFT
+round=06 q=1 turn=1/1 expr=40 × 320 answer=RM 12 800 choices=RM 7 800|RM 12 800|RM 13 800|RM 10 800 judged=FTFF
+round=07 q=2 turn=1/1 expr=55000 - 8610 answer=RM 46 390 choices=RM 46 390|RM 48 390|RM 43 390|RM 49 390 judged=TFFF
+round=08 q=1 turn=1/1 expr=40 × 320 answer=RM 12 800 choices=RM 17 800|RM 10 800|RM 12 800|RM 9 800 judged=FFTF
+round=09 q=3 turn=1/1 expr=9480 ÷ 12 answer=RM 790 choices=RM 800|RM 790|RM 820|RM 760 judged=FTFF
+round=10 q=2 turn=1/1 expr=55000 - 8610 answer=RM 46 390 choices=RM 47 390|RM 43 390|RM 44 390|RM 46 390 judged=FFFT
+round=11 q=4 turn=1/1 expr=85400 + 7900 answer=RM 93 300 choices=RM 88 300|RM 96 300|RM 93 300|RM 95 300 judged=FFTF
+round=12 q=1 turn=1/1 expr=40 × 320 answer=RM 12 800 choices=RM 17 800|RM 12 800|RM 9 800|RM 10 800 judged=FTFF
+round=13 q=6 turn=1/2 expr=7800 + 4500 answer=RM 12 300 choices=RM 12 300|RM 15 300|RM 17 300|RM 13 300 judged=TFFF
+round=13 q=6 turn=2/2 expr=7800 + 12300 answer=RM 20 100 choices=RM 15 100|RM 17 100|RM 20 100|RM 18 100 judged=FFTF
+round=14 q=4 turn=1/1 expr=85400 + 7900 answer=RM 93 300 choices=RM 93 300|RM 94 300|RM 88 300|RM 92 300 judged=TFFF
+round=15 q=3 turn=1/1 expr=9480 ÷ 12 answer=RM 790 choices=RM 810|RM 790|RM 840|RM 800 judged=FTFF
+round=16 q=2 turn=1/1 expr=55000 - 8610 answer=RM 46 390 choices=RM 43 390|RM 47 390|RM 46 390|RM 41 390 judged=FFTF
+round=17 q=1 turn=1/1 expr=40 × 320 answer=RM 12 800 choices=RM 12 800|RM 11 800|RM 10 800|RM 9 800 judged=TFFF
+round=18 q=5 turn=1/2 expr=8655 + 40256 answer=RM 48 911 choices=RM 46 911|RM 43 911|RM 48 911|RM 53 911 judged=FFTF
+round=18 q=5 turn=2/2 expr=48911 - 14500 answer=RM 34 411 choices=RM 33 411|RM 32 411|RM 36 411|RM 34 411 judged=FFFT
+round=19 q=4 turn=1/1 expr=85400 + 7900 answer=RM 93 300 choices=RM 95 300|RM 96 300|RM 92 300|RM 93 300 judged=FFFT
+round=20 q=7 turn=1/2 expr=8530 × 2 answer=RM 17 060 choices=RM 22 060|RM 19 060|RM 20 060|RM 17 060 judged=FFFT
+round=20 q=7 turn=2/2 expr=17060 ÷ 10 answer=RM 1 706 choices=RM 1 906|RM 1 706|RM 1 806|RM 1 606 judged=FTFF
+round=21 q=5 turn=1/2 expr=8655 + 40256 answer=RM 48 911 choices=RM 50 911|RM 47 911|RM 48 911|RM 49 911 judged=FFTF
+round=21 q=5 turn=2/2 expr=48911 - 14500 answer=RM 34 411 choices=RM 29 411|RM 34 411|RM 37 411|RM 33 411 judged=FTFF
+round=22 q=2 turn=1/1 expr=55000 - 8610 answer=RM 46 390 choices=RM 46 390|RM 48 390|RM 43 390|RM 51 390 judged=TFFF
+round=23 q=5 turn=1/2 expr=8655 + 40256 answer=RM 48 911 choices=RM 48 911|RM 43 911|RM 46 911|RM 51 911 judged=TFFF
+round=23 q=5 turn=2/2 expr=48911 - 14500 answer=RM 34 411 choices=RM 34 411|RM 39 411|RM 29 411|RM 37 411 judged=TFFF
+round=24 q=3 turn=1/1 expr=9480 ÷ 12 answer=RM 790 choices=RM 780|RM 770|RM 790|RM 760 judged=FFTF
+round=25 q=4 turn=1/1 expr=85400 + 7900 answer=RM 93 300 choices=RM 94 300|RM 98 300|RM 93 300|RM 88 300 judged=FFTF
+round=26 q=2 turn=1/1 expr=55000 - 8610 answer=RM 46 390 choices=RM 47 390|RM 43 390|RM 46 390|RM 45 390 judged=FFTF
+round=27 q=1 turn=1/1 expr=40 × 320 answer=RM 12 800 choices=RM 11 800|RM 17 800|RM 12 800|RM 7 800 judged=FFTF
+round=28 q=3 turn=1/1 expr=9480 ÷ 12 answer=RM 790 choices=RM 790|RM 810|RM 780|RM 770 judged=TFFF
+round=29 q=2 turn=1/1 expr=55000 - 8610 answer=RM 46 390 choices=RM 48 390|RM 46 390|RM 44 390|RM 49 390 judged=FTFF

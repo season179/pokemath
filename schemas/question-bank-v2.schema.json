@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pokemath.fun/schemas/question-bank-v2.schema.json",
+  "title": "PokeMath question bank v2 (Standard 1)",
+  "description": "Additive Std-1 contract: explicit format, TP, presentation, answer form, distractor strategy, bilingual values, and curriculum-profile gates. The runtime parser (shared/question-v2-validate.ts) is the authority; this schema mirrors it for editors and CI. Cross-field rules the schema cannot express (distractor values distinct from the answer, bilingual.numeral matching the answer, duplicate ids) are enforced by the parser.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bank_id",
+    "version",
+    "source",
+    "currency",
+    "questions"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "bank_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer", "minimum": 1 },
+    "source": { "type": "string", "minLength": 1 },
+    "currency": { "type": "string" },
+    "profile": { "$ref": "#/$defs/profile" },
+    "scope": { "type": "string", "minLength": 1 },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "profile": {
+      "description": "Curriculum profile (docs/curriculum/standard-1-sjkc-math.md §1)",
+      "enum": ["dpk3_2026_core", "original_dskp_extra"]
+    },
+    "distractor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "strategy"],
+      "properties": {
+        "value": { "type": "integer", "minimum": 0 },
+        "strategy": {
+          "description": "Misconception menu (style doc §D)",
+          "enum": [
+            "off-by-one-count",
+            "count-all-vs-add",
+            "wrong-operation",
+            "raw-operand",
+            "no-carry-concat",
+            "digit-reversal",
+            "place-value-slip",
+            "more-fewer-flip",
+            "next-vs-between",
+            "clock-hand-swap",
+            "word-operator-scramble",
+            "money-denom-miscount"
+          ]
+        }
+      }
+    },
+    "bilingual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["numeral", "zh_word"],
+      "properties": {
+        "numeral": {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "The answer's digits; the parser requires it to equal String(answer)"
+        },
+        "zh_word": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Chinese number word, e.g. 十八 for 18"
+        }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "topic",
+        "tp_level",
+        "profile",
+        "item_format",
+        "format_type",
+        "presentation",
+        "answer_form",
+        "answer_unit",
+        "operation",
+        "expression",
+        "answer",
+        "bilingual",
+        "question_zh",
+        "question_en",
+        "distractors"
+      ],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "topic": {
+          "description": "Curriculum section (scope doc §4) or the §5 extras bucket",
+          "enum": ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "extra"]
+        },
+        "tp_level": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "profile": { "$ref": "#/$defs/profile" },
+        "item_format": {
+          "description": "Item shape (style doc §B); v2 serves numeric objective rounds only",
+          "const": "objective"
+        },
+        "format_type": {
+          "description": "Worksheet format taxonomy (style doc §A)",
+          "enum": [
+            "count-write",
+            "count-circle",
+            "match-connect",
+            "color-shade",
+            "fill-blank",
+            "number-bond",
+            "ten-frame",
+            "pattern-continue",
+            "compare",
+            "order-sequence",
+            "picture-sentence",
+            "word-single",
+            "read-instrument",
+            "name-count",
+            "classify-sort",
+            "true-false",
+            "trace-write",
+            "tally",
+            "estimate",
+            "round-ten"
+          ]
+        },
+        "presentation": {
+          "description": "Presentation axis (style doc §E)",
+          "enum": [
+            "plain",
+            "picture",
+            "story",
+            "figure:ten-frame",
+            "figure:number-bond",
+            "figure:number-line",
+            "figure:clock",
+            "figure:abacus",
+            "figure:coins",
+            "figure:shapes",
+            "figure:pictograph",
+            "figure:objects",
+            "figure:balance",
+            "figure:calendar",
+            "figure:grid",
+            "figure:table"
+          ]
+        },
+        "answer_form": {
+          "description": "Numeric objective forms v2 can serve; circle/true-false (#11) and ordering (#12) extend this",
+          "enum": ["numeral", "count", "chinese-word"]
+        },
+        "answer_unit": { "enum": ["none", "RM", "sen"] },
+        "operation": {
+          "description": "Std-1 hard constraints: counting or + − only",
+          "enum": ["counting", "addition", "subtraction"]
+        },
+        "expression": { "type": "string", "minLength": 1 },
+        "answer": { "type": "integer", "minimum": 0 },
+        "bilingual": { "$ref": "#/$defs/bilingual" },
+        "question_zh": { "type": "string", "minLength": 1 },
+        "question_en": { "type": "string", "minLength": 1 },
+        "table": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "distractors": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/distractor" }
+        }
+      }
+    }
+  }
+}

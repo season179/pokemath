@@ -5,10 +5,10 @@ import { JsonAsset, resources } from "cc";
 import {
   QuestionBank,
   parseQuestionBankData,
-  type VersionedQuestionBankData,
+  type AnyVersionedQuestionBankData,
 } from "../../shared/index";
 
-export function loadQuestionBankData(path: string): Promise<VersionedQuestionBankData> {
+export function loadQuestionBankData(path: string): Promise<AnyVersionedQuestionBankData> {
   return new Promise((resolve, reject) => {
     resources.load(path, JsonAsset, (error, asset) => {
       if (error) {
