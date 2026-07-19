@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.meadow-counting-4.1-tp1-2-s17",
+  "generator": {
+    "tool": "tools/generate-question-batch.mjs",
+    "version": 2
+  },
+  "generated_at": "2026-07-19T15:31:14.734Z",
+  "params": {
+    "bank_id": "std1.meadow-counting",
+    "grade": "std1",
+    "topic": "4.1",
+    "tp_min": 1,
+    "tp_max": 2,
+    "profile": "dpk3_2026_core",
+    "count": 20,
+    "seed": 17,
+    "bank_version": 1
+  },
+  "question_count": 20,
+  "template_counts": {
+    "count-write": 3,
+    "number-bond": 3,
+    "compare": 1,
+    "pattern-continue": 3,
+    "order-sequence": 3,
+    "count-circle": 6,
+    "fill-blank": 1
+  },
+  "sha256": "b349d62ed7519367afea25f09789b8a70b699397d93fc06efaaba0a9ba1041a3",
+  "reproduce": "node tools/generate-question-batch.mjs --bank std1.meadow-counting --topic 4.1 --tp 1-2 --profile dpk3_2026_core --count 20 --seed 17"
+}
