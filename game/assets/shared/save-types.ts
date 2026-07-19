@@ -27,6 +27,12 @@ export interface SaveState {
 export const STARTING_MONEY = 200;
 export const STARTING_BAG: BagState = { potion: 1, ball: 3 };
 
+// The active battle party never exceeds six — true across v1 and v2, so the
+// canonical constant lives here (the version-agnostic save-constants module)
+// and both validators import it. This avoids a barrel collision between the
+// v1 and v2 modules.
+export const MAX_TEAM_SIZE = 6;
+
 // A new game starts with exactly the starter the player chose (one of
 // STARTERS) — there is no default pet; the Worker refuses unknown ids.
 export function createNewGame(starter: Species, now: Date = new Date()): SaveState {

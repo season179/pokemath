@@ -3,7 +3,7 @@
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { Color, EventKeyboard, Input, KeyCode, Label, Node, UITransform, input, view } from "cc";
-import { Creature, QuestionBank, type SaveState } from "../shared/index";
+import { Creature, QuestionBank, type SaveStateV2 } from "../shared/index";
 import { loadQuestionBank } from "./questions/loadQuestionBank";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
@@ -53,12 +53,17 @@ export class GameApp {
 
   constructor(
     private canvasNode: Node,
-    boot: SaveState,
+    boot: SaveStateV2,
     private persistence: Persistence,
     private playerName: string,
   ) {
     this.state = new GameState(boot);
-    this.world = new WorldScreen(this.state, this.worldActions);
+    // Resume where the save left off (#3): the saved region when it is still
+    // open, on the exact saved tile when it is still walkable — WorldScreen
+    // validates the tile and falls back to the region's safe spawn. A saved
+    // region that is no longer open falls back to the harbor spawn entirely.
+    const startAt = boot.location && isOpenRegion(boot.location.regionId) ? boot.location : null;
+    this.world = new WorldScreen(this.state, this.worldActions, startAt?.regionId ?? "harbor", null, startAt);
     this.canvasNode.addChild(this.world.root);
   }
 

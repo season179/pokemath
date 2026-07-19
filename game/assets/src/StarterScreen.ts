@@ -5,7 +5,7 @@
 // overwrite an existing save (the endpoint is idempotent).
 
 import { Color, EventKeyboard, Input, input, KeyCode, Label, Node } from "cc";
-import { STARTERS, type SaveState, type Species } from "../shared/index";
+import { STARTERS, type SaveStateV2, type Species } from "../shared/index";
 import { makeCreaturePortrait } from "./creature-portrait";
 import type { Persistence } from "./persistence";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect } from "./ui";
@@ -24,7 +24,7 @@ export class StarterScreen {
 
   constructor(
     private persistence: Persistence,
-    private onDone: (save: SaveState) => void,
+    private onDone: (save: SaveStateV2) => void,
   ) {
     this.render();
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);

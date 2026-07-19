@@ -5,7 +5,7 @@
 // name entry, then starter choice, before the world appears.
 
 import { _decorator, Component } from "cc";
-import { type SaveState } from "./shared/index";
+import { type SaveStateV2 } from "./shared/index";
 import { GameApp } from "./src/GameApp";
 import { NameScreen } from "./src/NameScreen";
 import { StarterScreen } from "./src/StarterScreen";
@@ -56,7 +56,7 @@ export class Main extends Component {
     this.node.addChild(screen.root);
   }
 
-  private launch(save: SaveState, persistence: Persistence, playerName: string) {
+  private launch(save: SaveStateV2, persistence: Persistence, playerName: string) {
     if (!this.node.isValid) return;
     this.app = new GameApp(this.node, save, persistence, playerName);
     this.app.start();

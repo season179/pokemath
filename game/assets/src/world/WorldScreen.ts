@@ -152,6 +152,7 @@ export class WorldScreen {
     private actions: WorldActions,
     regionId = "harbor",
     entryGateway: string | null = null,
+    startAt: { x: number; y: number } | null = null,
   ) {
     this.regionId = regionId;
     this.def = region(regionId);
@@ -160,7 +161,13 @@ export class WorldScreen {
     this.root = new Node(`world-${regionId}`);
 
     const arrival = this.def.spawn;
-    if (entryGateway) {
+    if (startAt && isWalkable(this.def, startAt.x, startAt.y)) {
+      // Resume the exact saved tile (#3). A saved tile that no longer walks
+      // (a layout edit stranded the save) recovers through the region's
+      // named safe spawn below.
+      this.px = startAt.x;
+      this.py = startAt.y;
+    } else if (entryGateway) {
       const gateway = gatewayNamed(this.def, entryGateway);
       if (!gateway?.arriveAt) {
         throw new Error(`Region ${regionId} has no arrival gateway named "${entryGateway}"`);
@@ -237,6 +244,7 @@ export class WorldScreen {
 
   update(dt: number) {
     this.updateMiniPlayer();
+    this.syncSavedLocation();
     if (this.banner) return;
 
     if (!this.moving) {
@@ -1234,6 +1242,15 @@ export class WorldScreen {
     this.resetCompanion();
     this.refreshHud();
     this.applyCamera();
+  }
+
+  // Keep the save's location pointed at the player's current tile (#3). Runs
+  // every frame; writes only on change, so steps, travel arrivals, and
+  // respawns all keep it true without each call site remembering to.
+  private syncSavedLocation(): void {
+    const loc = this.state.location;
+    if (loc && loc.regionId === this.regionId && loc.x === this.px && loc.y === this.py) return;
+    this.state.location = { regionId: this.regionId, x: this.px, y: this.py };
   }
 }
 
