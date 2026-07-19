@@ -250,10 +250,10 @@
           "then": {
             "description": "figure.kind must match the presentation (the parser enforces the same rule)",
             "anyOf": [
-              { "properties": { "figure": { "properties": { "kind": { "const": "ten-frame" } } }, "presentation": { "const": "figure:ten-frame" } } },
-              { "properties": { "figure": { "properties": { "kind": { "const": "clock" } } }, "presentation": { "const": "figure:clock" } } },
-              { "properties": { "figure": { "properties": { "kind": { "const": "coins" } } }, "presentation": { "const": "figure:coins" } } },
-              { "properties": { "figure": { "properties": { "kind": { "const": "objects" } } }, "presentation": { "const": "figure:objects" } } }
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "ten-frame" } } }, "presentation": { "const": "figure:ten-frame" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "clock" } } }, "presentation": { "const": "figure:clock" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "coins" } } }, "presentation": { "const": "figure:coins" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "objects" } } }, "presentation": { "const": "figure:objects" } } }
             ]
           }
         }
