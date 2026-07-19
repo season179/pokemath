@@ -97,6 +97,14 @@ export interface SaveStateV2 {
   location: LocationState | null;
   fieldGuide: FieldGuideEntryState[];
   badges: readonly string[];
+  /**
+   * One-time world/arc flags (M5, #17): intention progress keyed by stable
+   * string ids (e.g. the Woolly pen repair). Missing key = not started;
+   * number values let multi-step intentions count progress. Completed flags
+   * stay set forever — payoffs never reset, never expire (no daily
+   * pressure). Client-owned: the Worker stores them opaquely.
+   */
+  flags: Record<string, number>;
   profile: CurriculumProfile;
   savedAt: string; // ISO timestamp
 }
@@ -141,6 +149,7 @@ export function createNewGameV2(
       { speciesId: starter.id, status: "caught", variants: ["normal"] },
     ],
     badges: [],
+    flags: {},
     profile: "dpk3_2026_core",
     savedAt: now.toISOString(),
   };

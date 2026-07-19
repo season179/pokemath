@@ -1,0 +1,515 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.number-bonds",
+  "version": 1,
+  "source": "Generated offline by tools/generate-question-batch.mjs v2 (M4, issue #15): seed 71, 4.2 TP1–2, profile dpk3_2026_core, 16 questions; provenance: question-batches/candidates/std1.number-bonds-4.2-tp1-2-s71.provenance.json",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.2; TP1–2 candidate batch (pending gate + human review)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "7 - 3",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "7 可以分成 3 和 ___",
+      "question_en": "7 can be split into 3 and ___",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "12 + 6",
+      "answer": 18,
+      "bilingual": {
+        "numeral": "18",
+        "zh_word": "十八"
+      },
+      "question_zh": "美美有 12 本故事书，妈妈又买了 6 本，现在共有几本故事书？",
+      "question_en": "Meimei had 12 storybooks. Mother bought 6 more. How many storybooks does Meimei have now?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 12,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "10 + 6",
+      "answer": 16,
+      "bilingual": {
+        "numeral": "16",
+        "zh_word": "十六"
+      },
+      "question_zh": "算一算：10 + 6 = ___",
+      "question_en": "Calculate: 10 + 6 = ___",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 26,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 6,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "17 + 1 = 18",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：17 + 1 = 18",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 17 + 1 = 18",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "5 - 4",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "5 可以分成 4 和 ___",
+      "question_en": "5 can be split into 4 and ___",
+      "distractors": [
+        {
+          "value": 9,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "18 - 5",
+      "answer": 13,
+      "bilingual": {
+        "numeral": "13",
+        "zh_word": "十三"
+      },
+      "question_zh": "18 可以分成 5 和 ___",
+      "question_en": "18 can be split into 5 and ___",
+      "distractors": [
+        {
+          "value": 23,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 12,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "9 - 1",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "9 可以分成 1 和 ___",
+      "question_en": "9 can be split into 1 and ___",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 1,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "8 + 11",
+      "answer": 19,
+      "bilingual": {
+        "numeral": "19",
+        "zh_word": "十九"
+      },
+      "question_zh": "8 和 11 合起来是多少？",
+      "question_en": "What do 8 and 11 make together?",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 11,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 20,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "15 + 4",
+      "answer": 19,
+      "bilingual": {
+        "numeral": "19",
+        "zh_word": "十九"
+      },
+      "question_zh": "算一算：15 + 4 = ___",
+      "question_en": "Calculate: 15 + 4 = ___",
+      "distractors": [
+        {
+          "value": 11,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 29,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 9,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "12 + 5 = 19",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：12 + 5 = 19",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 12 + 5 = 19",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "18 - 5",
+      "answer": 13,
+      "bilingual": {
+        "numeral": "13",
+        "zh_word": "十三"
+      },
+      "question_zh": "小明有 18 颗糖果，吃了 5 颗，还剩几颗糖果？",
+      "question_en": "Xiaoming had 18 candies and ate 5. How many candies are left?",
+      "distractors": [
+        {
+          "value": 23,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 18,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "14 - 1 = 13",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：14 - 1 = 13",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 14 - 1 = 13",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "12 - 10",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "算一算：12 - 10 = ___",
+      "question_en": "Calculate: 12 - 10 = ___",
+      "distractors": [
+        {
+          "value": 22,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 12,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "16 - 14",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "算一算：16 - 14 = ___",
+      "question_en": "Calculate: 16 - 14 = ___",
+      "distractors": [
+        {
+          "value": 30,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 12,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "3 - 1 = 2",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：3 - 1 = 2",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 3 - 1 = 2",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "13 + 6 = 17",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "算一算，对的画 ✓，错的画 ✗：13 + 6 = 17",
+      "question_en": "Calculate and mark ✓ for true and ✗ for false: 13 + 6 = 17",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}

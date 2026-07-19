@@ -44,6 +44,7 @@ type Phase = "message" | "menu" | "question" | "switch" | "result";
 // state. Every number comes from the single awardPlayerXp computation that
 // also lands in the save — displayed totals always equal saved totals.
 interface BattleResult {
+
   title: string;
   subtitle?: string;
   xpGain: number;

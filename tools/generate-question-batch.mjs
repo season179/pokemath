@@ -36,11 +36,13 @@ import { fileURLToPath } from "node:url";
 import { CURRICULUM_PROFILES } from "../shared/curriculum.ts";
 import { chineseNumeral } from "../shared/question-v2.ts";
 
-// Version 2 (M5, #18): the Appledore arc adds figure-carrying templates
-// (objects/coins) and the 4.2/4.3 exchange + repeated-addition forms, which
-// changes the 4.2/4.3 template decks — v1 provenance stays reproducible from
-// git history, never by editing a shipped candidate.
-export const GENERATOR_VERSION = 2;
+// Version 3 (M5): #18 added figure-carrying templates (objects/coins) and
+// the 4.2/4.3 exchange + repeated-addition forms; #17 adds the ten-frame
+// figure templates to topic 4.1, and the sampler tries each eligible
+// template first once before the shuffled deck, so arc-sized batches always
+// cover the topic's full format menu. Earlier provenance stays reproducible
+// from git history, never by editing a shipped candidate.
+export const GENERATOR_VERSION = 3;
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const DEFAULT_RESOURCES_DIR = join(root, "game", "assets", "resources");
@@ -484,6 +486,58 @@ function makeChineseWordItem(rng, tp) {
       { value: digitReversal(n) ?? n + 1, strategy: digitReversal(n) === null ? "off-by-one-count" : "digit-reversal" },
       { value: tensValue === n ? n % 10 : tensValue, strategy: "place-value-slip" },
       { value: n - 1, strategy: "off-by-one-count" },
+    ]),
+  };
+}
+
+// Ten-frame items (#17): the Woolly pen is a walkable 十格框, so these
+// carry the declarative figure spec (#16) the FigureView renders — the child
+// sees the frame, not just prose. Counting the counters is 4.1 count-write;
+// reading the gaps is the within-10 number bond the pen arc anchors (scope
+// doc §4.1: number bonds start within 10).
+function makeTenFrameCountItem(rng, tp) {
+  // TP1–2 fills a single frame; TP3+ reads the double ten-frame (teens).
+  const filled = int(rng, ...(tp <= 2 ? [3, 10] : [11, 20]));
+  return {
+    format_type: "count-write",
+    presentation: "figure:ten-frame",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "counting",
+    expression: String(filled),
+    answer: filled,
+    figure: { kind: "ten-frame", filled },
+    question_zh: `数一数，十格框里有几个圆点？`,
+    question_en: `Count the counters in the ten-frame. How many are there?`,
+    distractors: buildDistractors(rng, filled, 100, [
+      { value: filled - 1, strategy: "off-by-one-count" },
+      { value: filled + 1, strategy: "off-by-one-count" },
+      { value: digitReversal(filled) ?? filled + 2, strategy: digitReversal(filled) === null ? "off-by-one-count" : "digit-reversal" },
+    ]),
+  };
+}
+
+function makeTenFrameBondItem(rng) {
+  const filled = int(rng, 2, 9);
+  const answer = 10 - filled;
+  return {
+    format_type: "number-bond",
+    presentation: "figure:ten-frame",
+    answer_form: "numeral",
+    answer_unit: "none",
+    operation: "subtraction",
+    // The completed bond written so the gate can re-derive the missing part
+    // (10 − filled = answer), matching the 4.2 split-form convention.
+    expression: `10 - ${filled}`,
+    answer,
+    figure: { kind: "ten-frame", filled },
+    question_zh: `十格框里有 ${filled} 个圆点，再画几个就满 10 个？`,
+    question_en: `The ten-frame shows ${filled} counters. How many more make 10?`,
+    distractors: buildDistractors(rng, answer, 10, [
+      // Counting the shown counters instead of the empty gaps.
+      { value: filled, strategy: "raw-operand" },
+      { value: answer + 1, strategy: "off-by-one-count" },
+      { value: answer - 1, strategy: "off-by-one-count" },
     ]),
   };
 }
@@ -1117,6 +1171,8 @@ export const TEMPLATES_BY_TOPIC = {
     { tp: [2, 4], make: (rng, tp) => makeNumericOrderingItem(rng, tp) },
     { tp: [1, 4], make: (rng, tp) => makePatternItem(rng, tp, SKIP_STEPS_CORE) },
     { tp: [2, 4], make: (rng, tp) => makeChineseWordItem(rng, tp) },
+    { tp: [1, 4], make: (rng, tp) => makeTenFrameCountItem(rng, tp) },
+    { tp: [1, 2], make: (rng, tp) => makeTenFrameBondItem(rng, tp) },
   ],
   "4.2": [
     { tp: [1, 4], make: (rng, tp) => makeComputeItem(rng, tp) },
@@ -1224,12 +1280,23 @@ export function generateBatch(params) {
   const questions = [];
   const seenContent = new Set();
   const templateCounts = {};
+  // Coverage pass (#17): the first `templates.length` questions each try a
+  // different template first, so an arc-sized batch always covers the topic's
+  // full format menu — the ten-frame bond must appear in a 20-question 4.1
+  // batch, not hope the roulette lands on it. A forced template whose content
+  // space is exhausted simply yields to the rest of the shuffled deck for
+  // that question (small pools like calendar facts must not deadlock).
+  const coverage = shuffle(rng, templates);
   for (let id = 1; id <= count; id++) {
-    // Cycle a shuffled deck of templates so small batches stay varied.
-    const deck = shuffle(rng, templates);
+    const rest = shuffle(rng, templates);
+    let order = rest;
+    if (id <= coverage.length) {
+      const first = coverage[id - 1];
+      order = [first, ...rest.filter((t) => t !== first)];
+    }
     let built = null;
     for (let attempt = 0; attempt < 40 && built === null; attempt++) {
-      const template = deck[attempt % deck.length];
+      const template = order[attempt % order.length];
       const lo = Math.max(tpMin, template.tp[0]);
       const hi = Math.min(tpMax, template.tp[1]);
       const tp = int(rng, lo, hi);

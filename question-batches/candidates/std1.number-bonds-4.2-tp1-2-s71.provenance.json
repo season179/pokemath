@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.number-bonds-4.2-tp1-2-s71",
+  "generator": {
+    "tool": "tools/generate-question-batch.mjs",
+    "version": 2
+  },
+  "generated_at": "2026-07-19T15:31:14.787Z",
+  "params": {
+    "bank_id": "std1.number-bonds",
+    "grade": "std1",
+    "topic": "4.2",
+    "tp_min": 1,
+    "tp_max": 2,
+    "profile": "dpk3_2026_core",
+    "count": 16,
+    "seed": 71,
+    "bank_version": 1
+  },
+  "question_count": 16,
+  "template_counts": {
+    "number-bond": 5,
+    "word-single": 2,
+    "fill-blank": 4,
+    "true-false": 5
+  },
+  "sha256": "4c9a63a0a3e20bf8afbb90db742f684d49c6d9aeba4585514f91b9156670bdfa",
+  "reproduce": "node tools/generate-question-batch.mjs --bank std1.number-bonds --topic 4.2 --tp 1-2 --profile dpk3_2026_core --count 16 --seed 71"
+}

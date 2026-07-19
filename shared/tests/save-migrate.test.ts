@@ -252,6 +252,14 @@ test("normalizeSave: passes a valid v2 through untouched", () => {
   assert.equal(normalizeSave(v2), v2);
 });
 
+test("normalizeSave: a pre-flags v2 row backfills an empty flag record (#17)", () => {
+  const v2 = createNewGameV2(STARTERS[0]) as unknown as Record<string, unknown>;
+  delete v2.flags; // a row written before world/arc flags existed
+  const normalized = normalizeSave(v2);
+  assert.deepEqual(normalized.flags, {});
+  assert.ok(validateSaveV2(normalized));
+});
+
 test("normalizeSave: migrates a v1 save", () => {
   const v2 = normalizeSave(previewProgressV1(), { mintId: counterMint("n") });
   assert.equal(v2.version, 2);

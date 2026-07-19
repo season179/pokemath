@@ -42,6 +42,7 @@ export class GameState {
   private player: PlayerProgress;
   private fieldGuide: FieldGuideEntryState[];
   private badges: readonly string[];
+  private flags: Record<string, number>;
   private profile: CurriculumProfile;
 
   constructor(save: SaveStateV2) {
@@ -58,6 +59,7 @@ export class GameState {
     this.player = { ...save.player };
     this.fieldGuide = save.fieldGuide.map((e) => ({ ...e, variants: [...e.variants] }));
     this.badges = save.badges;
+    this.flags = { ...save.flags };
     this.profile = save.profile;
     this.location = save.location ? { ...save.location } : null;
     const active = this.teamIds.indexOf(save.activeTeamId);
@@ -130,6 +132,19 @@ export class GameState {
     if (this.badges.includes(id)) return false;
     this.badges = [...this.badges, id];
     return true;
+  }
+
+  /**
+   * World/arc flags (save v2, #17): persistent one-time intention state.
+   * A copy, so arc logic reads plain data; mutate via setFlag + checkpoint.
+   */
+  arcFlags(): Record<string, number> {
+    return { ...this.flags };
+  }
+
+  /** Set one world/arc flag; the caller checkpoints to persist it. */
+  setFlag(key: string, value: number): void {
+    this.flags[key] = value;
   }
 
   /** Team roster as creatureIds (aligned with `team`). */
@@ -240,6 +255,7 @@ export class GameState {
       location: this.location ? { ...this.location } : null,
       fieldGuide: this.fieldGuide.map((e) => ({ ...e, variants: [...e.variants] })),
       badges: this.badges,
+      flags: { ...this.flags },
       profile: this.profile,
       savedAt: new Date().toISOString(),
     };
