@@ -62,6 +62,16 @@ export interface BattleActions {
   onOutcome?: (outcome: BattleOutcome) => void;
 }
 
+/** Per-battle rule overrides (GameApp passes them for scripted beats). */
+export interface BattleOptions {
+  /**
+   * False only for a Unique guardian (#21): an ordinary ball never holds
+   * it — throwBall refuses BEFORE spending a ball, telegraphing #22's
+   * trust-capture path. Omit for ordinary battles (catchable).
+   */
+  capturable?: boolean;
+}
+
 export class BattleScreen {
   readonly root = new Node("battle");
 
@@ -90,6 +100,7 @@ export class BattleScreen {
     private bank: QuestionBank,
     private actions: BattleActions,
     private telemetry: TelemetrySink = NULL_SINK,
+    private options: BattleOptions = {},
   ) {
     const intro = [`A wild ${wild.name} appeared!`];
     if (wild.boss) intro.push("It asks tricky problems — solve them step by step!");
@@ -254,6 +265,18 @@ export class BattleScreen {
   }
 
   private throwBall(): void {
+    // Unique guardian (#21): an ordinary ball never holds it — refused
+    // BEFORE any ball is spent. The refusal telegraphs the real path:
+    // trust, not luck (#22's trust capture).
+    if (this.options.capturable === false) {
+      this.say(
+        [
+          `The ball melts into mist — ${this.wild.name} can't be caught that way! It only follows a friend it trusts. 精灵球化成了雾——天马不会被球收服！它只跟随信任的朋友。`,
+        ],
+        () => this.showMenu(),
+      );
+      return;
+    }
     // A catch is never blocked by a full team (issue #3): the creature goes
     // to owned storage instead of being rejected, and a ball is only spent
     // on a real throw.

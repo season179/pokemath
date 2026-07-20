@@ -16,6 +16,7 @@ import {
 import { paintCreature } from "../creature-art";
 import { makeCreaturePortrait } from "../creature-portrait";
 import { GameState } from "../state";
+import { GUARDIAN_SPECIES_ID, trailGuideLine } from "../world/trail";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect } from "../ui";
 
 const COLS = 5;
@@ -235,6 +236,12 @@ export class FieldGuideScreen {
 
   private detailText(cell: GuideCell): string {
     const status = cell.entry?.status ?? "unknown";
+    // The Cloudmane's entry telegraphs the research trail (#21): even as an
+    // unknown silhouette the guide names where the hunt stands and the next
+    // opportunity — the trail's persistent clues live in save v2 flags.
+    if (cell.species.id === GUARDIAN_SPECIES_ID) {
+      return trailGuideLine(this.state.arcFlags(), status !== "unknown");
+    }
     if (status === "unknown") {
       return "??? — Not met yet. Tall grass hides new friends! 还没遇到——高高的草丛里藏着新朋友！";
     }

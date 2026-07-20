@@ -45,6 +45,13 @@ import {
 } from "./regions/index";
 import { Creature, SPECIES_BY_ID, pickEncounter, rollEncounter } from "../../shared/index";
 import { ArcCritter, arcCrittersFor, fernDialogFor, patchRegionForArc } from "./arc";
+import {
+  TrailClue,
+  nextTrailClue,
+  trailClueAt,
+  trailCrittersFor,
+  yunDialogFor,
+} from "./trail";
 import { paintAreaPayoff } from "./payoff-art";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
@@ -115,6 +122,8 @@ export interface WorldActions {
   onArcBattle: (critter: ArcCritter) => void;
   /** An arc intention was accepted (Fern's broken pen); persist + refresh (#17). */
   onArcAccept: (arcId: string) => void;
+  /** A trail evidence spot was searched; persist the clue + refresh (#21). */
+  onTrailClue: (clue: TrailClue) => void;
 }
 
 export class WorldScreen {
@@ -141,6 +150,10 @@ export class WorldScreen {
   // its landmark pays off here (Ticktock's clock post chimes again in gold).
   private arcPayoff = new Node("arc-payoff");
   private arcPayoffG!: Graphics;
+  // Trail clue sparkle (#21): marks the active evidence spot in this region
+  // while the Cloudmane research trail points here.
+  private trailClue = new Node("trail-clue");
+  private trailClueG!: Graphics;
 
   private px: number;
   private py: number;
@@ -226,11 +239,14 @@ export class WorldScreen {
     this.actors.addChild(this.playerNode);
     this.arcPayoff.parent = this.mapNode;
     this.arcPayoffG = this.arcPayoff.addComponent(Graphics);
+    this.trailClue.parent = this.mapNode;
+    this.trailClueG = this.trailClue.addComponent(Graphics);
     this.root.addChild(this.hudLayer);
 
     this.snapPlayer();
     this.resetCompanion();
     this.buildArcCritters();
+    this.refreshTrailClue();
     this.refreshHud();
     this.applyCamera();
     if (this.def.art === "harbor") void this.loadHarborArt();
@@ -260,7 +276,12 @@ export class WorldScreen {
   private buildArcCritters() {
     this.arcCritterNodes.forEach((node) => node.destroy());
     this.arcCritterNodes.clear();
-    this.arcCritters = arcCrittersFor(this.regionId, this.state.arcFlags());
+    // Arc beats (#17) plus the trail's summoned guardian (#21) — both are
+    // pure flag reads, so one merged list keeps world and save in agreement.
+    this.arcCritters = [
+      ...arcCrittersFor(this.regionId, this.state.arcFlags()),
+      ...trailCrittersFor(this.regionId, this.state.arcFlags()),
+    ];
     for (const critter of this.arcCritters) {
       const [px, py] = this.gridToLocal(critter.x, critter.y);
       const node = makeCreaturePortrait(
@@ -278,11 +299,49 @@ export class WorldScreen {
   }
 
   /**
-   * Re-read arc creature state after a flag change (a wanderer rounded up,
-   * the mothling met, the intention accepted) without rebuilding the world.
+   * Re-read flag-driven world state after a flag change (a wanderer rounded
+   * up, the mothling met, the intention accepted, a trail clue found, the
+   * guardian summoned) without rebuilding the world.
    */
   refreshArc() {
     this.buildArcCritters();
+    this.refreshTrailClue();
+  }
+
+  /**
+   * The active evidence spot's sparkle (#21): a gold four-point star over the
+   * tile the keeper's directions name, so the searched place is visible the
+   * moment the child walks in. Nothing painted when the trail is inactive,
+   * complete, or points at another region.
+   */
+  private refreshTrailClue() {
+    const g = this.trailClueG;
+    if (!g) return;
+    g.clear();
+    const clue = nextTrailClue(this.state.arcFlags());
+    if (!clue || clue.regionId !== this.regionId) return;
+    const [px, py] = this.gridToLocal(clue.x, clue.y);
+    const cx = px + TILE / 2;
+    const cy = py + TILE / 2;
+    // Halo ring, then a four-point star with a bright core.
+    g.strokeColor = hex("#f7d54d");
+    g.lineWidth = 3;
+    g.circle(cx, cy, 15);
+    g.stroke();
+    g.fillColor = hex("#f7d54d");
+    g.moveTo(cx, cy - 12);
+    g.lineTo(cx + 3.5, cy - 3.5);
+    g.lineTo(cx + 12, cy);
+    g.lineTo(cx + 3.5, cy + 3.5);
+    g.lineTo(cx, cy + 12);
+    g.lineTo(cx - 3.5, cy + 3.5);
+    g.lineTo(cx - 12, cy);
+    g.lineTo(cx - 3.5, cy - 3.5);
+    g.close();
+    g.fill();
+    g.fillColor = new Color(255, 253, 245, 255);
+    g.circle(cx, cy, 3);
+    g.fill();
   }
 
   /** A solid arc creature blocking tile (x, y), if one stands there. */
@@ -442,6 +501,15 @@ export class WorldScreen {
       this.showNotice("Professor Sum's workshop is still being prepared.");
     }
 
+    // Trail evidence (#21): stepping on the active clue's search spot records
+    // it (GameApp persists the flag) — a discovery never rolls an encounter.
+    const clue = trailClueAt(this.regionId, this.px, this.py, this.state.arcFlags());
+    if (clue) {
+      this.releaseAll();
+      this.actions.onTrailClue(clue);
+      return;
+    }
+
     // Wild encounters: only in an encounter-capable region (the open-region
     // scope in regions/index.ts) and only on tall-grass tiles, and only once
     // the region's reviewed question bank has loaded. A fresh level-1,
@@ -501,10 +569,26 @@ export class WorldScreen {
   }
 
   /**
-   * Arc intention givers (#17): dialog resolved from world flags — offer →
-   * progress → payoff. Accepting is always an explicit button, never a bump.
+   * Arc intention givers (#17) and the trail keeper (#21): dialog resolved
+   * from world flags — offer → progress → payoff. Accepting is always an
+   * explicit button, never a bump.
    */
   private showArcDialog(npc: NpcDef) {
+    if (npc.arcId === "cloudmane-trail") {
+      const dialog = yunDialogFor(this.state.arcFlags());
+      if (dialog.kind === "offer") {
+        this.showChoiceDialog(npc.name, dialog.message, "I'll help! 好的！", () =>
+          this.actions.onArcAccept(npc.arcId!),
+        );
+      } else if (dialog.kind === "ready") {
+        this.showChoiceDialog(npc.name, dialog.message, "Call it! 召唤天马！", () =>
+          this.actions.onArcAccept(npc.arcId!),
+        );
+      } else {
+        this.showNotice(`${npc.name}: ${dialog.message}`);
+      }
+      return;
+    }
     if (npc.arcId !== "woolly-pen") return;
     const dialog = fernDialogFor(this.state.arcFlags());
     if (dialog.kind === "offer") {

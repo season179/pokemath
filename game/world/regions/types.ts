@@ -69,9 +69,10 @@ export interface NpcDef {
    */
   readonly opens?: "sanctuary";
   /**
-   * If set, this NPC's dialog is resolved by the arc module (world/arc.ts)
-   * from the save's world flags — multi-state intention givers whose copy
-   * and offers change with progress (Shepherd Fern, #17). The static
+   * If set, this NPC's dialog is resolved from the save's world flags by
+   * the module that owns the arc id — world/arc.ts (Shepherd Fern, #17) or
+   * world/trail.ts (Keeper Yun's Cloudmane research trail, #21). Multi-state
+   * intention givers whose copy and offers change with progress. The static
    * `message` above is only a fallback for tooling.
    */
   readonly arcId?: string;
