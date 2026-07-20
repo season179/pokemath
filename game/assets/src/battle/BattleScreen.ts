@@ -1,7 +1,7 @@
 // Battle screen and turn-flow state machine. Rendering/input live here;
 // creature math and question judgement stay in the pure shared domain.
 
-import { Color, EventKeyboard, Graphics, KeyCode, Label, Node } from "cc";
+import { Color, EventKeyboard, Graphics, KeyCode, Label, Node, Sprite, Vec3, tween } from "cc";
 import {
   BOSS_FINAL_BLOW_MULTIPLIER,
   POTION_HEAL,
@@ -44,7 +44,7 @@ import { OrderingView } from "../questions/OrderingView";
 import { QuestionView } from "../questions/QuestionView";
 import { NULL_SINK, type TelemetrySink } from "../client/telemetry";
 
-type Phase = "message" | "menu" | "question" | "switch" | "result";
+type Phase = "message" | "menu" | "question" | "switch" | "result" | "fx";
 
 // The compact post-battle result (M2A, issue #7): one card shows the earned
 // XP, the prize (victory only), the player's level progress, and the level-up
@@ -107,6 +107,10 @@ export class BattleScreen {
   private asked = 0;
   private answeredCorrect = 0;
   private outcomeEmitted = false;
+  // Stable only until the next render. FX hide these freshly drawn portraits
+  // while matching transient overlays move above them.
+  private playerPortrait: Node | null = null;
+  private wildPortrait: Node | null = null;
 
   constructor(
     private state: GameState,
@@ -262,33 +266,195 @@ export class BattleScreen {
       damage = correctAnswerDamage(base, turn.question.operation);
     }
 
-    this.wild.takeDamage(damage);
     messages.push(`${this.state.active.name} attacks! ${damage} damage!`);
-    this.say(messages, () => {
-      if (this.wild.fainted) {
-        this.say([`${this.wild.name} fainted!`], () => this.giveRewards());
-      } else {
-        this.wildAttack();
-      }
+    this.playAttackFx(this.state.active, this.wild, damage, () => {
+      this.say(messages, () => {
+        if (this.wild.fainted) {
+          this.playFaintFx(this.wild, () => {
+            this.say([`${this.wild.name} fainted!`], () => this.giveRewards());
+          });
+        } else {
+          this.wildAttack();
+        }
+      });
     });
   }
 
   private wildAttack(): void {
     const damage = rollDamage(this.wild.attack);
-    this.state.active.takeDamage(damage);
-    this.say([`${this.wild.name} attacks back! ${damage} damage!`], () => {
-      if (!this.state.active.fainted) {
-        this.showMenu();
-      } else if (this.state.benchedFighters().length > 0) {
-        this.say([`${this.state.active.name} fainted…`], () => this.beginSwitch(true));
-      } else {
-        this.emitOutcome("defeated");
-        this.say(
-          [`${this.state.active.name} fainted…`, "All your friends are tired!", "You hurry home to rest."],
-          this.actions.onRespawn,
-        );
-      }
+    this.playAttackFx(this.wild, this.state.active, damage, () => {
+      this.say([`${this.wild.name} attacks back! ${damage} damage!`], () => {
+        if (!this.state.active.fainted) {
+          this.showMenu();
+        } else {
+          this.playFaintFx(this.state.active, () => {
+            if (this.state.benchedFighters().length > 0) {
+              this.say([`${this.state.active.name} fainted…`], () => this.beginSwitch(true));
+            } else {
+              this.emitOutcome("defeated");
+              this.say(
+                [`${this.state.active.name} fainted…`, "All your friends are tired!", "You hurry home to rest."],
+                this.actions.onRespawn,
+              );
+            }
+          });
+        }
+      });
     });
+  }
+
+  private beginFx(): void {
+    this.phase = "fx";
+    // Clear the question/dialog controls and redraw a quiet arena. The stage
+    // remains disposable: the next say()/showMenu() still rebuilds it.
+    this.render();
+  }
+
+  private makeCreatureFx(creature: Creature): { node: Node; base: Node | null } {
+    const playerSide = creature === this.state.active;
+    const x = playerSide ? -240 : 220;
+    const y = playerSide ? -20 : 115;
+    const size = playerSide ? 65 : 52;
+    const stage = playerSide ? this.state.activeStage : 1;
+    const base = playerSide ? this.playerPortrait : this.wildPortrait;
+    const node = makeCreaturePortrait(this.root, { ...creature, stage }, size);
+    node.name = `${creature.name}-fx`;
+    node.setPosition(x, y);
+    if (base?.isValid) base.active = false;
+    return { node, base };
+  }
+
+  private finishCreatureFx(fx: { node: Node; base: Node | null }): void {
+    if (fx.base?.isValid) fx.base.active = true;
+    if (fx.node.isValid) fx.node.destroy();
+  }
+
+  /** Lunge home first, apply model damage, then play the defender feedback. */
+  private playAttackFx(attacker: Creature, defender: Creature, damage: number, onDone: () => void): void {
+    this.beginFx();
+    const fx = this.makeCreatureFx(attacker);
+    const home = fx.node.position.clone();
+    const playerSide = attacker === this.state.active;
+    const reach = new Vec3(playerSide ? 70 : -70, playerSide ? 20 : -20, 0);
+
+    tween(fx.node)
+      .to(0.1, { position: home.clone().add(reach) }, { easing: "quadOut" })
+      .to(0.13, { position: home }, { easing: "quadIn" })
+      .call(() => {
+        this.finishCreatureFx(fx);
+        defender.takeDamage(damage);
+        this.playHitFx(defender, damage, onDone);
+      })
+      .start();
+  }
+
+  /** Small shake + warm flash + floating damage number on transient nodes. */
+  private playHitFx(defender: Creature, damage: number, onDone: () => void): void {
+    const fx = this.makeCreatureFx(defender);
+    const playerSide = defender === this.state.active;
+    const popup = makeLabel(
+      this.root,
+      `-${damage}`,
+      playerSide ? -240 : 220,
+      playerSide ? 58 : 185,
+      { fontSize: 28, color: PALETTE.hpMid, name: "damage-popup" },
+    );
+    const popupColor = popup.color;
+
+    // A cream flash reads as impact without the alarm of a red-screen hit.
+    const flash = new Color(255, 244, 179, 255);
+    const sprite = fx.node.getComponent(Sprite);
+    if (sprite) {
+      const original = new Color(sprite.color.r, sprite.color.g, sprite.color.b, sprite.color.a);
+      tween(sprite)
+        .to(0.06, { color: flash })
+        .to(0.06, { color: original })
+        .union()
+        .repeat(2)
+        .start();
+    } else if (fx.node.getComponent(Graphics)) {
+      // Graphics bakes fill colors into its mesh, and paintCreature finishes
+      // on the pupil color. A tiny pulse is the reliable blob-art fallback.
+      tween(fx.node)
+        .to(0.06, { scale: new Vec3(1.06, 1.06, 1) })
+        .to(0.06, { scale: new Vec3(1, 1, 1) })
+        .union()
+        .repeat(2)
+        .start();
+    }
+
+    tween(popup.node)
+      .by(0.3, { position: new Vec3(0, 42, 0) }, { easing: "quadOut" })
+      .call(() => popup.node.destroy())
+      .start();
+    tween(popup)
+      .delay(0.12)
+      .to(0.18, { color: new Color(popupColor.r, popupColor.g, popupColor.b, 0) })
+      .start();
+
+    tween(fx.node)
+      .by(0.04, { position: new Vec3(5, 0, 0) })
+      .by(0.04, { position: new Vec3(-5, 0, 0) })
+      .union()
+      .repeat(3)
+      .delay(0.1)
+      .call(() => {
+        this.finishCreatureFx(fx);
+        onDone();
+      })
+      .start();
+  }
+
+  private playFaintFx(creature: Creature, onDone: () => void): void {
+    this.beginFx();
+    const fx = this.makeCreatureFx(creature);
+    const sprite = fx.node.getComponent(Sprite);
+    if (sprite) {
+      const color = sprite.color;
+      tween(sprite)
+        .to(0.55, { color: new Color(color.r, color.g, color.b, 0) })
+        .start();
+    }
+
+    tween(fx.node)
+      .by(0.3, { position: new Vec3(0, -40, 0) }, { easing: "quadIn" })
+      .to(0.3, { scale: new Vec3(0.6, 0.6, 1) }, { easing: "quadIn" })
+      .call(() => {
+        this.finishCreatureFx(fx);
+        onDone();
+      })
+      .start();
+  }
+
+  private playCaptureBallFx(onDone: () => void): void {
+    this.beginFx();
+    const ball = new Node("capture-ball-fx");
+    ball.parent = this.root;
+    ball.setPosition(-210, 5);
+    paintItemIcon(ball.addComponent(Graphics), "ball", 30);
+
+    tween(ball)
+      .to(0.18, { position: new Vec3(0, 210, 0) }, { easing: "quadOut" })
+      .to(0.18, { position: new Vec3(220, 115, 0) }, { easing: "quadIn" })
+      .call(() => this.playCaptureContactShake())
+      .delay(0.12)
+      .to(0.18, { scale: new Vec3(0, 0, 1) }, { easing: "quadIn" })
+      .call(() => {
+        ball.destroy();
+        onDone();
+      })
+      .start();
+  }
+
+  private playCaptureContactShake(): void {
+    const fx = this.makeCreatureFx(this.wild);
+    tween(fx.node)
+      .by(0.04, { position: new Vec3(4, 0, 0) })
+      .by(0.04, { position: new Vec3(-4, 0, 0) })
+      .union()
+      .repeat(3)
+      .call(() => this.finishCreatureFx(fx))
+      .start();
   }
 
   private giveRewards(): void {
@@ -339,26 +505,28 @@ export class BattleScreen {
 
     this.state.bag.ball--;
     this.say([`You throw a ball at ${this.wild.name}…`], () => {
-      if (Math.random() < this.wild.catchChance) {
-        const outcome = this.state.capture(this.wild);
-        // Collection-variety signal (#24): which species join collections.
-        this.telemetry.emit("creature_captured", { speciesId: this.wild.speciesId! });
-        this.emitOutcome("captured");
-        // Capture pays exactly the answered-question share of the battle's
-        // XP (never full defeat XP for unanswered questions) and no prize
-        // money — the new friend is the reward.
-        const award = this.state.awardPlayerXp(this.earnedXp);
-        const subtitle =
-          outcome === "joined-team"
-            ? `${this.wild.name} joined your team! 加入了队伍！`
-            : `${this.wild.name} joined your collection! 加入了收藏！`;
-        this.showResult(
-          { title: "Gotcha! 收服啦！", subtitle, xpGain: this.earnedXp, prize: null, award },
-          this.actions.onExit,
-        );
-      } else {
-        this.say([`Oh no! ${this.wild.name} broke free!`], () => this.wildAttack());
-      }
+      this.playCaptureBallFx(() => {
+        if (Math.random() < this.wild.catchChance) {
+          const outcome = this.state.capture(this.wild);
+          // Collection-variety signal (#24): which species join collections.
+          this.telemetry.emit("creature_captured", { speciesId: this.wild.speciesId! });
+          this.emitOutcome("captured");
+          // Capture pays exactly the answered-question share of the battle's
+          // XP (never full defeat XP for unanswered questions) and no prize
+          // money — the new friend is the reward.
+          const award = this.state.awardPlayerXp(this.earnedXp);
+          const subtitle =
+            outcome === "joined-team"
+              ? `${this.wild.name} joined your team! 加入了队伍！`
+              : `${this.wild.name} joined your collection! 加入了收藏！`;
+          this.showResult(
+            { title: "Gotcha! 收服啦！", subtitle, xpGain: this.earnedXp, prize: null, award },
+            this.actions.onExit,
+          );
+        } else {
+          this.say([`Oh no! ${this.wild.name} broke free!`], () => this.wildAttack());
+        }
+      });
     });
   }
 
@@ -484,6 +652,9 @@ export class BattleScreen {
       return;
     }
 
+    // FX own the disposable arena until their .call() resumes the turn.
+    if (this.phase === "fx") return;
+
     const box = makePanel(this.root, 0, -250, 920, 122, {
       fill: PALETTE.panel,
       stroke: PALETTE.panelStroke,
@@ -515,8 +686,8 @@ export class BattleScreen {
     pg.ellipse(0, 0, 150, 38);
     pg.fill();
 
-    this.drawCreature(-240, -20, this.state.active, 65);
-    this.drawCreature(220, 115, this.wild, 52);
+    this.playerPortrait = this.drawCreature(-240, -20, this.state.active, 65);
+    this.wildPortrait = this.drawCreature(220, 115, this.wild, 52);
     this.drawHpPanel(-310, 235, this.wild, false);
     this.drawHpPanel(300, -85, this.state.active, true);
     if (this.uniqueHunt) this.drawUniquePressure();
@@ -550,12 +721,12 @@ export class BattleScreen {
     }
   }
 
-  private drawCreature(x: number, y: number, creature: Creature, size: number): void {
-    const stage =
-      creature === this.state.active ? this.state.activeStage : 1;
+  private drawCreature(x: number, y: number, creature: Creature, size: number): Node {
+    const stage = creature === this.state.active ? this.state.activeStage : 1;
     const node = makeCreaturePortrait(this.root, { ...creature, stage }, size);
     node.name = creature.name;
     node.setPosition(x, y);
+    return node;
   }
 
   private drawHpPanel(x: number, y: number, creature: Creature, showXp: boolean): void {
