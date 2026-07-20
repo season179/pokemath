@@ -1,0 +1,709 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.meadow-counting",
+  "version": 1,
+  "source": "Generated offline by tools/generate-question-batch.mjs v2 (M4, issue #15): seed 17, 4.1 TP1–2, profile dpk3_2026_core, 20 questions; provenance: question-batches/candidates/std1.meadow-counting-4.1-tp1-2-s17.provenance.json",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.1; TP1–2 candidate batch (pending gate + human review)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "数一数，十格框里有几个圆点？",
+      "question_en": "Count the counters in the ten-frame. How many are there?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 8
+      }
+    },
+    {
+      "id": 2,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 2",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "十格框里有 2 个圆点，再画几个就满 10 个？",
+      "question_en": "The ten-frame shows 2 counters. How many more make 10?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 2
+      }
+    },
+    {
+      "id": 3,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "plain",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8 > 4",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：8 比 4 大",
+      "question_en": "Mark ✓ for true and ✗ for false: 8 is greater than 4",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "more-fewer-flip"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "pattern-continue",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "95 + 1",
+      "answer": 96,
+      "bilingual": {
+        "numeral": "96",
+        "zh_word": "九十六"
+      },
+      "question_zh": "一个一个地数：93、94、95、___",
+      "question_en": "Count on by ones: 93, 94, 95, ___",
+      "distractors": [
+        {
+          "value": 97,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 95,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 93,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "picture",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "数一数，篮子里共有几根胡萝卜？\n🥕🥕🥕🥕🥕🥕",
+      "question_en": "Count the carrots in the basket. How many are there?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6 < 7 < 12",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "从小到大排列：6、12、7",
+      "question_en": "Arrange from smallest to largest: 6, 12, 7",
+      "distractors": [],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          {
+            "value": 6
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 12
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "14",
+      "answer": 14,
+      "bilingual": {
+        "numeral": "14",
+        "zh_word": "十四"
+      },
+      "question_zh": "圈出正确的答案：🐔🐔🐔🐔🐔🐔🐔🐔🐔🐔🐔🐔🐔🐔 共有几只鸡？",
+      "question_en": "Circle the correct answer: how many chickens are there?",
+      "distractors": [
+        {
+          "value": 13,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 41,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "chinese-word",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "12",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "「12」写成文字是哪一个？",
+      "question_en": "Which is 12 written in Chinese words?",
+      "distractors": [
+        {
+          "value": 21,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 10,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "14",
+      "answer": 14,
+      "bilingual": {
+        "numeral": "14",
+        "zh_word": "十四"
+      },
+      "question_zh": "圈出正确的答案：🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸 共有几朵花？",
+      "question_en": "Circle the correct answer: how many flowers are there?",
+      "distractors": [
+        {
+          "value": 13,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 41,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "16",
+      "answer": 16,
+      "bilingual": {
+        "numeral": "16",
+        "zh_word": "十六"
+      },
+      "question_zh": "圈出正确的答案：🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎 共有几个苹果？",
+      "question_en": "Circle the correct answer: how many apples are there?",
+      "distractors": [
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 17,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 61,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "16 > 6 > 2",
+      "answer": 16,
+      "bilingual": {
+        "numeral": "16",
+        "zh_word": "十六"
+      },
+      "question_zh": "从大到小排列：6、2、16",
+      "question_en": "Arrange from largest to smallest: 6, 2, 16",
+      "distractors": [],
+      "sequence": {
+        "direction": "descending",
+        "items": [
+          {
+            "value": 16
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "20",
+      "answer": 20,
+      "bilingual": {
+        "numeral": "20",
+        "zh_word": "二十"
+      },
+      "question_zh": "圈出正确的答案：🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆 共有几只鸭子？",
+      "question_en": "Circle the correct answer: how many ducks are there?",
+      "distractors": [
+        {
+          "value": 19,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 21,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3 < 4 < 8 < 16",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "从小到大排列：4、16、3、8",
+      "question_en": "Arrange from smallest to largest: 4, 16, 3, 8",
+      "distractors": [],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          {
+            "value": 3
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 16
+          }
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "pattern-continue",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "53 + 5",
+      "answer": 58,
+      "bilingual": {
+        "numeral": "58",
+        "zh_word": "五十八"
+      },
+      "question_zh": "五个五个地数：43、48、53、___",
+      "question_en": "Count in fives: 43, 48, 53, ___",
+      "distractors": [
+        {
+          "value": 63,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 53,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 55,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 3",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "十格框里有 3 个圆点，再画几个就满 10 个？",
+      "question_en": "The ten-frame shows 3 counters. How many more make 10?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 3
+      }
+    },
+    {
+      "id": 16,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 6",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "十格框里有 6 个圆点，再画几个就满 10 个？",
+      "question_en": "The ten-frame shows 6 counters. How many more make 10?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 6
+      }
+    },
+    {
+      "id": 17,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "pattern-continue",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "28 - 10",
+      "answer": 18,
+      "bilingual": {
+        "numeral": "18",
+        "zh_word": "十八"
+      },
+      "question_zh": "倒着数，十个十个地数：48、38、28、___",
+      "question_en": "Count in tens backward: 48, 38, 28, ___",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 28,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 21,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "15",
+      "answer": 15,
+      "bilingual": {
+        "numeral": "15",
+        "zh_word": "十五"
+      },
+      "question_zh": "圈出正确的答案：🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈 共有几个气球？",
+      "question_en": "Circle the correct answer: how many balloons are there?",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 16,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 51,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-circle",
+      "presentation": "picture",
+      "answer_form": "circle",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "14",
+      "answer": 14,
+      "bilingual": {
+        "numeral": "14",
+        "zh_word": "十四"
+      },
+      "question_zh": "圈出正确的答案：🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦 共有几只小鸟？",
+      "question_en": "Circle the correct answer: how many birds are there?",
+      "distractors": [
+        {
+          "value": 13,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 41,
+          "strategy": "digit-reversal"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "9",
+      "answer": 9,
+      "bilingual": {
+        "numeral": "9",
+        "zh_word": "九"
+      },
+      "question_zh": "数一数，十格框里有几个圆点？",
+      "question_en": "Count the counters in the ten-frame. How many are there?",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 9
+      }
+    }
+  ]
+}

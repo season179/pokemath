@@ -1,7 +1,7 @@
 {
   "tool": "tools/validate-question-bank.mjs",
-  "generatedAt": "2026-07-19T15:31:14.968Z",
-  "source": "std1.meadow-counting-4.1-tp1-2-s17.candidate.json",
+  "generatedAt": "2026-07-20T02:14:47.349Z",
+  "source": "std1.meadow-counting.v1.json",
   "sha256": "b349d62ed7519367afea25f09789b8a70b699397d93fc06efaaba0a9ba1041a3",
   "accept": true,
   "report": {

@@ -4,7 +4,7 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.meadow-counting` v1 · schema v2 · 20 questions
-**Source:** [std1.meadow-counting-4.1-tp1-2-s17.candidate.json](../../game/assets/resources/question-banks/std1/std1.meadow-counting-4.1-tp1-2-s17.candidate.json)
+**Source:** [std1.meadow-counting.v1.json](../../game/assets/resources/question-banks/std1/std1.meadow-counting.v1.json)
 **Content SHA-256:** `b349d62ed7519367afea25f09789b8a70b699397d93fc06efaaba0a9ba1041a3`
 
 ## Corpus checklist
