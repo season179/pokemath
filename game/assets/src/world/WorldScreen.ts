@@ -263,7 +263,7 @@ export class WorldScreen {
     // Arc complete (#19): arriving at the knoll after re-chiming the clock
     // reveals the keeper's habitat clue.
     if (this.def.id === "meadow/ticktock" && this.state.hasBadge(TICKTOCK_ARC_BADGE)) {
-      this.showNotice(TICKTOCK_ARC_CLUE);
+      this.showDialogue(TICKTOCK_ARC_CLUE);
     }
   }
 
@@ -491,7 +491,7 @@ export class WorldScreen {
         this.releaseAll();
         this.actions.onTravel(gateway.to!, gateway.toGateway ?? null);
       } else {
-        this.showNotice(gatewayNotice(gateway));
+        this.showDialogue(gatewayNotice(gateway));
       }
       return;
     }
@@ -552,24 +552,7 @@ export class WorldScreen {
       this.showTravelDialog(npc);
       return;
     }
-    this.releaseAll();
-    this.pendingSail = null;
-    this.pendingOpen = null;
-    this.banner?.destroy();
-    // Plain-dialog NPCs get the travel dialog's wrapped panel minus the
-    // buttons: bilingual lines (the Harbor greetings, #18's Fruit-Stand
-    // Keeper payoff) wrap legibly instead of shrinking into showNotice's
-    // single line. Tap or Space/Enter dismisses (tap()).
-    const box = makePanel(this.root, 0, -226, 720, 104, {
-      fill: PALETTE.panel,
-      stroke: PALETTE.panelStroke,
-    });
-    makeWrappedLabel(box, `${npc.name}: ${npc.message}`, 0, 0, 660, 80, {
-      fontSize: 18,
-      lineHeight: 23,
-    });
-    box.on(Node.EventType.TOUCH_END, () => this.tap());
-    this.banner = box;
+    this.showDialogue(`${npc.name}: ${npc.message}`);
     if (npc.opens === "sanctuary") {
       // Dismissing the greeting (tap or Space/Enter) opens the Sanctuary.
       this.pendingOpen = () => this.actions.onSanctuary();
@@ -593,7 +576,7 @@ export class WorldScreen {
           this.actions.onArcAccept(npc.arcId!),
         );
       } else {
-        this.showNotice(`${npc.name}: ${dialog.message}`);
+        this.showDialogue(`${npc.name}: ${dialog.message}`);
       }
       return;
     }
@@ -604,7 +587,7 @@ export class WorldScreen {
         this.actions.onArcAccept(npc.arcId!),
       );
     } else if (dialog.kind === "progress") {
-      this.showNotice(`${npc.name}: ${dialog.message}`);
+      this.showDialogue(`${npc.name}: ${dialog.message}`);
     } else {
       this.showSailDialog(npc.name, dialog.message, {
         to: dialog.sailTo,
@@ -645,7 +628,10 @@ export class WorldScreen {
     this.pendingSail = null;
     this.pendingOpen = null;
     this.banner?.destroy();
-    const box = makePanel(this.root, 0, -226, 720, 104, {
+    // Keep the bottom edge aligned with ordinary dialogue while giving the
+    // narrow text column room for the longest bilingual offer at the full
+    // 18px dialogue size. The old 74px text box shrank Keeper Yun and Fern.
+    const box = makePanel(this.root, 0, -194, 720, 168, {
       fill: PALETTE.panel,
       stroke: PALETTE.panelStroke,
     });
@@ -653,10 +639,11 @@ export class WorldScreen {
     // padding on the left and even ~17px gaps between text, Go, ✕, and the
     // right edge. The label node is center-anchored, so x is the box
     // center, not its left edge.
-    makeWrappedLabel(box, `${name}: ${message}`, -101, 0, 478, 74, {
+    const messageLabel = makeWrappedLabel(box, `${name}: ${message}`, -101, 0, 478, 138, {
       fontSize: 18,
       lineHeight: 23,
     });
+    messageLabel.verticalAlign = Label.VerticalAlign.CENTER;
     makeButton(box, {
       x: 214,
       y: 0,
@@ -693,6 +680,26 @@ export class WorldScreen {
     this.banner = box;
   }
 
+  /** Wrapped world dialogue and narrative beats at one consistent font size. */
+  showDialogue(text: string) {
+    this.releaseAll();
+    this.pendingSail = null;
+    this.pendingOpen = null;
+    this.banner?.destroy();
+    const box = makePanel(this.root, 0, -220, 720, 116, {
+      fill: PALETTE.panel,
+      stroke: PALETTE.panelStroke,
+    });
+    const label = makeWrappedLabel(box, text, 0, 0, 660, 92, {
+      fontSize: 18,
+      lineHeight: 23,
+    });
+    label.verticalAlign = Label.VerticalAlign.CENTER;
+    box.on(Node.EventType.TOUCH_END, () => this.tap());
+    this.banner = box;
+  }
+
+  /** Short transient notices only; long or bilingual copy uses showDialogue. */
   showNotice(text: string) {
     this.releaseAll();
     this.pendingSail = null;

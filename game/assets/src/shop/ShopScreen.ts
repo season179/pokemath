@@ -80,17 +80,23 @@ export class ShopScreen {
   private render(round?: QuestionRound, pendingItem?: ShopItem): void {
     destroyChildren(this.root);
     this.questionView = null;
-    this.drawShop();
+    this.drawBackdrop();
 
     if (this.phase === "question" && round && pendingItem) {
       this.questionView = new QuestionView(this.root, round, (_picked, correct) => {
         this.answer(pendingItem, correct);
       });
+      return;
     }
+
+    this.drawShop();
+  }
+
+  private drawBackdrop(): void {
+    makeRect(this.root, 0, 0, 960, 640, new Color(255, 224, 178, 255));
   }
 
   private drawShop(): void {
-    makeRect(this.root, 0, 0, 960, 640, new Color(255, 224, 178, 255));
     const card = makePanel(this.root, 0, 25, 820, 490, {
       fill: PALETTE.panel,
       stroke: PALETTE.panelStroke,
