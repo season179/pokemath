@@ -36,6 +36,16 @@ import {
   arcBattleTopicsFor,
   settleArcBattle,
 } from "./world/arc";
+import {
+  FLAG_TRAIL_STARTED,
+  FLAG_TRAIL_SUMMONED,
+  TRAIL_ACCEPTED,
+  TRAIL_CALLED,
+  TrailClue,
+  trailBattleTopicsFor,
+  trailClueFlag,
+  trailReadyToCall,
+} from "./world/trail";
 import { WorldMapScreen } from "./world/WorldMapScreen";
 import { PALETTE, makeLabel, makePanel } from "./ui";
 
@@ -144,6 +154,7 @@ export class GameApp {
     onSanctuary: () => this.startSanctuary(),
     onArcBattle: (critter) => this.startArcBattle(critter),
     onArcAccept: (arcId) => this.acceptArc(arcId),
+    onTrailClue: (clue) => this.foundTrailClue(clue),
   };
 
   // Swap the world to another region, arriving through the named gateway.
@@ -161,7 +172,7 @@ export class GameApp {
     this.world.releaseAll();
     this.world.root.destroy();
     this.world = new WorldScreen(this.state, this.worldActions, regionId, gateway, startAt);
-    for (const topic of arcBattleTopicsFor(regionId, this.state.arcFlags())) {
+    for (const topic of this.scriptedBattleTopicsFor(regionId)) {
       void this.loadBankFor(topic);
     }
     this.canvasNode.addChild(this.world.root);
@@ -189,7 +200,7 @@ export class GameApp {
     // If any manifest/bank boundary fails, those topics' encounters stay
     // off (see loadBankFor).
     topicsForRegion(this.world.regionId).forEach((topic) => void this.loadBankFor(topic));
-    for (const topic of arcBattleTopicsFor(this.world.regionId, this.state.arcFlags())) {
+    for (const topic of this.scriptedBattleTopicsFor(this.world.regionId)) {
       void this.loadBankFor(topic);
     }
   }
@@ -206,6 +217,20 @@ export class GameApp {
       .filter((bank): bank is QuestionBank => bank !== undefined);
     if (banks.length !== topics.length) return null;
     return banks.length === 1 ? banks[0] : mergeBanks(banks);
+  }
+
+  /**
+   * Topics with visible scripted battles in a region right now — the arc
+   * beats (#17) plus the trail's summoned guardian (#21) — so their routed
+   * banks load alongside the region's ordinary topics.
+   */
+  private scriptedBattleTopicsFor(regionId: string): string[] {
+    const flags = this.state.arcFlags();
+    const topics = arcBattleTopicsFor(regionId, flags);
+    for (const topic of trailBattleTopicsFor(regionId, flags)) {
+      if (!topics.includes(topic)) topics.push(topic);
+    }
+    return topics;
   }
 
   private async loadBankFor(topic: string): Promise<void> {
@@ -380,6 +405,10 @@ export class GameApp {
       console.warn(`Arc critter names an unknown speciesId: ${critter.speciesId}`);
       return;
     }
+    // Ordinary battle rules even for the summoned guardian (#21): the boss
+    // question path needs multi-step banks the routed Std-1 banks don't
+    // carry, and the fixed guardian slate is #23 either way. Uncapturable
+    // critters pass the refusal through — a Unique is never ball-caught.
     const wild = Creature.fromSpecies(species);
     if (wild.speciesId && this.state.markSeenEntry(wild.speciesId)) {
       this.checkpoint();
@@ -395,7 +424,7 @@ export class GameApp {
       onOutcome: (outcome) => {
         this.arcOutcome = outcome;
       },
-    }, this.telemetry);
+    }, this.telemetry, { capturable: critter.capturable !== false });
     this.canvasNode.addChild(this.battle.root);
   }
 
@@ -426,6 +455,10 @@ export class GameApp {
   // Accepting Fern's intention (#17): persist the promise, make sure the
   // wanderers' battle slice is loading, and reveal them in the tall grass.
   private acceptArc(arcId: string): void {
+    if (arcId === "cloudmane-trail") {
+      this.acceptTrail();
+      return;
+    }
     if (arcId !== "woolly-pen") return;
     this.state.setFlag(FLAG_WOOLLY_PEN, 1);
     for (const topic of arcBattleTopicsFor(this.world.regionId, this.state.arcFlags())) {
@@ -434,6 +467,45 @@ export class GameApp {
     this.checkpoint();
     this.world.refreshArc();
     this.world.showNotice(`Shepherd Fern: ${FERN_ACCEPTED}`);
+  }
+
+  /**
+   * Keeper Yun's trail (#21): accepting her request starts the clue hunt;
+   * once the proof is complete, the Call summons the guardian to the ring.
+   * Both beats are explicit button choices, and flags only ever move forward
+   * — the waiting guardian is the standing second chance.
+   */
+  private acceptTrail(): void {
+    const flags = this.state.arcFlags();
+    if (!flags[FLAG_TRAIL_STARTED]) {
+      this.state.setFlag(FLAG_TRAIL_STARTED, 1);
+      this.checkpoint();
+      this.world.refreshArc();
+      this.world.showNotice(`Keeper Yun: ${TRAIL_ACCEPTED}`);
+      return;
+    }
+    if (flags[FLAG_TRAIL_SUMMONED] || !trailReadyToCall(flags)) return;
+    this.state.setFlag(FLAG_TRAIL_SUMMONED, 1);
+    // Reveal the guardian and pre-load its scripted battle's routed bank.
+    for (const topic of trailBattleTopicsFor(this.world.regionId, this.state.arcFlags())) {
+      void this.loadBankFor(topic);
+    }
+    this.checkpoint();
+    this.world.refreshArc();
+    this.world.showNotice(`Keeper Yun: ${TRAIL_CALLED}`);
+  }
+
+  /**
+   * An evidence spot searched (#21): record the clue — progress only ever
+   * moves forward — repaint the sparkle for the next spot, and show the
+   * found-evidence beat. Leaving the island erases nothing: the flag is
+   * checkpointed before the notice even shows.
+   */
+  private foundTrailClue(clue: TrailClue): void {
+    this.state.setFlag(trailClueFlag(clue.n), 1);
+    this.checkpoint();
+    this.world.refreshArc();
+    this.world.showNotice(clue.found);
   }
 
   private startShop(): void {

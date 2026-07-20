@@ -2,6 +2,9 @@
 // guardian ground. Two stone clusters of five flank the guardian ring.
 // M2B (issue #9): sparse tall grass (`g`) between the stones hosts the one
 // wild regular here; the guardian's authored battle (M6) is never a wild roll.
+// M6 (issue #21): Keeper Yun tends the ring and starts the Cloudmane
+// research trail (world/trail.ts) — her `N` marker sits beside the guide,
+// one character swapped in place so saved tiles never shift.
 
 import { guide } from "./meadow-shared.ts";
 import type { RegionDef } from "./types.ts";
@@ -14,7 +17,7 @@ export const MEADOW_STONES: RegionDef = {
   rows: [
     "TTTTTTTTTTTTTpTTTTTTTTTTTT",
     "T............p...........T",
-    "T..........N.p...........T",
+    "T..........NNp...........T",
     "T............p...........T",
     "T.....o......p.....o.....T",
     "T....o.o.....p....o.o....T",
@@ -32,7 +35,20 @@ export const MEADOW_STONES: RegionDef = {
     "TTTTTTTTTTTTTpTTTTTTTTTTTT",
   ],
   spawn: { x: 13, y: 1 },
-  npcs: [guide(11, 2, "characters/character_6/character06-sheet.png")],
+  npcs: [
+    guide(11, 2, "characters/character_6/character06-sheet.png"),
+    {
+      // Keeper Yun (M6, #21): the trail giver for the Cloudmane research
+      // hunt. Her dialog is multi-state (offer → directions → the Call →
+      // standing second chance), resolved by world/trail.ts from save flags.
+      x: 12,
+      y: 2,
+      name: "Keeper Yun 阿云",
+      message: "", // trail NPC — the dialog comes from world/trail.ts
+      characterSheet: "characters/character_10/character10-sheet.png",
+      arcId: "cloudmane-trail",
+    },
+  ],
   // M2B roster (issue #9): only the Woolly Ram drifts between the stones
   // (meadow-isle.md §8), so this single-entry table is rare-only by design —
   // the calm counterpart to Woolly Meadows' 8% rare slot, and the place to

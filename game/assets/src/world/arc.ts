@@ -45,6 +45,12 @@ export interface ArcCritter {
   /** Curriculum topic the scripted battle draws from (routed bank, #13). */
   readonly topic: string;
   readonly kind: "battle" | "decor";
+  /**
+   * False only for the Cloudmane guardian (#21): ordinary balls never hold
+   * a Unique — #22 replaces the refusal with flee pressure + trust capture.
+   * Omit for ordinary critters (catchable, calm).
+   */
+  readonly capturable?: boolean;
 }
 
 /** Where the three wanderers hide: tall grass just south of the broken pen. */
