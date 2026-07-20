@@ -43,7 +43,14 @@ import {
   regionW,
   tileAt,
 } from "./regions/index";
-import { Creature, SPECIES_BY_ID, pickEncounter, rollEncounter } from "../../shared/index";
+import {
+  Creature,
+  SPECIES_BY_ID,
+  formatPlayerLevel,
+  formatPlayerProgress,
+  pickEncounter,
+  rollEncounter,
+} from "../../shared/index";
 import { ArcCritter, arcCrittersFor, fernDialogFor, patchRegionForArc } from "./arc";
 import {
   TrailClue,
@@ -1360,13 +1367,13 @@ export class WorldScreen {
         lineWidth: 2,
       },
     );
-    makeLabel(strip, `Lv ${info.level}`, -90, 0, { fontSize: 11, align: "left" });
+    makeLabel(strip, formatPlayerLevel(info), -90, 0, { fontSize: 11, align: "left" });
     makeRect(strip, -4, 0, 110, 8, new Color(221, 221, 221, 255), 4);
     if (info.intoLevel > 0) {
       const width = 110 * Math.min(1, info.intoLevel / info.span);
       makeRect(strip, -59 + width / 2, 0, width, 8, PALETTE.xp, 4);
     }
-    makeLabel(strip, `${info.intoLevel}/${info.span}`, 90, 0, {
+    makeLabel(strip, formatPlayerProgress(info), 90, 0, {
       fontSize: 10,
       color: PALETTE.sub,
       align: "right",

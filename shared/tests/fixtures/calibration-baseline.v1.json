@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "disposition": "retain-shipped-baseline-until-evidence-gate",
+  "xp": {
+    "levelBase": 20,
+    "levelGrowth": 10,
+    "turnBase": 5,
+    "hardBonus": 2,
+    "tpBonusCap": 2,
+    "gapStep": 0.15,
+    "gapFloor": 0.25,
+    "minimumPerTurn": 1
+  },
+  "levels": [
+    {
+      "level": 1,
+      "totalToReach": 0,
+      "toNext": 20,
+      "routineTp2PerTurn": 6,
+      "correctTurnsToNext": 4
+    },
+    {
+      "level": 2,
+      "totalToReach": 20,
+      "toNext": 30,
+      "routineTp2PerTurn": 5,
+      "correctTurnsToNext": 6
+    },
+    {
+      "level": 3,
+      "totalToReach": 50,
+      "toNext": 40,
+      "routineTp2PerTurn": 4,
+      "correctTurnsToNext": 10
+    },
+    {
+      "level": 4,
+      "totalToReach": 90,
+      "toNext": 50,
+      "routineTp2PerTurn": 3,
+      "correctTurnsToNext": 17
+    },
+    {
+      "level": 5,
+      "totalToReach": 140,
+      "toNext": 60,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 30
+    },
+    {
+      "level": 6,
+      "totalToReach": 200,
+      "toNext": 70,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 35
+    },
+    {
+      "level": 7,
+      "totalToReach": 270,
+      "toNext": 80,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 40
+    },
+    {
+      "level": 8,
+      "totalToReach": 350,
+      "toNext": 90,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 45
+    },
+    {
+      "level": 9,
+      "totalToReach": 440,
+      "toNext": 100,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 50
+    },
+    {
+      "level": 10,
+      "totalToReach": 540,
+      "toNext": 110,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 55
+    },
+    {
+      "level": 11,
+      "totalToReach": 650,
+      "toNext": 120,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 60
+    },
+    {
+      "level": 12,
+      "totalToReach": 770,
+      "toNext": 130,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 65
+    },
+    {
+      "level": 13,
+      "totalToReach": 900,
+      "toNext": 140,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 70
+    },
+    {
+      "level": 14,
+      "totalToReach": 1040,
+      "toNext": 150,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 75
+    },
+    {
+      "level": 15,
+      "totalToReach": 1190,
+      "toNext": 160,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 80
+    },
+    {
+      "level": 16,
+      "totalToReach": 1350,
+      "toNext": 170,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 85
+    },
+    {
+      "level": 17,
+      "totalToReach": 1520,
+      "toNext": 180,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 90
+    },
+    {
+      "level": 18,
+      "totalToReach": 1700,
+      "toNext": 190,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 95
+    },
+    {
+      "level": 19,
+      "totalToReach": 1890,
+      "toNext": 200,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 100
+    },
+    {
+      "level": 20,
+      "totalToReach": 2090,
+      "toNext": 210,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 105
+    },
+    {
+      "level": 21,
+      "totalToReach": 2300,
+      "toNext": 220,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 110
+    },
+    {
+      "level": 22,
+      "totalToReach": 2520,
+      "toNext": 230,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 115
+    },
+    {
+      "level": 23,
+      "totalToReach": 2750,
+      "toNext": 240,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 120
+    },
+    {
+      "level": 24,
+      "totalToReach": 2990,
+      "toNext": 250,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 125
+    },
+    {
+      "level": 25,
+      "totalToReach": 3240,
+      "toNext": 260,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 130
+    },
+    {
+      "level": 26,
+      "totalToReach": 3500,
+      "toNext": 270,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 135
+    },
+    {
+      "level": 27,
+      "totalToReach": 3770,
+      "toNext": 280,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 140
+    },
+    {
+      "level": 28,
+      "totalToReach": 4050,
+      "toNext": 290,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 145
+    },
+    {
+      "level": 29,
+      "totalToReach": 4340,
+      "toNext": 300,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 150
+    },
+    {
+      "level": 30,
+      "totalToReach": 4640,
+      "toNext": 310,
+      "routineTp2PerTurn": 2,
+      "correctTurnsToNext": 155
+    }
+  ],
+  "rewards": [
+    {
+      "label": "weaker",
+      "playerLevel": 1,
+      "wildLevel": 3,
+      "gain": 6,
+      "gainDisplay": "+6 XP",
+      "levelDisplay": "Lv 1",
+      "progressDisplay": "6/20"
+    },
+    {
+      "label": "equal-level",
+      "playerLevel": 3,
+      "wildLevel": 3,
+      "gain": 6,
+      "gainDisplay": "+6 XP",
+      "levelDisplay": "Lv 3",
+      "progressDisplay": "6/40"
+    },
+    {
+      "label": "stronger",
+      "playerLevel": 8,
+      "wildLevel": 3,
+      "gain": 2,
+      "gainDisplay": "+2 XP",
+      "levelDisplay": "Lv 8",
+      "progressDisplay": "2/90"
+    }
+  ],
+  "encounters": [
+    {
+      "region": "woolly",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "woolly/fluffball",
+          "weight": 65,
+          "rarity": "common",
+          "share": 0.65
+        },
+        {
+          "speciesId": "woolly/hare",
+          "weight": 27,
+          "rarity": "uncommon",
+          "share": 0.27
+        },
+        {
+          "speciesId": "woolly/ram",
+          "weight": 8,
+          "rarity": "rare",
+          "share": 0.08
+        }
+      ]
+    },
+    {
+      "region": "orchard",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "meadow/plumelet",
+          "weight": 60,
+          "rarity": "common",
+          "share": 0.6
+        },
+        {
+          "speciesId": "meadow/blossomfox",
+          "weight": 25,
+          "rarity": "uncommon",
+          "share": 0.25
+        },
+        {
+          "speciesId": "meadow/pufftail",
+          "weight": 15,
+          "rarity": "common",
+          "share": 0.15
+        }
+      ]
+    },
+    {
+      "region": "gardens",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "meadow/mothling",
+          "weight": 60,
+          "rarity": "common",
+          "share": 0.6
+        },
+        {
+          "speciesId": "woolly/hare",
+          "weight": 25,
+          "rarity": "uncommon",
+          "share": 0.25
+        },
+        {
+          "speciesId": "meadow/pufftail",
+          "weight": 15,
+          "rarity": "common",
+          "share": 0.15
+        }
+      ]
+    },
+    {
+      "region": "barn",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "meadow/plumelet",
+          "weight": 45,
+          "rarity": "common",
+          "share": 0.45
+        },
+        {
+          "speciesId": "meadow/barnpup",
+          "weight": 30,
+          "rarity": "uncommon",
+          "share": 0.3
+        },
+        {
+          "speciesId": "meadow/pufftail",
+          "weight": 25,
+          "rarity": "common",
+          "share": 0.25
+        }
+      ]
+    },
+    {
+      "region": "ticktock",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "meadow/owlet",
+          "weight": 40,
+          "rarity": "uncommon",
+          "share": 0.4
+        },
+        {
+          "speciesId": "meadow/pufftail",
+          "weight": 35,
+          "rarity": "common",
+          "share": 0.35
+        },
+        {
+          "speciesId": "meadow/blossomfox",
+          "weight": 25,
+          "rarity": "uncommon",
+          "share": 0.25
+        }
+      ]
+    },
+    {
+      "region": "festival",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "meadow/pufftail",
+          "weight": 44,
+          "rarity": "common",
+          "share": 0.44
+        },
+        {
+          "speciesId": "woolly/fluffball",
+          "weight": 20,
+          "rarity": "common",
+          "share": 0.2
+        },
+        {
+          "speciesId": "meadow/mothling",
+          "weight": 14,
+          "rarity": "common",
+          "share": 0.14
+        },
+        {
+          "speciesId": "meadow/plumelet",
+          "weight": 14,
+          "rarity": "common",
+          "share": 0.14
+        },
+        {
+          "speciesId": "meadow/petalfae",
+          "weight": 8,
+          "rarity": "rare",
+          "share": 0.08
+        }
+      ]
+    },
+    {
+      "region": "stones",
+      "rate": 0.2,
+      "entries": [
+        {
+          "speciesId": "woolly/ram",
+          "weight": 100,
+          "rarity": "rare",
+          "share": 1
+        }
+      ]
+    }
+  ],
+  "effort": [
+    {
+      "rarity": "common",
+      "minHp": 13,
+      "maxHp": 13,
+      "minTurns": 3,
+      "maxTurns": 4
+    },
+    {
+      "rarity": "uncommon",
+      "minHp": 15,
+      "maxHp": 15,
+      "minTurns": 3,
+      "maxTurns": 4
+    },
+    {
+      "rarity": "rare",
+      "minHp": 18,
+      "maxHp": 18,
+      "minTurns": 3,
+      "maxTurns": 5
+    }
+  ],
+  "capture": {
+    "fullHp": 0.3,
+    "halfHp": 0.6,
+    "tenPercentHp": 0.8400000000000001,
+    "uniqueActions": 5,
+    "uniqueTrust": 3
+  },
+  "ranks": {
+    "manifestVersion": 8,
+    "banks": 7,
+    "questions": 132,
+    "byTp": {
+      "1": 5,
+      "2": 69,
+      "3": 52,
+      "4": 6
+    }
+  },
+  "variants": {
+    "wild": "normal",
+    "altEncounterRate": null
+  }
+}

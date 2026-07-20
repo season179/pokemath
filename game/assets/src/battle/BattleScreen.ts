@@ -12,6 +12,9 @@ import {
   QuestionTurn,
   correctAnswerDamage,
   createUniqueHunt,
+  formatPlayerLevel,
+  formatPlayerProgress,
+  formatPlayerXpGain,
   isOrdering,
   playerXpForTurn,
   prizeMoney,
@@ -612,7 +615,7 @@ export class BattleScreen {
       rowY -= 26;
     }
 
-    const xpText = makeLabel(panel, `+${result.xpGain} XP`, result.prize === null ? 0 : -70, rowY, {
+    const xpText = makeLabel(panel, formatPlayerXpGain(result.xpGain), result.prize === null ? 0 : -70, rowY, {
       fontSize: 21,
     });
     xpText.color = PALETTE.xp;
@@ -624,13 +627,13 @@ export class BattleScreen {
     // Level progress AFTER the award: Lv tag, bar, and into/span numbers —
     // the same truth the world HUD bar shows.
     const { after } = result.award;
-    makeLabel(panel, `Lv ${after.level}`, -184, rowY, { fontSize: 15, align: "left" });
+    makeLabel(panel, formatPlayerLevel(after), -184, rowY, { fontSize: 15, align: "left" });
     makeRect(panel, -10, rowY, 240, 12, new Color(221, 221, 221, 255), 6);
     if (after.intoLevel > 0) {
       const width = 240 * Math.min(1, after.intoLevel / after.span);
       makeRect(panel, -130 + width / 2, rowY, width, 12, PALETTE.xp, 6);
     }
-    makeLabel(panel, `${after.intoLevel}/${after.span}`, 184, rowY, {
+    makeLabel(panel, formatPlayerProgress(after), 184, rowY, {
       fontSize: 13,
       color: PALETTE.sub,
       align: "right",
