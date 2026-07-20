@@ -1,0 +1,655 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.pattern-gardens",
+  "version": 2,
+  "source": "v2: corrects the authored order of the repeating patterns in questions 5 and 15 so their next shapes match the answers. Based on the reviewed M5 visual-math Pattern Gardens v1 bank (issue #20).",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.6 (空间: 2D shapes, patterns, 3D solids); TP2–TP3 (Pattern Gardens, shared with the Barn's scavenger hunt)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:shapes",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "花坛是正方形的，它有几个顶点？",
+      "question_en": "The flowerbed is a square. How many vertices does it have?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "square"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:shapes",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "三角形花坛有几条边？",
+      "question_en": "The triangular flowerbed has how many sides?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "triangle"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:shapes",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "0 = 1",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：圆形花坛有 1 个顶点",
+      "question_en": "Mark ✓ for true and ✗ for false: a circular flowerbed has 1 vertex",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "circle"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "figure:shapes",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "4 + 4",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "正方形花坛和长方形花坛，一共有几个顶点？",
+      "question_en": "A square flowerbed and a rectangular flowerbed have how many vertices altogether?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 44,
+          "strategy": "no-carry-concat"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "square",
+          "rectangle"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "pattern-continue",
+      "presentation": "figure:shapes",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "花坛的图案是 △ ○ △ ○ ……下一个图形有几条边？",
+      "question_en": "The flowerbed pattern is triangle, circle, triangle, circle… How many sides does the next shape have?",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "triangle",
+          "circle",
+          "triangle",
+          "circle"
+        ],
+        "blank": true
+      }
+    },
+    {
+      "id": 6,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "pattern-continue",
+      "presentation": "figure:shapes",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "花坛的图案是 □ □ △ □ □ △ ……下一个图形有几条边？",
+      "question_en": "The flowerbed pattern is square, square, triangle, square, square, triangle… How many sides does the next shape have?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "square",
+          "square",
+          "triangle",
+          "square",
+          "square",
+          "triangle"
+        ],
+        "blank": true
+      }
+    },
+    {
+      "id": 7,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:shapes",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "这一排花坛图形中，圆形有几个？",
+      "question_en": "In this row of flowerbed shapes, how many are circles?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "circle",
+          "triangle",
+          "circle",
+          "triangle",
+          "circle"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "圆形 → 三角形 → 正方形",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "园丁按「圆形 → 三角形 → 正方形」的图案种花。按这个顺序排列。",
+      "question_en": "The gardener plants in the pattern circle → triangle → square. Arrange the tiles in that order.",
+      "distractors": [],
+      "sequence": {
+        "direction": "forward",
+        "items": [
+          {
+            "value": 1,
+            "label_zh": "圆形",
+            "label_en": "circle"
+          },
+          {
+            "value": 2,
+            "label_zh": "三角形",
+            "label_en": "triangle"
+          },
+          {
+            "value": 3,
+            "label_zh": "正方形",
+            "label_en": "square"
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:solids",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "装苹果的木箱是正方体。正方体有几个面？",
+      "question_en": "The apple crate is a cube. How many faces does a cube have?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cube"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:solids",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "长方体有几个顶点？",
+      "question_en": "How many vertices does a cuboid have?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cuboid"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:solids",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "草堆是圆锥体。圆锥体有几个顶点？",
+      "question_en": "The haystack is a cone. How many vertices does a cone have?",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cone"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:solids",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "0 = 2",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：圆柱体有 2 个顶点",
+      "question_en": "Mark ✓ for true and ✗ for false: a cylinder has 2 vertices",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cylinder"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "figure:solids",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "0 + 1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "球体和圆锥体，一共有几个顶点？",
+      "question_en": "A sphere and a cone have how many vertices altogether?",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "sphere",
+          "cone"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:solids",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "圆柱体有几个曲面？",
+      "question_en": "How many curved surfaces does a cylinder have?",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cylinder"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "pattern-continue",
+      "presentation": "figure:solids",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "1",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "谷仓里的立体排成 圆锥体、球体、圆锥体、球体 ……下一个立体有几个顶点？",
+      "question_en": "The solids in the barn go cone, sphere, cone, sphere… How many vertices does the next solid have?",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cone",
+          "sphere",
+          "cone",
+          "sphere"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "topic": "4.6",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "figure:solids",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "10 + 10 + 10 + 10",
+      "answer": 40,
+      "bilingual": {
+        "numeral": "40",
+        "zh_word": "四十"
+      },
+      "question_zh": "长方体公寓有 4 个侧面，每个侧面有 10 个窗口，上下面没有窗口。一共要清洗多少个窗口？",
+      "question_en": "A cuboid apartment block has 4 side faces with 10 windows each (none on top or bottom). How many windows need washing in all?",
+      "distractors": [
+        {
+          "value": 30,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 50,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        }
+      ],
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cuboid"
+        ]
+      }
+    }
+  ]
+}

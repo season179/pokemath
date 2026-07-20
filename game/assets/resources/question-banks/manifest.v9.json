@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "manifest_id": "std1-question-banks",
+  "version": 9,
+  "source": "Pattern Gardens correction: topic 4.6 now serves std1.pattern-gardens v2, whose repeating-shape prompts match their answers. Rollback = repoint to manifest.v8.",
+  "entries": [
+    {
+      "grade": "std1",
+      "topic": "4.1",
+      "tp_min": 1,
+      "tp_max": 2,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.meadow-counting",
+      "version": 1,
+      "path": "question-banks/std1/std1.meadow-counting.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.4",
+      "tp_min": 1,
+      "tp_max": 4,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.ticktock-time",
+      "version": 1,
+      "path": "question-banks/std1/std1.ticktock-time.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.2",
+      "tp_min": 2,
+      "tp_max": 3,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.appledore-arithmetic",
+      "version": 1,
+      "path": "question-banks/std1/std1.appledore-arithmetic.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.3",
+      "tp_min": 2,
+      "tp_max": 3,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.appledore-money",
+      "version": 1,
+      "path": "question-banks/std1/std1.appledore-money.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.5",
+      "tp_min": 2,
+      "tp_max": 4,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.harvest-barn",
+      "version": 1,
+      "path": "question-banks/std1/std1.harvest-barn.v1"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.6",
+      "tp_min": 2,
+      "tp_max": 3,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.pattern-gardens",
+      "version": 2,
+      "path": "question-banks/std1/std1.pattern-gardens.v2"
+    },
+    {
+      "grade": "std1",
+      "topic": "4.7",
+      "tp_min": 2,
+      "tp_max": 3,
+      "profile": "dpk3_2026_core",
+      "bank_id": "std1.festival-green",
+      "version": 1,
+      "path": "question-banks/std1/std1.festival-green.v1"
+    }
+  ]
+}
