@@ -120,6 +120,20 @@ export function isStarterId(value: unknown): value is string {
   return typeof value === "string" && STARTERS.some((s) => s.id === value);
 }
 
+/**
+ * The art cell for a 1-based evolution stage. Stage-1 art is the species'
+ * registered `artRef` (which may already offset past an empty leading pack
+ * cell); later stages step right by one cell width. Clamps to [1, stages].
+ * Missing art stays undefined so portraits fall back to the blob.
+ */
+export function artRefForStage(species: Species, stage: number): SpeciesArt | undefined {
+  const art = species.artRef;
+  if (!art) return undefined;
+  const clamped = Math.max(1, Math.min(Math.floor(stage) || 1, species.stages));
+  if (clamped === 1) return art;
+  return { ...art, x: art.x + (clamped - 1) * art.w };
+}
+
 // Legacy prototype species (pre-registry). Kept registered so old save
 // records that reference them still resolve; they have no Chinese name and
 // no habitat — the Meadow slate below is the roster that matters.

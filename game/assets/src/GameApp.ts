@@ -3,7 +3,15 @@
 // classes, not cc.Scene assets — see ROADMAP Phase 1.
 
 import { Color, EventKeyboard, Input, KeyCode, Label, Node, UITransform, input, view } from "cc";
-import { Creature, QuestionBank, SPECIES_BY_ID, type SaveStateV2 } from "../shared/index";
+import {
+  Creature,
+  MEADOW_BADGE_NOTICE,
+  QuestionBank,
+  SPECIES_BY_ID,
+  starterEvolvedNotice,
+  type SaveStateV2,
+} from "../shared/index";
+import { loadQuestionBankData } from "./questions/loadQuestionBank";
 import { loadRoutedQuestionBank } from "./questions/loadQuestionBankManifest";
 import { NameScreen } from "./NameScreen";
 import { Persistence } from "./persistence";
@@ -37,8 +45,11 @@ import {
   settleArcBattle,
 } from "./world/arc";
 import {
+  CLOUDMANE_CRITTER_ID,
   FLAG_TRAIL_STARTED,
   FLAG_TRAIL_SUMMONED,
+  GUARDIAN_BANK_PATH,
+  GUARDIAN_TOPIC,
   TRAIL_ACCEPTED,
   TRAIL_CALLED,
   TrailClue,
@@ -104,6 +115,9 @@ export class GameApp {
   // reset on reload, completion never does.
   private helpCounts = new Map<string, number>();
   private payoffJustAwarded: string | null = null;
+  // Meadow finale notices (#23): badge + starter evolution, shown on return
+  // from the guardian battle. Cleared after display.
+  private meadowFinaleNotices: string[] = [];
   // The in-flight scripted arc battle's terminal outcome (#17): onOutcome
   // always fires before the exit callback, so endArcBattle reads it here.
   private arcOutcome: BattleOutcome | null = null;
@@ -237,6 +251,13 @@ export class GameApp {
     if (this.banks.has(topic) || this.loadingTopics.has(topic)) return;
     this.loadingTopics.add(topic);
     try {
+      if (topic === GUARDIAN_TOPIC) {
+        // Fixed multi-topic guardian slate (#23): loaded by path, not through
+        // the single-topic manifest (the bank mixes 4.1/4.2/4.3/4.4/4.7).
+        const data = await loadQuestionBankData(GUARDIAN_BANK_PATH);
+        this.banks.set(topic, new QuestionBank(data));
+        return;
+      }
       // Routed loading (#13): the active manifest picks the approved bank
       // version for this curriculum slice — battle code never names a bank
       // file, and a bad batch is rolled back at the manifest, not here.
@@ -408,10 +429,9 @@ export class GameApp {
       console.warn(`Arc critter names an unknown speciesId: ${critter.speciesId}`);
       return;
     }
-    // The summoned guardian (#21/#22) is ordinary for combat math — the boss
-    // multi-step path needs banks the routed Std-1 slices don't carry, and
-    // the fixed guardian slate is #23. Unique pressure comes only from the
-    // species rarity gate (guardian → trust/flee), never from a UI option.
+    // Unique pressure comes only from the species rarity gate (guardian →
+    // trust/flee), never from a UI option. The guardian slate (#23) is served
+    // in authored order from its multi-topic bank (fixedOrder).
     const wild = Creature.fromSpecies(species);
     if (wild.speciesId && this.state.markSeenEntry(wild.speciesId)) {
       this.checkpoint();
@@ -427,7 +447,10 @@ export class GameApp {
       onOutcome: (outcome) => {
         this.arcOutcome = outcome;
       },
-    }, this.telemetry, { rarity: species.rarity });
+    }, this.telemetry, {
+      rarity: species.rarity,
+      fixedOrder: critter.id === CLOUDMANE_CRITTER_ID,
+    });
     this.canvasNode.addChild(this.battle.root);
   }
 
@@ -443,6 +466,18 @@ export class GameApp {
         this.state.setFlag(key, value);
       }
     }
+    // Guardian victory (#23): Meadow Badge once + starter evolution always
+    // (active or stored). Trust capture also counts — the Unique joined.
+    if (
+      critter.id === CLOUDMANE_CRITTER_ID &&
+      (outcome === "won" || outcome === "captured")
+    ) {
+      const finale = this.state.awardMeadowFinale();
+      if (finale.badgeAwarded) this.meadowFinaleNotices.push(MEADOW_BADGE_NOTICE);
+      if (finale.evolvedName) {
+        this.meadowFinaleNotices.push(starterEvolvedNotice(finale.evolvedName));
+      }
+    }
     this.returnToWorld(outcome === "defeated");
     if (settlement?.penRepaired) {
       // The payoff (#17): the fence visibly mends and the flock comes home.
@@ -454,6 +489,13 @@ export class GameApp {
     } else if (settlement) {
       // A wanderer home or the mothling met: refresh the creatures only.
       this.world.refreshArc();
+    }
+    if (this.meadowFinaleNotices.length > 0) {
+      // Rebuild HUD/portraits so the evolved starter stage shows immediately.
+      this.world.refreshHud();
+      const notice = this.meadowFinaleNotices.join(" ");
+      this.meadowFinaleNotices = [];
+      this.world.showNotice(notice);
     }
     this.checkpoint();
   }

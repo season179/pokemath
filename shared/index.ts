@@ -24,4 +24,5 @@ export * from "./save-v2.ts";
 export * from "./save-v2-validate.ts";
 export * from "./save-migrate.ts";
 export * from "./habitats.ts";
+export * from "./meadow-finale.ts";
 export * from "./telemetry.ts";

@@ -13,9 +13,10 @@
 //
 // Scope: this module owns the trail only. Unique flee pressure and trust
 // capture (#22) live in shared/battle-rules + BattleScreen and key off the
-// guardian rarity; the Meadow Badge, fixed question slate, and starter
-// evolution are #23. Until #23 the summit battle draws from the routed 4.1
-// bank like any scripted beat.
+// guardian rarity. The Meadow Badge, fixed multi-topic question slate, and
+// starter evolution (#23) settle on victory in GameApp via meadow-finale.ts.
+// The summit battle serves the hand-checked guardian bank in fixed order
+// (not a routed single-topic slice).
 //
 // Pure and Node-testable (type-only imports, like arc.ts): WorldScreen and
 // GameApp only render and route it; game/tests/trail.test.ts pins the logic.
@@ -98,10 +99,20 @@ export const GUARDIAN_SPOT = { x: 13, y: 6 } as const;
 export const CLOUDMANE_CRITTER_ID = "cloudmane-summit";
 
 /**
+ * Load key for the fixed multi-topic guardian slate. Not a curriculum topic
+ * (QUESTION_TOPICS) — GameApp loads GUARDIAN_BANK_PATH directly because the
+ * bank deliberately mixes 4.1 / 4.2 / 4.3 / 4.4 / 4.7 and cannot route through
+ * the single-topic manifest.
+ */
+export const GUARDIAN_TOPIC = "guardian";
+/** Cocos resources path (no extension) of the hand-checked guardian bank. */
+export const GUARDIAN_BANK_PATH = "question-banks/std1/std1.meadow-guardian.v1";
+
+/**
  * The summoned guardian, visible in its region. It stays put through every
  * battle outcome — flee, defeat, even victory — so a second (third, tenth)
  * chance is always standing in the ring — even after a Unique escape (#22)
- * or a victory. #23 owns the badge/evolution payoff.
+ * or a victory. Badge/evolution payoffs (#23) are idempotent on re-battle.
  */
 export function trailCrittersFor(regionId: string, flags: Record<string, number>): ArcCritter[] {
   if (regionId !== "meadow/stones" || !flags[FLAG_TRAIL_SUMMONED]) return [];
@@ -110,9 +121,7 @@ export function trailCrittersFor(regionId: string, flags: Record<string, number>
       id: CLOUDMANE_CRITTER_ID,
       ...GUARDIAN_SPOT,
       speciesId: GUARDIAN_SPECIES_ID,
-      // The fixed multi-topic guardian slate is #23; until then the summit
-      // battle draws from the routed counting bank like any scripted beat.
-      topic: "4.1",
+      topic: GUARDIAN_TOPIC,
       kind: "battle",
       capturable: false,
     },

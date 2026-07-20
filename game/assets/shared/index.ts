@@ -24,4 +24,5 @@ export * from "./save-v2";
 export * from "./save-v2-validate";
 export * from "./save-migrate";
 export * from "./habitats";
+export * from "./meadow-finale";
 export * from "./telemetry";

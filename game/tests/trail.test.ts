@@ -12,8 +12,10 @@ import {
   CLOUDMANE_CRITTER_ID,
   FLAG_TRAIL_STARTED,
   FLAG_TRAIL_SUMMONED,
+  GUARDIAN_BANK_PATH,
   GUARDIAN_SPECIES_ID,
   GUARDIAN_SPOT,
+  GUARDIAN_TOPIC,
   TRAIL_CLUES,
   nextTrailClue,
   trailBattleTopicsFor,
@@ -128,9 +130,9 @@ test("trail: the waiting guardian is the standing second chance", () => {
   }
 });
 
-test("trail: battle topics stay on routed slices", () => {
+test("trail: battle topics name the guardian slate load key after the Call", () => {
   assert.deepEqual(trailBattleTopicsFor("meadow/stones", {}), []);
-  assert.deepEqual(trailBattleTopicsFor("meadow/stones", SUMMONED), ["4.1"]);
+  assert.deepEqual(trailBattleTopicsFor("meadow/stones", SUMMONED), [GUARDIAN_TOPIC]);
   assert.deepEqual(trailBattleTopicsFor("harbor", SUMMONED), []);
 });
 
@@ -198,4 +200,14 @@ test("trail: the guardian is never in a wild table (no random low-probability hu
       `${id} wild table names the guardian`,
     );
   }
+});
+
+// --- guardian slate routing (#23) ---------------------------------------------
+
+test("trail: the summoned guardian names the multi-topic slate load key", () => {
+  const [guardian] = trailCrittersFor("meadow/stones", SUMMONED);
+  assert.equal(guardian.topic, GUARDIAN_TOPIC);
+  assert.equal(GUARDIAN_TOPIC, "guardian");
+  assert.equal(GUARDIAN_BANK_PATH, "question-banks/std1/std1.meadow-guardian.v1");
+  assert.deepEqual(trailBattleTopicsFor("meadow/stones", SUMMONED), [GUARDIAN_TOPIC]);
 });

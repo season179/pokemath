@@ -756,7 +756,11 @@ export class WorldScreen {
     this.companionG.ellipse(0, -15, 13, 5);
     this.companionG.fill();
     this.companionPortrait?.destroy();
-    this.companionPortrait = makeCreaturePortrait(this.companionNode, this.state.active, 14);
+    this.companionPortrait = makeCreaturePortrait(
+      this.companionNode,
+      { ...this.state.active, stage: this.state.activeStage },
+      14,
+    );
   }
 
   private celebrateCompanion() {
@@ -1245,7 +1249,11 @@ export class WorldScreen {
         lineWidth: 3,
       },
     );
-    const portrait = makeCreaturePortrait(card, creature, 16);
+    const portrait = makeCreaturePortrait(
+      card,
+      { ...creature, stage: this.state.activeStage },
+      16,
+    );
     portrait.setPosition(-69, -1);
 
     const name = makeLabel(card, creature.name, -43, 15, { fontSize: 17, align: "left" });
