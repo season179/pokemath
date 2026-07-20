@@ -33,6 +33,7 @@ test("emitted events accept their realistic payloads", () => {
     ],
     ["battle_outcome", { battle: "wild", outcome: "fled", asked: 2, correct: 1 }],
     ["battle_outcome", { battle: "boss", outcome: "won", asked: 5, correct: 5 }],
+    ["battle_outcome", { battle: "wild", outcome: "escaped", asked: 5, correct: 2 }],
     ["creature_captured", { speciesId: "woolbright" }],
     ["session_ended", { reason: "sign_out", duringBattle: false }],
     ["session_ended", { reason: "page_unload", duringBattle: true }],

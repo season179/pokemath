@@ -36,7 +36,8 @@ export interface SpeciesArt {
 // (common/uncommon/rare); "starter" and "guardian" never appear in a wild
 // table — starters come from the first-start choice, and the guardian is a
 // fixed authored battle, not a wild roll (issue #4: no Unique capture
-// pressure by construction).
+// pressure by construction). The naming slate's "guardian (Unique)" means
+// `guardian` is the one Unique pressure path; it is not a second saved rarity.
 export type SpeciesRarity = "common" | "uncommon" | "rare" | "starter" | "guardian";
 
 export interface Species {

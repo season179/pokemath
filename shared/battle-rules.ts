@@ -2,6 +2,7 @@
 // Pure functions with injectable rng so tests are deterministic.
 // Ported from the prototype's battle.js / shop.js.
 
+import type { SpeciesRarity } from "./creature.ts";
 import type { QuestionTurn } from "./question-engine.ts";
 
 // --- Encounter tuning (overworld) ---
@@ -13,6 +14,54 @@ export const POTION_HEAL = 10;
 export const PRIZE_MULTIPLIER = 5; // wins pay 5× the wild creature's max HP
 export const HARD_OPERATION_BONUS = 3; // × and ÷ hit harder than + and −
 export const BOSS_FINAL_BLOW_MULTIPLIER = 2; // finishing a multi-step problem
+
+// --- Authored Unique hunt pressure (M6, issue #22) ---
+//
+// The species registry calls Cloudmane a `guardian`; the naming slate defines
+// that rarity as Meadow's one Unique. Keeping this gate here makes it
+// impossible for common/uncommon/rare encounters to inherit pressure through
+// an encounter-table or UI option by accident.
+export const UNIQUE_FLEE_ACTIONS = 5;
+export const UNIQUE_TRUST_MAX = 3;
+
+export interface UniqueHuntState {
+  readonly actionsLeft: number;
+  readonly trust: number;
+  readonly trustMax: number;
+}
+
+export type UniqueQuestionOutcome = "continue" | "captured" | "escaped";
+
+export interface UniqueQuestionResult {
+  readonly state: UniqueHuntState;
+  readonly outcome: UniqueQuestionOutcome;
+}
+
+/** Start the authored pressure path. All ordinary rarities return null. */
+export function createUniqueHunt(rarity: SpeciesRarity): UniqueHuntState | null {
+  if (rarity !== "guardian") return null;
+  return { actionsLeft: UNIQUE_FLEE_ACTIONS, trust: 0, trustMax: UNIQUE_TRUST_MAX };
+}
+
+/**
+ * Settle one answered question. Thinking time is absent by construction: the
+ * state advances only when the answer is committed. Trust is deliberately
+ * flat friendship credit (one per correct answer), not a difficulty score.
+ * Reaching full trust on the final action wins before the escape check.
+ */
+export function settleUniqueQuestion(
+  state: UniqueHuntState,
+  correct: boolean,
+): UniqueQuestionResult {
+  const next: UniqueHuntState = {
+    actionsLeft: Math.max(0, state.actionsLeft - 1),
+    trust: Math.min(state.trustMax, state.trust + (correct ? 1 : 0)),
+    trustMax: state.trustMax,
+  };
+  if (next.trust >= next.trustMax) return { state: next, outcome: "captured" };
+  if (next.actionsLeft === 0) return { state: next, outcome: "escaped" };
+  return { state: next, outcome: "continue" };
+}
 
 export function rollDamage(attack: number, rng: () => number = Math.random): number {
   return attack + Math.floor(rng() * 3);

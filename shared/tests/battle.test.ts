@@ -11,10 +11,14 @@ import {
 import {
   BOSS_FINAL_BLOW_MULTIPLIER,
   HARD_OPERATION_BONUS,
+  UNIQUE_FLEE_ACTIONS,
+  UNIQUE_TRUST_MAX,
   correctAnswerDamage,
+  createUniqueHunt,
   isHardOperation,
   prizeMoney,
   rollDamage,
+  settleUniqueQuestion,
 } from "../battle-rules.ts";
 import { makeChangeQuestion, SHOP_ITEMS } from "../shop-rules.ts";
 
@@ -136,6 +140,104 @@ test("boss final blow doubles the roll", () => {
 
 test("prize money scales with the wild creature's max HP", () => {
   assert.equal(prizeMoney(28), 140);
+});
+
+// --- Unique-only pressure (#22) ---
+//
+// The pressure path is gated purely by species rarity. Ordinary encounters
+// can never enter it; only the guardian rarity (Meadow's Unique) can. No
+// clock, no rng, and thinking time is absent by construction.
+
+test("createUniqueHunt: ordinary rarities never enter the Unique pressure path", () => {
+  for (const rarity of ["common", "uncommon", "rare", "starter"] as const) {
+    assert.equal(createUniqueHunt(rarity), null, rarity);
+  }
+});
+
+test("createUniqueHunt: only guardian rarity starts the telegraphed pressure path", () => {
+  const hunt = createUniqueHunt("guardian");
+  assert.deepEqual(hunt, {
+    actionsLeft: UNIQUE_FLEE_ACTIONS,
+    trust: 0,
+    trustMax: UNIQUE_TRUST_MAX,
+  });
+});
+
+test("settleUniqueQuestion: correct answers build flat trust and consume one action", () => {
+  let hunt = createUniqueHunt("guardian")!;
+  const first = settleUniqueQuestion(hunt, true);
+  assert.equal(first.outcome, "continue");
+  assert.equal(first.state.trust, 1);
+  assert.equal(first.state.actionsLeft, UNIQUE_FLEE_ACTIONS - 1);
+
+  hunt = first.state;
+  const wrong = settleUniqueQuestion(hunt, false);
+  assert.equal(wrong.outcome, "continue");
+  assert.equal(wrong.state.trust, 1); // wrong answers never grow trust
+  assert.equal(wrong.state.actionsLeft, UNIQUE_FLEE_ACTIONS - 2);
+});
+
+test("settleUniqueQuestion: full trust captures before the flee check", () => {
+  // Three correct answers fill trustMax=3 even when actions remain.
+  let hunt = createUniqueHunt("guardian")!;
+  for (let i = 0; i < UNIQUE_TRUST_MAX - 1; i++) {
+    const step = settleUniqueQuestion(hunt, true);
+    assert.equal(step.outcome, "continue");
+    hunt = step.state;
+  }
+  const last = settleUniqueQuestion(hunt, true);
+  assert.equal(last.outcome, "captured");
+  assert.equal(last.state.trust, UNIQUE_TRUST_MAX);
+  assert.equal(last.state.actionsLeft, UNIQUE_FLEE_ACTIONS - UNIQUE_TRUST_MAX);
+});
+
+test("settleUniqueQuestion: actions run out before trust → Unique escapes", () => {
+  // 2 correct + 3 wrong = 5 actions, trust 2 < 3 → escape.
+  let hunt = createUniqueHunt("guardian")!;
+  const answers = [true, true, false, false, false];
+  let outcome = "continue" as string;
+  for (const correct of answers) {
+    const step = settleUniqueQuestion(hunt, correct);
+    hunt = step.state;
+    outcome = step.outcome;
+  }
+  assert.equal(outcome, "escaped");
+  assert.equal(hunt.trust, 2);
+  assert.equal(hunt.actionsLeft, 0);
+});
+
+test("settleUniqueQuestion: last-action trust win beats escape", () => {
+  // Two correct early, three wrong, then a final correct would overflow the
+  // budget — instead pin the race: trust fills on the final action.
+  let hunt = createUniqueHunt("guardian")!;
+  for (const correct of [true, true, false, false]) {
+    hunt = settleUniqueQuestion(hunt, correct).state;
+  }
+  // actionsLeft=1, trust=2; a correct answer captures on the last action.
+  const last = settleUniqueQuestion(hunt, true);
+  assert.equal(last.outcome, "captured");
+  assert.equal(last.state.actionsLeft, 0);
+  assert.equal(last.state.trust, UNIQUE_TRUST_MAX);
+});
+
+test("Unique pressure never keys off wall-clock or rng — pure question commits only", () => {
+  // The settle function takes only (state, correct). No Date, no rng, no
+  // duration. Two identical sequences must produce identical outcomes, so
+  // thinking time can never inflate or deny a capture.
+  const path = (answers: boolean[]) => {
+    let hunt = createUniqueHunt("guardian")!;
+    let outcome = "continue" as string;
+    for (const correct of answers) {
+      const step = settleUniqueQuestion(hunt, correct);
+      hunt = step.state;
+      outcome = step.outcome;
+    }
+    return { hunt, outcome };
+  };
+  const a = path([true, false, true, false, true]);
+  const b = path([true, false, true, false, true]);
+  assert.deepEqual(a, b);
+  assert.equal(a.outcome, "captured");
 });
 
 test("change question: pays more than the price, answer is the change", () => {

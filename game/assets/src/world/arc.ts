@@ -46,9 +46,9 @@ export interface ArcCritter {
   readonly topic: string;
   readonly kind: "battle" | "decor";
   /**
-   * False only for the Cloudmane guardian (#21): ordinary balls never hold
-   * a Unique — #22 replaces the refusal with flee pressure + trust capture.
-   * Omit for ordinary critters (catchable, calm).
+   * Legacy opt-out kept for the trail's guardian row (#21). Unique pressure
+   * itself is gated purely by species rarity in BattleScreen (#22); ordinary
+   * critters omit this field.
    */
   readonly capturable?: boolean;
 }
@@ -194,7 +194,7 @@ export const PEN_REPAIRED_NOTICE =
 
 // --- battle settlement -----------------------------------------------------------
 
-export type ArcBattleOutcome = "won" | "captured" | "fled" | "defeated";
+export type ArcBattleOutcome = "won" | "captured" | "fled" | "escaped" | "defeated";
 
 export interface ArcSettlement {
   /** The next flag record (apply every entry, then checkpoint). */

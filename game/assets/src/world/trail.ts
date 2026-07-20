@@ -11,8 +11,9 @@
 // and the waiting guardian IS the standing second chance. No timers, no
 // streaks, no gacha, no reward currency.
 //
-// Scope: this module owns the trail only. The guardian's flee pressure and
-// trust capture are #22; the Meadow Badge, fixed question slate, and starter
+// Scope: this module owns the trail only. Unique flee pressure and trust
+// capture (#22) live in shared/battle-rules + BattleScreen and key off the
+// guardian rarity; the Meadow Badge, fixed question slate, and starter
 // evolution are #23. Until #23 the summit battle draws from the routed 4.1
 // bank like any scripted beat.
 //
@@ -99,8 +100,8 @@ export const CLOUDMANE_CRITTER_ID = "cloudmane-summit";
 /**
  * The summoned guardian, visible in its region. It stays put through every
  * battle outcome — flee, defeat, even victory — so a second (third, tenth)
- * chance is always standing in the ring (#22 will give the meeting its flee
- * pressure and trust meter; #23 its victory payoff).
+ * chance is always standing in the ring — even after a Unique escape (#22)
+ * or a victory. #23 owns the badge/evolution payoff.
  */
 export function trailCrittersFor(regionId: string, flags: Record<string, number>): ArcCritter[] {
   if (regionId !== "meadow/stones" || !flags[FLAG_TRAIL_SUMMONED]) return [];
