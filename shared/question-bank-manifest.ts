@@ -165,8 +165,9 @@ export function parseQuestionBankManifest(raw: unknown): QuestionBankManifest {
 
 /** Two routes conflict when a single request could match both: same grade and
  * topic, intersecting TP bands, and profiles a request can satisfy together
- * (a core route matches every profile request). */
-function routesOverlap(
+ * (a core route matches every profile request). Exported so offline tools can
+ * precheck and replace routes with the same overlap law the parser enforces. */
+export function routesOverlap(
   a: QuestionBankManifestEntry,
   b: QuestionBankManifestEntry,
 ): boolean {

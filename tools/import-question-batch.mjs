@@ -17,14 +17,19 @@
 //
 // Usage:
 //   node tools/import-question-batch.mjs <candidate.json> --decisions <file> [--activate]
+//   node tools/import-question-batch.mjs <candidate.json> --decisions <file> --replace [--activate]
 //   node tools/import-question-batch.mjs rollback --to manifest.v1
 //
-// Merge vs new bank: when --bank (default: the candidate's bank_id) already
-// has a routed schema-v2 bank, the approved questions are APPENDED with fresh
-// ids (banks are immutable, so the new version carries the full serving set;
-// schema-v1 bases like the hand-authored Woolly bank cannot merge — extend
-// those slices with a disjoint TP band instead). Otherwise a new bank_id is
-// created at version 1.
+// Modes (matched by full slice — bank_id + topic + TP band + profile for
+// merge/new; by overlapping curriculum slice for --replace):
+//   new-bank / new-route — append a non-overlapping route (default)
+//   merge                — same bank_id + exact slice: append questions
+//   replace              — --replace: retire every active route that
+//                          overlaps the candidate's slice and route the
+//                          approved bank in their place. Old bank versions
+//                          and prior manifests stay on disk for rollback.
+// Schema-v1 bases cannot merge; replace is the path when a new bank should
+// take over a live slice (e.g. a v2 bank displacing a hand-authored route).
 
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
@@ -38,6 +43,7 @@ import {
   parseActiveManifestPointer,
   parseQuestionBankManifest,
   resolveManifestEntry,
+  routesOverlap,
   verifyManifestEntryAgainstBank,
 } from "../shared/question-bank-manifest.ts";
 import { parseQuestionBankData } from "../shared/question-bank-validate.ts";
@@ -145,10 +151,10 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
     );
   }
 
-  // 4. Mode: merge into the routed v2 bank, or create a new bank_id. The
-  //    route is matched by the full slice — bank_id + topic + the batch's TP
-  //    band + profile — never by bank_id alone: one bank_id may span several
-  //    disjoint-band entries, and bank_id-only lookups can misroute.
+  // 4. Mode: merge into the routed v2 bank, create a new bank_id/route, or
+  //    --replace every active route that overlaps the candidate's slice.
+  //    Routes are matched by full slice (bank_id + topic + TP band + profile)
+  //    for merge; by curriculum overlap for replace — never bank_id alone.
   const bankId = opts.bankId ?? candidate.bank_id;
   const versions = await bankVersionsOnDisk(bankId, resourcesDir);
   const nextVersion = versions.length === 0 ? 1 : Math.max(...versions) + 1;
@@ -167,6 +173,8 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
   const batchTopic = candidate.questions[0].topic;
   const batchTpMin = Math.min(...candidate.questions.map((q) => q.tp_level));
   const batchTpMax = Math.max(...candidate.questions.map((q) => q.tp_level));
+  const approvedTpMin = Math.min(...approved.map((q) => q.tp_level));
+  const approvedTpMax = Math.max(...approved.map((q) => q.tp_level));
   const sameSlice = (e) =>
     e.bank_id === bankId &&
     e.topic === batchTopic &&
@@ -174,12 +182,55 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
     e.tp_max === batchTpMax &&
     e.profile === candidate.profile;
   const routeEntry = activeManifest.entries.find(sameSlice) ?? null;
+  // Proposed entry for overlap detection (version/path filled in below).
+  const proposedRoute = {
+    grade: "std1",
+    topic: batchTopic,
+    tp_min: approvedTpMin,
+    tp_max: approvedTpMax,
+    profile: candidate.profile,
+    bank_id: bankId,
+    version: nextVersion,
+    path: `question-banks/std1/${bankId}.v${nextVersion}`,
+  };
+  const overlapping = activeManifest.entries.filter((e) => routesOverlap(e, proposedRoute));
 
   let newBank;
   let newEntry;
   let idMap = null;
   let mode;
-  if (routeEntry === null) {
+  let replacedRoutes = [];
+  if (opts.replace) {
+    // Replace: retire every overlapping active route and install the new
+    // bank as the sole servant of this slice. Requires at least one live
+    // overlap — without one, a plain import is the right tool.
+    if (overlapping.length === 0) {
+      throw new Error(
+        `--replace needs an active route overlapping std1/${batchTopic} TP${approvedTpMin}–${approvedTpMax} ${candidate.profile}; ` +
+          "none found — drop --replace to import as a new route",
+      );
+    }
+    mode = "replace";
+    replacedRoutes = overlapping.map((e) => ({
+      bank_id: e.bank_id,
+      version: e.version,
+      topic: e.topic,
+      tp_min: e.tp_min,
+      tp_max: e.tp_max,
+      profile: e.profile,
+      path: e.path,
+    }));
+    newBank = {
+      ...candidate,
+      bank_id: bankId,
+      scope: candidate.scope.replace(
+        "(pending gate + human review)",
+        "(approved via the offline gate + human review)",
+      ),
+      questions: approved,
+    };
+    newEntry = proposedRoute;
+  } else if (routeEntry === null) {
     // New route: either a brand-new bank_id, or a disjoint slice on an
     // existing bank_id (banks are immutable, so the disjoint content ships
     // as the next version of that bank_id and gets its own entry).
@@ -194,16 +245,7 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
       ),
       questions: approved,
     };
-    newEntry = {
-      grade: "std1",
-      topic: candidate.questions[0].topic,
-      tp_min: Math.min(...approved.map((q) => q.tp_level)),
-      tp_max: Math.max(...approved.map((q) => q.tp_level)),
-      profile: candidate.profile,
-      bank_id: bankId,
-      version: nextVersion,
-      path: `question-banks/std1/${bankId}.v${nextVersion}`,
-    };
+    newEntry = proposedRoute;
   } else {
     mode = "merge";
     // Merge: the routed base must be schema v2 (v1 content predates the v2
@@ -213,7 +255,7 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
     if (base.schema_version !== 2) {
       throw new Error(
         `${bankId} v${routeEntry.version} is schema v${base.schema_version} — v1 banks predate the v2 wire and cannot merge; ` +
-          "extend the slice with a new bank on a disjoint TP band instead",
+          "extend the slice with a new bank on a disjoint TP band, or re-import with --replace to retire the live route",
       );
     }
     const maxId = Math.max(...base.questions.map((q) => q.id));
@@ -251,16 +293,23 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
     .filter(Boolean)
     .map(Number);
   const manifestVersion = Math.max(...manifestVersions, 0) + 1;
+  const replacedNote =
+    mode === "replace"
+      ? `; replaced ${replacedRoutes.map((r) => `${r.bank_id} v${r.version} TP${r.tp_min}–${r.tp_max}`).join(", ")}`
+      : "";
+  const keptEntries =
+    mode === "replace"
+      ? activeManifest.entries.filter((e) => !routesOverlap(e, newEntry))
+      : activeManifest.entries.map((e) => (sameSlice(e) ? newEntry : e));
   const newManifest = {
     schema_version: 1,
     manifest_id: activeManifest.manifest_id,
     version: manifestVersion,
     source:
       `Issue #15 import: ${basename(candidatePath)} → ${bankId} v${nextVersion} ` +
-      `(${approved.length} approved of ${candidate.questions.length}; decisions: ${basename(decisionsPath)})`,
-    entries: activeManifest.entries.map((e) => (sameSlice(e) ? newEntry : e)),
+      `(${approved.length} approved of ${candidate.questions.length}; decisions: ${basename(decisionsPath)}; mode ${mode}${replacedNote})`,
+    entries: mode === "replace" || routeEntry === null ? [...keptEntries, newEntry] : keptEntries,
   };
-  if (routeEntry === null) newManifest.entries.push(newEntry);
   // Overlapping routes fail HERE, before a single file is written — a bad
   // import must never brick the pointer rollback depends on.
   parseQuestionBankManifest(newManifest);
@@ -299,11 +348,13 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
     bank_version: nextVersion,
     manifest_version: manifestVersion,
     mode: plan.mode,
+    import_mode: mode,
     reviewer: decisions.reviewer ?? "",
     reviewed: decisions.reviewed,
     rejected: decisions.rejected,
     imported_ids: newBank.questions.slice(-approved.length).map((q) => q.id),
     ...(idMap ? { candidate_id_map: Object.fromEntries(idMap) } : {}),
+    ...(replacedRoutes.length > 0 ? { replaced_routes: replacedRoutes } : {}),
     activated: Boolean(opts.activate),
   });
   await writeFile(ledgerPath, serialize(ledger));
@@ -319,6 +370,7 @@ export async function importBatch(candidatePath, decisionsPath, opts = {}) {
     approved: approved.length,
     rejected: decisions.rejected.length,
     mode,
+    replacedRoutes,
     warnings,
     gateAccept: evidence.accept,
   };
@@ -363,16 +415,24 @@ if (isMain) {
       console.log(`rolled back: active manifest is now ${result.manifest} (${result.routes} routes verified)`);
     } else {
       const activate = argv.includes("--activate");
+      const replace = argv.includes("--replace");
       const decisionsAt = argv.indexOf("--decisions");
       const candidate = argv.find((a) => !a.startsWith("--") && a !== argv[decisionsAt + 1]);
       if (!candidate || decisionsAt === -1) {
-        throw new Error("usage: import-question-batch.mjs <candidate.json> --decisions <file> [--activate]");
+        throw new Error(
+          "usage: import-question-batch.mjs <candidate.json> --decisions <file> [--replace] [--activate]",
+        );
       }
-      const result = await importBatch(candidate, argv[decisionsAt + 1], { activate });
+      const result = await importBatch(candidate, argv[decisionsAt + 1], { activate, replace });
       for (const w of result.warnings) console.warn(`warning: ${w}`);
+      const replaced =
+        result.replacedRoutes.length > 0
+          ? `; retired ${result.replacedRoutes.map((r) => `${r.bank_id} v${r.version}`).join(", ")}`
+          : "";
       console.log(
         `imported ${result.approved} questions (${result.rejected} rejected) → ` +
-          `${result.bankId} v${result.bankVersion} (${result.mode}); manifest v${result.manifestVersion}; gate ${result.gateAccept ? "ACCEPT" : "REJECT"}`,
+          `${result.bankId} v${result.bankVersion} (${result.mode}${replaced}); ` +
+          `manifest v${result.manifestVersion}; gate ${result.gateAccept ? "ACCEPT" : "REJECT"}`,
       );
       console.log(
         result.pointerPath

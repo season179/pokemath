@@ -3,7 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -11,6 +11,7 @@ import {
   SUPPORTED_TOPICS,
   TEMPLATES_BY_TOPIC,
   buildBatchArtifacts,
+  findLiveRouteOverlaps,
   generateBatch,
   mulberry32,
   writeBatch,
@@ -177,6 +178,105 @@ test("generator: writeBatch never overwrites an existing candidate", async () =>
     assert.equal(provenance.question_count, 5);
     assert.match(provenance.reproduce, /--seed 9/);
     assert.equal(provenance.sha256.length, 64);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+/** Scratch resources tree with one live 4.2 TP2–3 route (for slice precheck). */
+async function makeRoutedResources() {
+  const dir = await mkdtemp(join(tmpdir(), "gen-route-"));
+  const resourcesDir = join(dir, "resources");
+  await mkdir(join(resourcesDir, "question-banks", "std1"), { recursive: true });
+  const manifest = {
+    schema_version: 1,
+    manifest_id: "std1-question-banks",
+    version: 1,
+    source: "precheck fixture",
+    entries: [
+      {
+        grade: "std1",
+        topic: "4.2",
+        tp_min: 2,
+        tp_max: 3,
+        profile: "dpk3_2026_core",
+        bank_id: "std1.live",
+        version: 1,
+        path: "question-banks/std1/std1.live.v1",
+      },
+    ],
+  };
+  await writeFile(join(resourcesDir, "question-banks", "manifest.v1.json"), JSON.stringify(manifest, null, 2) + "\n");
+  await writeFile(
+    join(resourcesDir, "question-banks", "active-manifest.json"),
+    JSON.stringify({ schema_version: 1, manifest: "question-banks/manifest.v1" }, null, 2) + "\n",
+  );
+  return { dir, resourcesDir };
+}
+
+test("generator: refuses a batch whose slice already has a live route", async () => {
+  const { dir, resourcesDir } = await makeRoutedResources();
+  try {
+    const candidatesDir = join(dir, "candidates");
+    // Exact slice match.
+    await assert.rejects(
+      writeBatch(
+        { bankId: "std1.collide", topic: "4.2", tpMin: 2, tpMax: 3, profile: "dpk3_2026_core", count: 5, seed: 1 },
+        { candidatesDir, resourcesDir },
+      ),
+      /already has a live route.*std1\.live/,
+    );
+    // Partial TP overlap (TP1–2 collides at TP2).
+    await assert.rejects(
+      writeBatch(
+        { bankId: "std1.collide", topic: "4.2", tpMin: 1, tpMax: 2, profile: "dpk3_2026_core", count: 5, seed: 2 },
+        { candidatesDir, resourcesDir },
+      ),
+      /already has a live route/,
+    );
+    // Nothing written.
+    await assert.rejects(readFile(join(candidatesDir, "std1.collide-4.2-tp2-3-s1.candidate.json")), /ENOENT/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("generator: --allow-routed-slice overrides the live-route precheck", async () => {
+  const { dir, resourcesDir } = await makeRoutedResources();
+  try {
+    const candidatesDir = join(dir, "candidates");
+    const result = await writeBatch(
+      { bankId: "std1.override", topic: "4.2", tpMin: 2, tpMax: 3, profile: "dpk3_2026_core", count: 5, seed: 3 },
+      { candidatesDir, resourcesDir, allowRoutedSlice: true },
+    );
+    assert.equal(result.bank.questions.length, 5);
+    await readFile(result.candidatePath, "utf8");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("generator: disjoint slices still generate against a live route", async () => {
+  const { dir, resourcesDir } = await makeRoutedResources();
+  try {
+    const candidatesDir = join(dir, "candidates");
+    // Different topic — free.
+    const a = await writeBatch(
+      { bankId: "std1.free-topic", topic: "4.1", tpMin: 1, tpMax: 2, profile: "dpk3_2026_core", count: 5, seed: 4 },
+      { candidatesDir, resourcesDir },
+    );
+    assert.equal(a.bank.questions.length, 5);
+    // Same topic, disjoint TP band — free.
+    const b = await writeBatch(
+      { bankId: "std1.free-band", topic: "4.2", tpMin: 4, tpMax: 4, profile: "dpk3_2026_core", count: 5, seed: 5 },
+      { candidatesDir, resourcesDir },
+    );
+    assert.equal(b.bank.questions.length, 5);
+    const overlaps = await findLiveRouteOverlaps(
+      { topic: "4.2", tpMin: 4, tpMax: 4, profile: "dpk3_2026_core" },
+      resourcesDir,
+    );
+    assert.equal(overlaps.length, 0);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

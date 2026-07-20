@@ -36,6 +36,12 @@ reproduction command), so the gate verdict, the review sample, and the
 import record all correlate to exact content. Candidates are never
 overwritten — a re-run with the same parameters fails; pick a new `--seed`.
 
+**Live-route precheck (#76):** generation refuses a batch whose
+grade/topic/TP-band/profile already has a live route in the active
+manifest — those batches cannot activate without `import --replace`.
+Pass `--allow-routed-slice` to override when you intentionally mean to
+merge into the same bank_id, or to stage a replace candidate.
+
 **Honest scope note:** this generator is *volume scaffolding*. Its template
 registry (`TEMPLATES_BY_TOPIC`) covers the serveable v2 answer forms with
 wording drawn from the style doc's authentic exemplars — counting (4.1),
@@ -89,7 +95,7 @@ the tool refuses to overwrite it (`--force` restarts a review).
 
 ```sh
 npm run import:questions -- question-batches/candidates/<batch>.candidate.json \
-  --decisions docs/question-banks/<batch>.decisions.json [--activate]
+  --decisions docs/question-banks/<batch>.decisions.json [--replace] [--activate]
 ```
 
 Hard gates, all verified **in memory before any file is written**:
@@ -111,7 +117,7 @@ import (reviewed/rejected/imported ids, hash, reviewer) and the gate
 evidence (`<bank>.v{N}.gate.{json,md}`) ships alongside.
 
 **Import modes** (matched by full slice — bank_id + topic + TP band +
-profile, never bank_id alone):
+profile — for merge/new; by curriculum overlap for replace):
 
 - `new-bank` — a fresh bank_id at v1 (candidate ids become bank ids).
 - `new-route` — a disjoint slice on an existing bank_id (immutable banks:
@@ -121,7 +127,12 @@ profile, never bank_id alone):
   are **appended with fresh ids** to the routed bank's questions (carried
   verbatim — old ids are stable for telemetry) as the next bank version.
   Schema-v1 bases (the hand-authored Woolly bank) cannot merge — v1 predates
-  the v2 wire; extend those slices with a new bank on a disjoint TP band.
+  the v2 wire; extend those slices with a new bank on a disjoint TP band, or
+  use `--replace` to retire the live route.
+- `replace` (`--replace`) — retire every active route that overlaps the
+  candidate's slice and install the approved bank as the new servant of that
+  slice. Old bank versions and prior manifests stay on disk; rollback is the
+  usual pointer repoint. Requires at least one live overlap.
 
 **Rejected items never enter the served manifest and are never silently
 repaired**: they are simply absent from the final bank, the ledger records
@@ -146,7 +157,7 @@ stay untouched (see [manifest.md](manifest.md#rollback)).
 | --- | --- |
 | `tools/generate-question-batch.mjs` | Seeded procedural generator + template registry |
 | `tools/review-question-batch.mjs` | Sampling policy, review doc, decisions template |
-| `tools/import-question-batch.mjs` | Import/merge, manifest authoring, activation, rollback |
+| `tools/import-question-batch.mjs` | Import/merge/replace, manifest authoring, activation, rollback |
 | `question-batches/candidates/` | Immutable candidate batches + provenance |
 | `docs/question-banks/review-ledger.json` | Human-review quota state + import history |
 | `docs/question-banks/<batch>-review.md` / `.decisions.json` | Review surface + human record |

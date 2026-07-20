@@ -70,11 +70,13 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-/** Generate a candidate and a complete decisions file approving it. */
+/** Generate a candidate and a complete decisions file approving it.
+ *  allowRoutedSlice: tests intentionally stage merge/replace/overlap cases
+ *  against the fixture's live 4.2 TP2–3 route (#76 precheck). */
 async function staged(tree, { seed, bankId, rejected = [], tamper = null }) {
   const { candidatePath } = await writeBatch(
     { bankId, ...GEN, seed },
-    { candidatesDir: tree.candidatesDir, resourcesDir: tree.resourcesDir },
+    { candidatesDir: tree.candidatesDir, resourcesDir: tree.resourcesDir, allowRoutedSlice: true },
   );
   let text = await readFile(candidatePath, "utf8");
   if (tamper) {
@@ -251,9 +253,10 @@ test("import: disjoint TP band on the same bank_id is a new route, and later mer
     assert.equal(resolveManifestEntry(manifest, { grade: "std1", topic: "4.2", profile: "dpk3_2026_core", tpLevel: 4 }).version, 2);
 
     // A second TP4 batch merges into the TP4 route, not the TP2–3 one.
+    // allowRoutedSlice: the TP4 route is now live after the first import.
     const tp4 = await writeBatch(
       { bankId: "std1.bank-a", topic: "4.2", tpMin: 4, tpMax: 4, profile: "dpk3_2026_core", count: 6, seed: 405 },
-      { candidatesDir: tree.candidatesDir, resourcesDir: tree.resourcesDir },
+      { candidatesDir: tree.candidatesDir, resourcesDir: tree.resourcesDir, allowRoutedSlice: true },
     );
     const tp4Batch = await readJson(tp4.candidatePath);
     const tp4Text = await readFile(tp4.candidatePath, "utf8");
@@ -378,6 +381,121 @@ test("import: merge into a schema-v1 bank is refused (v1 predates the v2 wire)",
     await writeFile(join(tree.resourcesDir, "question-banks", "std1", "std1.bank-a.v1.json"), JSON.stringify(v1, null, 2) + "\n");
     const { candidatePath, decisionsPath } = await staged(tree, { seed: 808, bankId: "std1.bank-a" });
     await assert.rejects(importBatch(candidatePath, decisionsPath, opts(tree)), /schema v1.*cannot merge/s);
+  } finally {
+    await rm(tree.dir, { recursive: true, force: true });
+  }
+});
+
+test("import: --replace retires the live overlapping route and installs the new bank", async () => {
+  const tree = await makeTree();
+  try {
+    // bank-b targets the SAME slice as the fixture's bank-a route — without
+    // --replace this is the overlap rejection; with --replace it takes over.
+    const { candidatePath, decisionsPath } = await staged(tree, { seed: 1001, bankId: "std1.bank-b" });
+    const result = await importBatch(
+      candidatePath,
+      decisionsPath,
+      opts(tree, { activate: true, replace: true }),
+    );
+    assert.equal(result.mode, "replace");
+    assert.equal(result.bankVersion, 1);
+    assert.equal(result.manifestVersion, 2);
+    assert.equal(result.replacedRoutes.length, 1);
+    assert.equal(result.replacedRoutes[0].bank_id, "std1.bank-a");
+    assert.equal(result.replacedRoutes[0].version, 1);
+
+    // New bank is the sole servant of the slice; old bank file stays on disk.
+    const pointer = parseActiveManifestPointer(
+      await readJson(join(tree.resourcesDir, "question-banks", "active-manifest.json")),
+    );
+    assert.equal(pointer.manifest, "question-banks/manifest.v2");
+    const manifest = parseQuestionBankManifest(
+      await readJson(join(tree.resourcesDir, "question-banks", "manifest.v2.json")),
+    );
+    assert.equal(manifest.entries.length, 1);
+    const entry = resolveManifestEntry(manifest, {
+      grade: "std1",
+      topic: "4.2",
+      profile: "dpk3_2026_core",
+      tpLevel: 2,
+    });
+    assert.equal(entry.bank_id, "std1.bank-b");
+    assert.equal(entry.version, 1);
+    const bank = parseQuestionBankData(await readJson(join(tree.resourcesDir, `${entry.path}.json`)));
+    verifyManifestEntryAgainstBank(entry, bank);
+    await readJson(join(tree.resourcesDir, "question-banks", "std1", "std1.bank-a.v1.json"));
+
+    const ledger = await readJson(tree.ledgerPath);
+    assert.equal(ledger.history.at(-1).import_mode, "replace");
+    assert.equal(ledger.history.at(-1).replaced_routes[0].bank_id, "std1.bank-a");
+  } finally {
+    await rm(tree.dir, { recursive: true, force: true });
+  }
+});
+
+test("import: --replace + rollback restores the previous route chain", async () => {
+  const tree = await makeTree();
+  try {
+    const { candidatePath, decisionsPath } = await staged(tree, { seed: 1002, bankId: "std1.bank-b" });
+    await importBatch(candidatePath, decisionsPath, opts(tree, { activate: true, replace: true }));
+
+    // Pre-replace bank and manifest.v1 are still on disk; rollback repoints.
+    const back = await rollbackManifest("manifest.v1", opts(tree));
+    assert.equal(back.manifest, "question-banks/manifest.v1");
+    const pointer = parseActiveManifestPointer(
+      await readJson(join(tree.resourcesDir, "question-banks", "active-manifest.json")),
+    );
+    assert.equal(pointer.manifest, "question-banks/manifest.v1");
+    const manifest = parseQuestionBankManifest(
+      await readJson(join(tree.resourcesDir, "question-banks", "manifest.v1.json")),
+    );
+    const entry = resolveManifestEntry(manifest, {
+      grade: "std1",
+      topic: "4.2",
+      profile: "dpk3_2026_core",
+      tpLevel: 3,
+    });
+    assert.equal(entry.bank_id, "std1.bank-a");
+    assert.equal(entry.version, 1);
+    const bank = parseQuestionBankData(await readJson(join(tree.resourcesDir, `${entry.path}.json`)));
+    verifyManifestEntryAgainstBank(entry, bank);
+
+    // The replaced bank artifact remains available (never deleted).
+    await readJson(join(tree.resourcesDir, "question-banks", "std1", "std1.bank-b.v1.json"));
+    await readJson(join(tree.resourcesDir, "question-banks", "manifest.v2.json"));
+  } finally {
+    await rm(tree.dir, { recursive: true, force: true });
+  }
+});
+
+test("import: --replace with no overlapping live route is refused", async () => {
+  const tree = await makeTree();
+  try {
+    // Topic 4.1 is free in the fixture — nothing to replace.
+    const { candidatePath } = await writeBatch(
+      { bankId: "std1.bank-c", topic: "4.1", tpMin: 1, tpMax: 2, profile: "dpk3_2026_core", count: 12, seed: 1003 },
+      { candidatesDir: tree.candidatesDir, resourcesDir: tree.resourcesDir },
+    );
+    const text = await readFile(candidatePath, "utf8");
+    const batch = JSON.parse(text);
+    const { createHash } = await import("node:crypto");
+    const decisions = {
+      schema_version: 1,
+      batch: candidatePath.split("/").pop(),
+      batch_sha256: createHash("sha256").update(text).digest("hex"),
+      mode: "full",
+      required_ids: batch.questions.map((q) => q.id),
+      reviewer: "season",
+      reviewed_at: "2026-07-19T00:00:00.000Z",
+      reviewed: batch.questions.map((q) => q.id),
+      rejected: [],
+    };
+    const decisionsPath = join(tree.dir, "decisions-1003.json");
+    await writeFile(decisionsPath, JSON.stringify(decisions, null, 2) + "\n");
+    await assert.rejects(
+      importBatch(candidatePath, decisionsPath, opts(tree, { replace: true })),
+      /--replace needs an active route overlapping/,
+    );
   } finally {
     await rm(tree.dir, { recursive: true, force: true });
   }
