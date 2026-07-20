@@ -445,11 +445,8 @@ Progress (2026-07-20): M1–M6 shipped; M7 instrumented, constants gated on repr
 8. **M6 — Unique hunt and finale.** ✅ (#21–#23) Unique-only pressure, persistent second
    chances, fixed guardian slate, Meadow Badge, and starter evolution.
 9. **M7 — Observed tuning and healthy return.** 🚧 Telemetry (#24) and the calibration
-   report + baseline fixtures (#25, partially merged) ship; constant changes stay
-   gated until representative play data exists, and the journal (#26) waits with them.
-   Tune XP/capture/question rank,
-   measure learning-quality retention, then optionally add a non-resetting
-   three-day expedition journal and interleaved review.
+   report + baseline fixtures (#25) shipped; constant changes stay gated until
+   representative play data exists, and the journal (#26) waits with them.
 
 ## Open questions
 

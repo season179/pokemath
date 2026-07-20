@@ -12,13 +12,15 @@ and solve change questions when buying supplies.
   [game.pokemath.fun](https://game.pokemath.fun)**
 - ✅ Kids Playtest Preview (Woolly Meadows) — shipped and verified in live
   playtest (2026-07-18)
-- 🚧 Meadow Isle build-out in progress — plan of record:
-  [`docs/islands/meadow-isle.md`](docs/islands/meadow-isle.md); work sequence
-  and live status: tracker issue #27.
+- ✅ Meadow Isle M1–M6 — shipped 2026-07-20.
+- ⏸ M7 tuning and healthy return — evidence tooling is live; constants and the
+  journal wait on representative play data. Plan of record:
+  [`docs/islands/meadow-isle.md`](docs/islands/meadow-isle.md); live status:
+  tracker issue #27.
 
 See [`ROADMAP.md`](ROADMAP.md) for the long-term plan history and completion
 evidence; see [`docs/islands/meadow-isle.md`](docs/islands/meadow-isle.md) for
-what is being built now.
+the current design and status.
 
 ## Requirements
 
