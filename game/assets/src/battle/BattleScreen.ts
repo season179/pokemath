@@ -70,6 +70,12 @@ export interface BattleActions {
 export interface BattleOptions {
   /** `guardian` is Meadow's authored Unique; every other rarity stays calm. */
   rarity?: SpeciesRarity;
+  /**
+   * Serve the bank in authored id order, never random (#23 guardian slate).
+   * Each Attack advance consumes the next question; after the last item the
+   * slate wraps so a long Unique hunt never runs dry.
+   */
+  fixedOrder?: boolean;
 }
 
 export class BattleScreen {
@@ -88,6 +94,8 @@ export class BattleScreen {
   private orderingView: OrderingView | null = null;
   private bossTurns: QuestionTurn[] | null = null;
   private bossIndex = 0;
+  /** Next index into a fixedOrder bank (guardian slate, #23). */
+  private slateIndex = 0;
   private switchForced = false;
   // Null for every ordinary rarity. Unique pressure is battle-local: time
   // never changes it, only a submitted question does.
@@ -160,7 +168,14 @@ export class BattleScreen {
 
   private playerAttack(): void {
     let turn: QuestionTurn;
-    if (this.wild.boss) {
+    if (this.options.fixedOrder) {
+      // Fixed guardian slate (#23): authored order, one item per Attack.
+      const questions = this.bank.questions;
+      if (questions.length === 0) throw new Error("BattleScreen: fixedOrder bank is empty");
+      const question = questions[this.slateIndex % questions.length];
+      this.slateIndex += 1;
+      turn = turnsOf(question)[0];
+    } else if (this.wild.boss) {
       if (!this.bossTurns || this.bossIndex >= this.bossTurns.length) {
         const question = this.bank.pick((q) => !!q.steps);
         this.bossTurns = turnsOf(question);
@@ -533,7 +548,9 @@ export class BattleScreen {
   }
 
   private drawCreature(x: number, y: number, creature: Creature, size: number): void {
-    const node = makeCreaturePortrait(this.root, creature, size);
+    const stage =
+      creature === this.state.active ? this.state.activeStage : 1;
+    const node = makeCreaturePortrait(this.root, { ...creature, stage }, size);
     node.name = creature.name;
     node.setPosition(x, y);
   }

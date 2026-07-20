@@ -190,7 +190,11 @@ export class SanctuaryScreen {
     });
     row.on(Node.EventType.TOUCH_END, () => this.moveCursor(index));
 
-    const portrait = makeCreaturePortrait(row, creature, 15);
+    const portrait = makeCreaturePortrait(
+      row,
+      { ...creature, stage: creature.stage, boss: false },
+      15,
+    );
     portrait.setPosition(-356, 0);
 
     const zh = SPECIES_BY_ID[creature.speciesId]?.nameZh;

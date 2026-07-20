@@ -82,7 +82,11 @@ export class PartyScreen {
         lineWidth: active ? 3 : undefined,
       });
 
-      const portrait = makeCreaturePortrait(row, creature, 15);
+      const portrait = makeCreaturePortrait(
+        row,
+        { ...creature, stage: this.state.teamStage(index) },
+        15,
+      );
       portrait.setPosition(-326, -2);
 
       const name = makeLabel(row, creature.name, -282, 20, { fontSize: 22, align: "left" });

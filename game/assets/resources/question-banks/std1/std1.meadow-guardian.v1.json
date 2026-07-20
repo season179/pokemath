@@ -1,0 +1,215 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.meadow-guardian",
+  "version": 1,
+  "source": "Hand-checked fixed guardian slate (issue #23): one item per locked topic — counting, +/−, clock, money, pictograph — mostly TP3–4 with one TP5 twist. Deterministic order; served sequentially in the Cloudmane battle.",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "meadow-isle.md §8 Hundred Stones guardian: fixed authored set (count, + − sentence, clock read, money change, pictograph read)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "fill-blank",
+      "presentation": "plain",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "47",
+      "answer": 47,
+      "bilingual": {
+        "numeral": "47",
+        "zh_word": "四十七"
+      },
+      "question_zh": "百石原亮起了 4 个十和 7 个一。合起来是几？",
+      "question_en": "Among the Hundred Stones, 4 tens and 7 ones lit up. What number is that altogether?",
+      "distractors": [
+        {
+          "value": 74,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 40,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 11,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.2",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "picture-sentence",
+      "presentation": "figure:objects",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "18 - 4",
+      "answer": 14,
+      "bilingual": {
+        "numeral": "14",
+        "zh_word": "十四"
+      },
+      "question_zh": "看图写出算式：一共有 18 块亮着的石头，暗下 4 块，还剩几块？ 18 - 4 = ___",
+      "question_en": "Write the number sentence: 18 stones lit, 4 went dark. How many still shine? 18 - 4 = ___",
+      "distractors": [
+        {
+          "value": 22,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 15,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "objects",
+        "icon": "🪨",
+        "count": 18,
+        "crossedOut": 4
+      }
+    },
+    {
+      "id": 3,
+      "topic": "4.4",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "钟面上是几时一刻？",
+      "question_en": "It is quarter past which hour?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "clock-hand-swap"
+        },
+        {
+          "value": 7,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "clock",
+        "hour": 6,
+        "minute": 15
+      }
+    },
+    {
+      "id": 4,
+      "topic": "4.3",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "RM",
+      "operation": "subtraction",
+      "expression": "8 - 3",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "守石人有 RM8，买了一盏小灯用了 RM3，现在还有多少钱？",
+      "question_en": "Keeper Yun had RM8 and spent RM3 on a small lantern. How much money is left?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.7",
+      "tp_level": 5,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "6 + 4 + 8",
+      "answer": 18,
+      "bilingual": {
+        "numeral": "18",
+        "zh_word": "十八"
+      },
+      "question_zh": "丰收板上，三种作物一共有几个？也可以先算 6 + 4 = 10，再算 10 + 8。",
+      "question_en": "On the harvest board, how many of all three crops are there in total? You can also do 6 + 4 = 10, then 10 + 8.",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 14,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 20,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    }
+  ]
+}

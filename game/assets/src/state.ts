@@ -10,6 +10,7 @@
 
 import {
   Creature,
+  awardMeadowFinale,
   awardPlayerXp,
   captureCreature,
   levelForTotalXp,
@@ -132,6 +133,32 @@ export class GameState {
     if (this.badges.includes(id)) return false;
     this.badges = [...this.badges, id];
     return true;
+  }
+
+  /**
+   * Meadow guardian victory (#23): award the Meadow Badge once and evolve the
+   * starter located by `starterCreatureId` whether active or in storage.
+   * Idempotent — a second victory is a pure no-op.
+   */
+  awardMeadowFinale(): { badgeAwarded: boolean; evolvedName: string | null } {
+    const result = awardMeadowFinale(this.toSave());
+    if (!result.badgeAwarded && result.evolvedName === null) {
+      return { badgeAwarded: false, evolvedName: null };
+    }
+    this.badges = result.save.badges;
+    this.ownedCreatures = result.save.ownedCreatures.map((c) => ({ ...c }));
+    return { badgeAwarded: result.badgeAwarded, evolvedName: result.evolvedName };
+  }
+
+  /** 1-based evolution stage for a team slot (defaults to 1). */
+  teamStage(index: number): number {
+    const id = this.teamIds[index];
+    return this.ownedCreatures.find((c) => c.creatureId === id)?.stage ?? 1;
+  }
+
+  /** Evolution stage of the creature currently leading the party. */
+  get activeStage(): number {
+    return this.teamStage(this.activeIndex);
   }
 
   /**

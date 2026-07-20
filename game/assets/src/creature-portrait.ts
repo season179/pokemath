@@ -3,7 +3,7 @@
 // creature-art.ts. One helper so battle, party, and world stay in sync.
 
 import { Graphics, Node, Sprite, UITransform } from "cc";
-import { SPECIES_BY_ID } from "../shared/index";
+import { artRefForStage, SPECIES_BY_ID } from "../shared/index";
 import { colorFromHex, paintCreature } from "./creature-art";
 import { loadPixelTexture, pixelFrame } from "./remote-art";
 
@@ -11,6 +11,8 @@ export interface PortraitSubject {
   speciesId?: string | null;
   color: string;
   boss: boolean;
+  /** 1-based evolution stage; omitted/unknown → stage 1 art. */
+  stage?: number;
 }
 
 // `size` keeps paintCreature's meaning (body-circle radius); with ears the
@@ -19,7 +21,8 @@ export interface PortraitSubject {
 export function makeCreaturePortrait(parent: Node, subject: PortraitSubject, size: number): Node {
   const node = new Node("creature-portrait");
   node.parent = parent;
-  const art = subject.speciesId ? SPECIES_BY_ID[subject.speciesId]?.artRef : undefined;
+  const species = subject.speciesId ? SPECIES_BY_ID[subject.speciesId] : undefined;
+  const art = species ? artRefForStage(species, subject.stage ?? 1) : undefined;
   if (!art) {
     paintCreature(node.addComponent(Graphics), colorFromHex(subject.color), size, subject.boss);
     return node;
