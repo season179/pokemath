@@ -4,7 +4,7 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.pattern-gardens` v1 · schema v2 · 16 questions
-**Source:** [std1.pattern-gardens-4.6-tp2-3-hand.candidate.json](../../game/assets/resources/question-banks/std1/std1.pattern-gardens-4.6-tp2-3-hand.candidate.json)
+**Source:** [std1.pattern-gardens.v1.json](../../game/assets/resources/question-banks/std1/std1.pattern-gardens.v1.json)
 **Content SHA-256:** `a058da91ff0ec7ef9c1fe17fd9e9387aa8ce42dfc7ac53985f517a9937907999`
 
 ## Corpus checklist

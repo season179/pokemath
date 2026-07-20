@@ -4,7 +4,7 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.festival-green` v1 · schema v2 · 16 questions
-**Source:** [std1.festival-green-4.7-tp2-3-hand.candidate.json](../../game/assets/resources/question-banks/std1/std1.festival-green-4.7-tp2-3-hand.candidate.json)
+**Source:** [std1.festival-green.v1.json](../../game/assets/resources/question-banks/std1/std1.festival-green.v1.json)
 **Content SHA-256:** `b04045852e40514914a488b3165c1bd2890d55fd33a2bb5b44f2502b52039243`
 
 ## Corpus checklist

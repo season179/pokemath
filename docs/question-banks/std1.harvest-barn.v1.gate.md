@@ -4,7 +4,7 @@
 
 **Verdict:** ✅ ACCEPT
 **Bank:** `std1.harvest-barn` v1 · schema v2 · 16 questions
-**Source:** [std1.harvest-barn-4.5-tp2-4-hand.candidate.json](../../game/assets/resources/question-banks/std1/std1.harvest-barn-4.5-tp2-4-hand.candidate.json)
+**Source:** [std1.harvest-barn.v1.json](../../game/assets/resources/question-banks/std1/std1.harvest-barn.v1.json)
 **Content SHA-256:** `07f6d1e8fd3a521e3926ebfe48881bdc94b1da989f8931caf2e817a0f1e32dfe`
 
 ## Corpus checklist

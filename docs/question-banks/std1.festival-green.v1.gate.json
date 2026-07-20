@@ -1,7 +1,7 @@
 {
   "tool": "tools/validate-question-bank.mjs",
-  "generatedAt": "2026-07-19T16:26:22.322Z",
-  "source": "std1.festival-green-4.7-tp2-3-hand.candidate.json",
+  "generatedAt": "2026-07-20T01:21:44.007Z",
+  "source": "std1.festival-green.v1.json",
   "sha256": "b04045852e40514914a488b3165c1bd2890d55fd33a2bb5b44f2502b52039243",
   "accept": true,
   "report": {

@@ -1,7 +1,7 @@
 {
   "tool": "tools/validate-question-bank.mjs",
-  "generatedAt": "2026-07-20T00:08:22.796Z",
-  "source": "std1.harvest-barn-4.5-tp2-4-hand.candidate.json",
+  "generatedAt": "2026-07-20T01:21:43.600Z",
+  "source": "std1.harvest-barn.v1.json",
   "sha256": "07f6d1e8fd3a521e3926ebfe48881bdc94b1da989f8931caf2e817a0f1e32dfe",
   "accept": true,
   "report": {

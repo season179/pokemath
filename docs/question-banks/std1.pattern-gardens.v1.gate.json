@@ -1,7 +1,7 @@
 {
   "tool": "tools/validate-question-bank.mjs",
-  "generatedAt": "2026-07-19T16:26:21.928Z",
-  "source": "std1.pattern-gardens-4.6-tp2-3-hand.candidate.json",
+  "generatedAt": "2026-07-20T01:21:43.803Z",
+  "source": "std1.pattern-gardens.v1.json",
   "sha256": "a058da91ff0ec7ef9c1fe17fd9e9387aa8ce42dfc7ac53985f517a9937907999",
   "accept": true,
   "report": {
