@@ -1,7 +1,7 @@
 // Figure spec tests (M5, #16): the declarative DSL, its structural wire
 // validation, the deliberate-fallback view model, the pure figure math, and
 // the shipped gallery bank (game/assets/resources/question-banks/std1/
-// figure-gallery.v1.json) as the executable reference content.
+// figure-gallery.v2.json) as the executable reference content.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -9,11 +9,20 @@ import { readFile } from "node:fs/promises";
 import Ajv2020 from "ajv/dist/2020.js";
 
 import {
+  ABACUS_MAX_VALUE,
   CLOCK_MINUTES,
   COINS_MAX_TOTAL_SEN,
   COIN_DENOMINATIONS,
+  FIGURE_KINDS,
+  MEASURE_MAX_UNITS,
   OBJECTS_MAX_COUNT,
+  PICTOGRAPH_MAX_COUNT,
+  PICTOGRAPH_MAX_ROWS,
+  SHAPES_MAX_SEQUENCE,
+  SOLIDS_MAX_SHOWN,
   TEN_FRAME_MAX_FILLED,
+  abacusBeads,
+  abacusDigits,
   clockHandAngles,
   coinsTotalSen,
   figureKindForPresentation,
@@ -95,8 +104,8 @@ test("parseFigureSpec: rejects unknown kinds and unknown fields", () => {
   assert.throws(() => parseFigureSpec(null, "q.figure"), /must be an object/);
   assert.throws(() => parseFigureSpec([], "q.figure"), /must be an object/);
   assert.throws(
-    () => parseFigureSpec({ kind: "pictograph", icons: 5 }, "q.figure"),
-    /q\.figure\.kind must be one of: ten-frame, clock, coins, objects/,
+    () => parseFigureSpec({ kind: "balance", pans: 2 }, "q.figure"),
+    /q\.figure\.kind must be one of: ten-frame, clock, coins, objects, shapes, solids, abacus, measure, pictograph/,
   );
   assert.throws(
     () => parseFigureSpec({ kind: "clock", hour: 3, minute: 0, style: "roman" }, "q.figure"),
@@ -176,21 +185,234 @@ test("parseFigureSpec: objects counts and cross-outs stay within the island laws
 
 // --- presentation bridge -------------------------------------------------------
 
-test("figureKindForPresentation: only the four rendered kinds map", () => {
+test("figureKindForPresentation: the nine rendered kinds map", () => {
   assert.equal(figureKindForPresentation("figure:ten-frame"), "ten-frame");
   assert.equal(figureKindForPresentation("figure:clock"), "clock");
   assert.equal(figureKindForPresentation("figure:coins"), "coins");
   assert.equal(figureKindForPresentation("figure:objects"), "objects");
-  assert.equal(figureKindForPresentation("figure:pictograph"), null);
+  assert.equal(figureKindForPresentation("figure:shapes"), "shapes");
+  assert.equal(figureKindForPresentation("figure:solids"), "solids");
+  assert.equal(figureKindForPresentation("figure:abacus"), "abacus");
+  assert.equal(figureKindForPresentation("figure:measure"), "measure");
+  assert.equal(figureKindForPresentation("figure:pictograph"), "pictograph");
   assert.equal(figureKindForPresentation("figure:number-bond"), null);
+  assert.equal(figureKindForPresentation("figure:balance"), null);
   assert.equal(figureKindForPresentation("picture"), null);
   assert.equal(figureKindForPresentation("plain"), null);
 });
 
 test("figurePresentation round-trips figureKindForPresentation", () => {
-  for (const kind of ["ten-frame", "clock", "coins", "objects"] as const) {
+  for (const kind of FIGURE_KINDS) {
     assert.equal(figureKindForPresentation(figurePresentation(kind)), kind);
   }
+});
+
+// --- parseFigureSpec: the visual-math kinds (M5, #20) -------------------------
+
+test("parseFigureSpec: shapes, solids, abacus, measure, pictograph", () => {
+  assert.deepEqual(parseFigureSpec({ kind: "shapes", sequence: ["triangle"] }, "f"), {
+    kind: "shapes",
+    sequence: ["triangle"],
+  });
+  assert.deepEqual(
+    parseFigureSpec(
+      { kind: "shapes", sequence: ["circle", "triangle", "circle", "triangle"], blank: true },
+      "f",
+    ),
+    { kind: "shapes", sequence: ["circle", "triangle", "circle", "triangle"], blank: true },
+  );
+  assert.deepEqual(parseFigureSpec({ kind: "solids", solids: ["cylinder"] }, "f"), {
+    kind: "solids",
+    solids: ["cylinder"],
+  });
+  assert.deepEqual(parseFigureSpec({ kind: "abacus", value: 40 }, "f"), {
+    kind: "abacus",
+    value: 40,
+  });
+  assert.deepEqual(parseFigureSpec({ kind: "measure", object: "✏️", unit: "📎", count: 6 }, "f"), {
+    kind: "measure",
+    object: "✏️",
+    unit: "📎",
+    count: 6,
+  });
+  assert.deepEqual(
+    parseFigureSpec(
+      {
+        kind: "pictograph",
+        rows: [
+          { icon: "🍎", label_zh: "苹果", label_en: "apples", count: 6 },
+          { icon: "🎃", label_zh: "南瓜", count: 4 },
+        ],
+      },
+      "f",
+    ),
+    {
+      kind: "pictograph",
+      rows: [
+        { icon: "🍎", label_zh: "苹果", label_en: "apples", count: 6 },
+        { icon: "🎃", label_zh: "南瓜", count: 4 },
+      ],
+    },
+  );
+});
+
+test("parseFigureSpec: shapes vocabulary, row length, and the blank slot", () => {
+  assert.throws(
+    () => parseFigureSpec({ kind: "shapes", sequence: [] }, "q.figure"),
+    /sequence must be a non-empty array/,
+  );
+  assert.throws(
+    () => parseFigureSpec({ kind: "shapes", sequence: ["hexagon"] }, "q.figure"),
+    /sequence\[0\] must be one of: square, rectangle, triangle, circle/,
+  );
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        { kind: "shapes", sequence: Array(SHAPES_MAX_SEQUENCE + 1).fill("circle") },
+        "q.figure",
+      ),
+    new RegExp(`a frieze row shows at most ${SHAPES_MAX_SEQUENCE}`),
+  );
+  assert.throws(
+    () => parseFigureSpec({ kind: "shapes", sequence: ["square"], blank: 1 }, "q.figure"),
+    /blank must be a boolean/,
+  );
+});
+
+test("parseFigureSpec: solids vocabulary and line-up size", () => {
+  assert.throws(
+    () => parseFigureSpec({ kind: "solids", solids: [] }, "q.figure"),
+    /solids must be a non-empty array/,
+  );
+  assert.throws(
+    () => parseFigureSpec({ kind: "solids", solids: ["torus"] }, "q.figure"),
+    /solids\[0\] must be one of: cube, cuboid, cylinder, cone, pyramid, sphere/,
+  );
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        { kind: "solids", solids: ["cube", "cone", "sphere", "cuboid", "cylinder"] },
+        "q.figure",
+      ),
+    new RegExp(`at most ${SOLIDS_MAX_SHOWN} fit the figure band`),
+  );
+});
+
+test("parseFigureSpec: the abacus reads two rods (0..99)", () => {
+  assert.deepEqual(parseFigureSpec({ kind: "abacus", value: 0 }, "f"), { kind: "abacus", value: 0 });
+  assert.deepEqual(parseFigureSpec({ kind: "abacus", value: ABACUS_MAX_VALUE }, "f"), {
+    kind: "abacus",
+    value: ABACUS_MAX_VALUE,
+  });
+  assert.throws(
+    () => parseFigureSpec({ kind: "abacus", value: -1 }, "q.figure"),
+    new RegExp(`value must be in \\[0, ${ABACUS_MAX_VALUE}\\]`),
+  );
+  assert.throws(
+    () => parseFigureSpec({ kind: "abacus", value: 100 }, "q.figure"),
+    new RegExp(`value must be in \\[0, ${ABACUS_MAX_VALUE}\\]`),
+  );
+});
+
+test("parseFigureSpec: measurement stays non-standard and countable", () => {
+  assert.throws(
+    () => parseFigureSpec({ kind: "measure", object: "✏️", unit: "📎", count: 0 }, "q.figure"),
+    new RegExp(`count must be in \\[1, ${MEASURE_MAX_UNITS}\\]`),
+  );
+  assert.throws(
+    () => parseFigureSpec({ kind: "measure", object: "✏️", unit: "📎", count: 11 }, "q.figure"),
+    new RegExp(`count must be in \\[1, ${MEASURE_MAX_UNITS}\\]`),
+  );
+  assert.throws(
+    () => parseFigureSpec({ kind: "measure", object: "", unit: "📎", count: 4 }, "q.figure"),
+    /object must be a non-empty string/,
+  );
+});
+
+test("parseFigureSpec: a pictograph is 2..4 distinct categories, one picture = one value", () => {
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        { kind: "pictograph", rows: [{ icon: "🍎", label_zh: "苹果", count: 3 }] },
+        "q.figure",
+      ),
+    /rows must list at least 2 categories/,
+  );
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        {
+          kind: "pictograph",
+          rows: Array.from({ length: PICTOGRAPH_MAX_ROWS + 1 }, (_, i) => ({
+            icon: `${i}`,
+            label_zh: "类",
+            count: 1,
+          })),
+        },
+        "q.figure",
+      ),
+    new RegExp(`at most ${PICTOGRAPH_MAX_ROWS}`),
+  );
+  // Duplicate icons collapse two categories into one — an authoring error.
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        {
+          kind: "pictograph",
+          rows: [
+            { icon: "🍎", label_zh: "苹果", count: 3 },
+            { icon: "🍎", label_zh: "红苹果", count: 2 },
+          ],
+        },
+        "q.figure",
+      ),
+    /rows\[1\]\.icon repeats "🍎"/,
+  );
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        {
+          kind: "pictograph",
+          rows: [
+            { icon: "🍎", label_zh: "苹果", count: 0 },
+            { icon: "🎃", label_zh: "南瓜", count: 2 },
+          ],
+        },
+        "q.figure",
+      ),
+    new RegExp(`rows\\[0\\]\\.count must be in \\[1, ${PICTOGRAPH_MAX_COUNT}\\]`),
+  );
+  // A scale field would mean 1 icon = N values — extra-profile content the
+  // core DSL refuses structurally (island law: one picture = one value).
+  assert.throws(
+    () =>
+      parseFigureSpec(
+        {
+          kind: "pictograph",
+          rows: [
+            { icon: "🍎", label_zh: "苹果", count: 3 },
+            { icon: "🎃", label_zh: "南瓜", count: 2, scale: 5 },
+          ],
+        },
+        "q.figure",
+      ),
+    /rows\[1\] has unknown field\(s\): scale/,
+  );
+});
+
+// --- pure figure math: the abacus (#20) ------------------------------------------
+
+test("abacusDigits splits tens and ones", () => {
+  assert.deepEqual(abacusDigits(7), [0, 7]);
+  assert.deepEqual(abacusDigits(40), [4, 0]);
+  assert.deepEqual(abacusDigits(99), [9, 9]);
+});
+
+test("abacusBeads engages the heaven bead at 5+", () => {
+  assert.deepEqual(abacusBeads(0), { heaven: false, earth: 0 });
+  assert.deepEqual(abacusBeads(3), { heaven: false, earth: 3 });
+  assert.deepEqual(abacusBeads(5), { heaven: true, earth: 0 });
+  assert.deepEqual(abacusBeads(9), { heaven: true, earth: 4 });
 });
 
 // --- the deliberate fallback view model ----------------------------------------
@@ -214,11 +436,11 @@ test("resolveFigureView: an authored spec renders", () => {
 });
 
 test("resolveFigureView: figure:* presentations without a spec fall back deliberately", () => {
-  // A renderer-less presentation (pictograph) and a renderable presentation
+  // A renderer-less presentation (balance) and a renderable presentation
   // that simply carries no data both land on prose — never a blank panel.
-  assert.deepEqual(resolveFigureView(q({ presentation: "figure:pictograph" })), {
+  assert.deepEqual(resolveFigureView(q({ presentation: "figure:balance" })), {
     mode: "prose-fallback",
-    presentation: "figure:pictograph",
+    presentation: "figure:balance",
   });
   assert.deepEqual(resolveFigureView(q({ presentation: "figure:clock" })), {
     mode: "prose-fallback",
@@ -373,7 +595,7 @@ test("the v1 adapter never fabricates a figure for legacy content", () => {
 // --- the shipped gallery bank ------------------------------------------------------
 
 const GALLERY_URL = new URL(
-  "../../game/assets/resources/question-banks/std1/figure-gallery.v1.json",
+  "../../game/assets/resources/question-banks/std1/figure-gallery.v2.json",
   import.meta.url,
 );
 const GALLERY_SOURCE = await readFile(GALLERY_URL, "utf8");
@@ -402,20 +624,20 @@ test("gallery bank: content verification is clean (answers re-derive, scope hold
 test("gallery bank: every figure kind is exercised, with the deliberate fallback", () => {
   const questions = (GALLERY as { questions: QuestionV2[] }).questions;
   const byPresentation = new Map(questions.map((question) => [question.presentation, question]));
-  for (const kind of ["ten-frame", "clock", "coins", "objects"] as const) {
+  for (const kind of FIGURE_KINDS) {
     const question = byPresentation.get(figurePresentation(kind));
     assert.ok(question, `gallery carries a ${figurePresentation(kind)} item`);
     assert.equal(question.figure?.kind, kind);
     assert.deepEqual(resolveFigureView(question), { mode: "figure", spec: question.figure });
   }
-  // The pictograph item declares its presentation but no spec: the desktop
+  // The balance item declares its presentation but no spec: the desktop
   // layout deliberately serves prose plus the world sprites.
-  const fallback = byPresentation.get("figure:pictograph");
+  const fallback = byPresentation.get("figure:balance");
   assert.ok(fallback, "gallery carries the fallback exemplar");
   assert.equal(fallback.figure, undefined);
   assert.deepEqual(resolveFigureView(fallback), {
     mode: "prose-fallback",
-    presentation: "figure:pictograph",
+    presentation: "figure:balance",
   });
 });
 

@@ -1,0 +1,923 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.festival-green",
+  "version": 1,
+  "source": "Hand-authored for the M5 visual-math arcs (issue #20): the Harvest Festival arc — pictographs (one picture = one value, always) with most/least comparisons and classification. Scope: docs/curriculum/standard-1-sjkc-math.md §2 + §4.7; formats: standard-1-question-style.md §A/§C.7/§D.",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.7 (数据处理: 1-picture=1-value pictographs, classify/sort); TP2–TP3 (Harvest Festival Green)",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "丰收板上，苹果有几个？",
+      "question_en": "On the harvest board, how many apples are there?",
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "next-vs-between"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "丰收板上，最少的作物有几个？",
+      "question_en": "On the harvest board, how many of the least crop are there?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 8,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "6 - 4",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "丰收板上，苹果比南瓜多几个？",
+      "question_en": "On the harvest board, how many more apples than pumpkins are there?",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "8 - 6",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "丰收板上，胡萝卜比苹果多几个？",
+      "question_en": "On the harvest board, how many more carrots than apples are there?",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "6 + 4",
+      "answer": 10,
+      "bilingual": {
+        "numeral": "10",
+        "zh_word": "十"
+      },
+      "question_zh": "丰收板上，苹果和南瓜一共有几个？",
+      "question_en": "On the harvest board, how many apples and pumpkins are there in all?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 8,
+          "strategy": "next-vs-between"
+        },
+        {
+          "value": 11,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "6 + 4 + 8",
+      "answer": 18,
+      "bilingual": {
+        "numeral": "18",
+        "zh_word": "十八"
+      },
+      "question_zh": "丰收板上，三种作物一共有几个？",
+      "question_en": "On the harvest board, how many of all three crops are there in total?",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 12,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 20,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:pictograph",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8 > 6",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：丰收板上，胡萝卜最多",
+      "question_en": "Mark ✓ for true and ✗ for false: on the harvest board, carrots are the most",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "more-fewer-flip"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:pictograph",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4 = 6",
+      "answer": 0,
+      "bilingual": {
+        "numeral": "0",
+        "zh_word": "零"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：丰收板上，南瓜和苹果一样多",
+      "question_en": "Mark ✓ for true and ✗ for false: on the harvest board, pumpkins and apples are equal",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "more-fewer-flip"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots",
+            "count": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "classify-sort",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "5 + 3",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "丰收节摊位上，苹果和香蕉是水果。水果一共有几个？",
+      "question_en": "At the festival stall, apples and bananas are fruit. How many fruits are there in all?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "more-fewer-flip"
+        },
+        {
+          "value": 5,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples (fruit)",
+            "count": 5
+          },
+          {
+            "icon": "🍌",
+            "label_zh": "香蕉",
+            "label_en": "bananas (fruit)",
+            "count": 3
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots (vegetable)",
+            "count": 4
+          },
+          {
+            "icon": "🥬",
+            "label_zh": "白菜",
+            "label_en": "cabbage (vegetable)",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "classify-sort",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "8 - 6",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "摊位上，水果有 8 个，蔬菜有 6 个。蔬菜比水果少几个？",
+      "question_en": "At the stall there are 8 fruits and 6 vegetables. How many fewer vegetables than fruits are there?",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples (fruit)",
+            "count": 5
+          },
+          {
+            "icon": "🍌",
+            "label_zh": "香蕉",
+            "label_en": "bananas (fruit)",
+            "count": 3
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots (vegetable)",
+            "count": 4
+          },
+          {
+            "icon": "🥬",
+            "label_zh": "白菜",
+            "label_en": "cabbage (vegetable)",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "classify-sort",
+      "presentation": "figure:pictograph",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "2",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "丰收节摊位上，水果有几种？",
+      "question_en": "At the festival stall, how many kinds of fruit are there?",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples (fruit)",
+            "count": 5
+          },
+          {
+            "icon": "🍌",
+            "label_zh": "香蕉",
+            "label_en": "bananas (fruit)",
+            "count": 3
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots (vegetable)",
+            "count": 4
+          },
+          {
+            "icon": "🥬",
+            "label_zh": "白菜",
+            "label_en": "cabbage (vegetable)",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "2",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "丰收节摊位上，白菜有几棵？",
+      "question_en": "At the festival stall, how many cabbages are there?",
+      "distractors": [
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "next-vs-between"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples (fruit)",
+            "count": 5
+          },
+          {
+            "icon": "🍌",
+            "label_zh": "香蕉",
+            "label_en": "bananas (fruit)",
+            "count": 3
+          },
+          {
+            "icon": "🥕",
+            "label_zh": "胡萝卜",
+            "label_en": "carrots (vegetable)",
+            "count": 4
+          },
+          {
+            "icon": "🥬",
+            "label_zh": "白菜",
+            "label_en": "cabbage (vegetable)",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "7",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "节日草地上，蝴蝶有几只？",
+      "question_en": "On the festival green, how many butterflies are there?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "next-vs-between"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🦋",
+            "label_zh": "蝴蝶",
+            "label_en": "butterflies",
+            "count": 7
+          },
+          {
+            "icon": "🐝",
+            "label_zh": "蜜蜂",
+            "label_en": "bees",
+            "count": 5
+          },
+          {
+            "icon": "🐞",
+            "label_zh": "瓢虫",
+            "label_en": "ladybugs",
+            "count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "5 - 3",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "节日草地上，蜜蜂比瓢虫多几只？",
+      "question_en": "On the festival green, how many more bees than ladybugs are there?",
+      "distractors": [
+        {
+          "value": 8,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "raw-operand"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🦋",
+            "label_zh": "蝴蝶",
+            "label_en": "butterflies",
+            "count": 7
+          },
+          {
+            "icon": "🐝",
+            "label_zh": "蜜蜂",
+            "label_en": "bees",
+            "count": 5
+          },
+          {
+            "icon": "🐞",
+            "label_zh": "瓢虫",
+            "label_en": "ladybugs",
+            "count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:pictograph",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3 < 5",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：节日草地上，瓢虫最少",
+      "question_en": "Mark ✓ for true and ✗ for false: on the festival green, ladybugs are the fewest",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "more-fewer-flip"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🦋",
+            "label_zh": "蝴蝶",
+            "label_en": "butterflies",
+            "count": 7
+          },
+          {
+            "icon": "🐝",
+            "label_zh": "蜜蜂",
+            "label_en": "bees",
+            "count": 5
+          },
+          {
+            "icon": "🐞",
+            "label_zh": "瓢虫",
+            "label_en": "ladybugs",
+            "count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "7 + 5",
+      "answer": 12,
+      "bilingual": {
+        "numeral": "12",
+        "zh_word": "十二"
+      },
+      "question_zh": "节日草地上，蝴蝶和蜜蜂一共有几只？",
+      "question_en": "On the festival green, how many butterflies and bees are there in all?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 13,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🦋",
+            "label_zh": "蝴蝶",
+            "label_en": "butterflies",
+            "count": 7
+          },
+          {
+            "icon": "🐝",
+            "label_zh": "蜜蜂",
+            "label_en": "bees",
+            "count": 5
+          },
+          {
+            "icon": "🐞",
+            "label_zh": "瓢虫",
+            "label_en": "ladybugs",
+            "count": 3
+          }
+        ]
+      }
+    }
+  ]
+}

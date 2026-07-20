@@ -1,0 +1,572 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-gallery",
+  "version": 2,
+  "source": "M5 FigureView kit (#16): the canonical figure-spec examples — one served item per figure kind plus the deliberate prose fallback. v2 (#20): the five visual-math kinds (shapes, solids, abacus, measure, pictograph) join items 10-14; the fallback exemplar moves from figure:pictograph (now rendered, item 14) to figure:balance (item 9). Authored to docs/curriculum/standard-1-sjkc-math.md (scope) and standard-1-question-style.md (formats/distractors); executed by shared/tests/figures.test.ts.",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "Figure DSL gallery: ten-frame, clock, coins, objects, shapes, solids, abacus, measure, pictograph, and the figure:balance prose fallback. Content spans §4.1–§4.7 at TP1–TP2 so every figure kind is exercised; not area-routed — the topic arcs (#17–#20) author the real area banks.",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.1",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:objects",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "数一数，羊圈里共有几只羊？",
+      "question_en": "Count the sheep in the pen. How many are there?",
+      "figure": {
+        "kind": "objects",
+        "icon": "🐑",
+        "count": 8
+      },
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.2",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "picture-sentence",
+      "presentation": "figure:objects",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "12 - 5",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "树上有 12 个苹果，划掉 5 个，还剩几个？",
+      "question_en": "There are 12 apples on the tree. Cross out 5. How many are left?",
+      "figure": {
+        "kind": "objects",
+        "icon": "🍎",
+        "count": 12,
+        "crossedOut": 5
+      },
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 17,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 5,
+          "strategy": "raw-operand"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "10 - 7",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "羊圈里有 7 只羊，再进几只就满 10 只？",
+      "question_en": "There are 7 sheep in the pen. How many more make 10?",
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 7
+      },
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 10,
+          "strategy": "count-all-vs-add"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.1",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "number-bond",
+      "presentation": "figure:ten-frame",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "20 - 13",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "两个羊圈里有 13 只羊，再进几只就满 20 只？",
+      "question_en": "Two pens hold 13 sheep. How many more make 20?",
+      "figure": {
+        "kind": "ten-frame",
+        "filled": 13
+      },
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 13,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 10,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "钟面上是几时？",
+      "question_en": "What time is shown on the clock face?",
+      "figure": {
+        "kind": "clock",
+        "hour": 3,
+        "minute": 0
+      },
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "topic": "4.4",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:clock",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "猫头鹰管理员八时起床。钟面上是几时？",
+      "question_en": "The owl keeper wakes at eight. What time is shown?",
+      "figure": {
+        "kind": "clock",
+        "hour": 8,
+        "minute": 0
+      },
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 12,
+          "strategy": "clock-hand-swap"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:coins",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "50 + 20 + 10",
+      "answer": 80,
+      "bilingual": {
+        "numeral": "80",
+        "zh_word": "八十"
+      },
+      "question_zh": "这些硬币共有多少？",
+      "question_en": "How much do these coins make in total?",
+      "figure": {
+        "kind": "coins",
+        "coins": [
+          50,
+          20,
+          10
+        ]
+      },
+      "distractors": [
+        {
+          "value": 70,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 90,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 60,
+          "strategy": "money-denom-miscount"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "topic": "4.3",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:coins",
+      "answer_form": "numeral",
+      "answer_unit": "sen",
+      "operation": "addition",
+      "expression": "20 + 20 + 5 + 5",
+      "answer": 50,
+      "bilingual": {
+        "numeral": "50",
+        "zh_word": "五十"
+      },
+      "question_zh": "水果摊上的硬币共有多少？",
+      "question_en": "How much do the coins at the fruit stand make in total?",
+      "figure": {
+        "kind": "coins",
+        "coins": [
+          20,
+          20,
+          5,
+          5
+        ]
+      },
+      "distractors": [
+        {
+          "value": 45,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 55,
+          "strategy": "money-denom-miscount"
+        },
+        {
+          "value": 40,
+          "strategy": "money-denom-miscount"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "figure:balance",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "天平左边放 1 个南瓜，右边放 8 颗玻璃弹珠，天平平衡了。这个南瓜大约重几颗玻璃弹珠？",
+      "question_en": "A pumpkin on the left pan balances 8 glass marbles on the right. About how many marbles heavy is the pumpkin?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "topic": "4.6",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:shapes",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "长方形有几条边？",
+      "question_en": "How many sides does a rectangle have?",
+      "figure": {
+        "kind": "shapes",
+        "sequence": [
+          "rectangle"
+        ]
+      },
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:solids",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "正方体有几个面？",
+      "question_en": "How many faces does a cube have?",
+      "figure": {
+        "kind": "solids",
+        "solids": [
+          "cube"
+        ]
+      },
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:abacus",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "40",
+      "answer": 40,
+      "bilingual": {
+        "numeral": "40",
+        "zh_word": "四十"
+      },
+      "question_zh": "磨坊的算盘表示的数目是多少？",
+      "question_en": "What number does the mill's abacus show?",
+      "figure": {
+        "kind": "abacus",
+        "value": 40
+      },
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 30,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 50,
+          "strategy": "place-value-slip"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:measure",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": {
+        "numeral": "6",
+        "zh_word": "六"
+      },
+      "question_zh": "这支铅笔大约长几个回形针？",
+      "question_en": "About how many paper clips long is this pencil?",
+      "figure": {
+        "kind": "measure",
+        "object": "✏️",
+        "unit": "📎",
+        "count": 6
+      },
+      "distractors": [
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "6 - 4",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "丰收板上，苹果比南瓜多几个？",
+      "question_en": "On the harvest board, how many more apples than pumpkins are there?",
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          {
+            "icon": "🍎",
+            "label_zh": "苹果",
+            "label_en": "apples",
+            "count": 6
+          },
+          {
+            "icon": "🎃",
+            "label_zh": "南瓜",
+            "label_en": "pumpkins",
+            "count": 4
+          }
+        ]
+      },
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        }
+      ]
+    }
+  ]
+}

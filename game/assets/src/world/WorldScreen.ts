@@ -45,6 +45,7 @@ import {
 } from "./regions/index";
 import { Creature, SPECIES_BY_ID, pickEncounter, rollEncounter } from "../../shared/index";
 import { ArcCritter, arcCrittersFor, fernDialogFor, patchRegionForArc } from "./arc";
+import { paintAreaPayoff } from "./payoff-art";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
 import { paintBagIcon, paintGuideIcon, paintMapIcon } from "../ui-icons";
@@ -462,6 +463,14 @@ export class WorldScreen {
     if (npc.arcId) {
       this.showArcDialog(npc);
       return;
+    }
+    if (npc.payoff) {
+      // Area help-quest giver (#20): the ask while the badge is unearned,
+      // the thanks once it is held — copy lives on the region's PayoffDef.
+      const payoff = this.def.payoff;
+      if (payoff) {
+        npc = { ...npc, message: this.state.hasBadge(payoff.badge) ? payoff.thanks : payoff.quest };
+      }
     }
     if (npc.sailTo) {
       this.showTravelDialog(npc);
@@ -1460,7 +1469,14 @@ export class WorldScreen {
     const g = this.arcPayoffG;
     if (!g) return;
     g.clear();
-    if (this.def.id !== "meadow/ticktock" || !this.state.hasBadge(TICKTOCK_ARC_BADGE)) return;
+    if (this.def.id !== "meadow/ticktock" || !this.state.hasBadge(TICKTOCK_ARC_BADGE)) {
+      // Area help-quest payoffs (#20): the badge-gated landmark change —
+      // blooming beds, barn garlands, festival lanterns (world/payoff-art).
+      if (this.def.payoff && this.state.hasBadge(this.def.payoff.badge)) {
+        paintAreaPayoff(g, this.def);
+      }
+      return;
+    }
     for (let y = 0; y < this.h; y++) {
       for (let x = 0; x < this.w; x++) {
         if (tileAt(this.def, x, y) !== "C") continue;

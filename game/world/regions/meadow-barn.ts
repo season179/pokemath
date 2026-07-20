@@ -21,7 +21,7 @@ export const MEADOW_BARN: RegionDef = {
     "T........X.........X.......T",
     "T........X.........X.......T",
     "T........XXXXXpXXXXX.......T",
-    "T.............p............T",
+    "T.............pN...........T",
     "pppppppppppppppppppppppppppp",
     "T....ggggg.................T",
     "T.N.fgggg...........T......T",
@@ -33,7 +33,31 @@ export const MEADOW_BARN: RegionDef = {
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
   ],
   spawn: { x: 1, y: 11 },
-  npcs: [guide(2, 13, "characters/character_9/character09-sheet.png")],
+  npcs: [
+    guide(2, 13, "characters/character_9/character09-sheet.png"),
+    // The topic-arc payoff NPC (M5, #20): Miller Han by the barn door.
+    {
+      x: 15,
+      y: 10,
+      name: "Miller Han 磨坊主韩师傅",
+      message: "", // payoff NPC — the dialog comes from `payoff` below
+      characterSheet: "characters/character_10/character10-sheet.png",
+      payoff: true,
+    },
+  ],
+  // M5 topic arc (#20): the Barn serves non-standard measurement (4.5) and,
+  // for the solid scavenger hunt, shares the space & shapes slice (4.6)
+  // with the Pattern Gardens (routed in REGION_TOPICS, world/regions/index.ts).
+  payoff: {
+    badge: "meadow-barn-helped",
+    helps: 3,
+    quest:
+      "Harvest crates everywhere and my mill not dressed at all! Help 3 wild friends in the pastures, and I'll garland the barn for the festival. 丰收的谷仓还乱糟糟的！去草场帮助 3 只野生小伙伴答题，我就把谷仓装扮起来。",
+    thanks:
+      "The barn is garlanded and the mill is ready — measure by measure, you did it! 谷仓挂好了彩旗，磨坊也准备好了——都是你一份一份量出来的！",
+    changedNotice:
+      "Garlands rise over the Harvest Barn — the mill is festival-ready! 丰收谷仓挂起了彩旗——磨坊准备好过节了！",
+  },
   // M2B roster (issue #9): Plumelet roosts on the roof and Barnpup works the
   // farm; even here the barn mouse stays below the anchor pair. Weights sum
   // to 100 (percentages); membership and rarity match the MEADOW_HABITATS

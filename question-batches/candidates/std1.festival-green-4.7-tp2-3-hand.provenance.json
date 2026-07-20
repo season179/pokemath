@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.festival-green-4.7-tp2-3-hand",
+  "generator": {
+    "tool": "hand-authored",
+    "version": 0,
+    "note": "Harvest Festival arc — 1-picture=1-value pictographs, classification (issue #20). Authored directly as a schema-v2 candidate (the M4 generator's templates cover topics 4.1–4.4 only; figure-first content is hand-written)."
+  },
+  "generated_at": "2026-07-19T16:27:04.545153+00:00",
+  "params": {
+    "bank_id": "std1.festival-green",
+    "grade": "std1",
+    "topic": "4.7",
+    "tp_min": 2,
+    "tp_max": 3,
+    "profile": "dpk3_2026_core",
+    "count": 16,
+    "seed": null,
+    "bank_version": 1
+  },
+  "question_count": 16,
+  "template_counts": {
+    "read-instrument": 9,
+    "true-false": 3,
+    "classify-sort": 3,
+    "compare": 1
+  },
+  "sha256": "b04045852e40514914a488b3165c1bd2890d55fd33a2bb5b44f2502b52039243",
+  "reproduce": "hand-authored candidate; gate: npm run validate:questions -- question-batches/candidates/std1.festival-green-4.7-tp2-3-hand.candidate.json"
+}

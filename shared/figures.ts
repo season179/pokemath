@@ -6,11 +6,10 @@
 // renderer (game/assets/src/questions/FigureView.ts) draws it. No question
 // ships custom UI code.
 //
-// The four kinds here are the highest-frequency Standard-1 visuals. The
-// remaining `figure:*` presentation values (pictograph, number-bond,
-// number-line, abacus, shapes, balance, calendar, grid, table) deliberately
-// fall back to prose plus the world's sprites until their renderers land —
-// see resolveFigureView.
+// The nine kinds here are the highest-frequency Standard-1 visuals. The
+// remaining `figure:*` presentation values (number-bond, number-line,
+// balance, calendar, grid, table) deliberately fall back to prose plus the
+// world's sprites until their renderers land — see resolveFigureView.
 //
 // Wire posture: figures are a schema-v2 feature. The v1 wire stays frozen
 // (its unknown-field guard rejects `figure`), and the v1→v2 adapter never
@@ -31,7 +30,17 @@ import {
 
 // --- spec kinds --------------------------------------------------------------
 
-export const FIGURE_KINDS = ["ten-frame", "clock", "coins", "objects"] as const;
+export const FIGURE_KINDS = [
+  "ten-frame",
+  "clock",
+  "coins",
+  "objects",
+  "shapes",
+  "solids",
+  "abacus",
+  "measure",
+  "pictograph",
+] as const;
 export type FigureKind = (typeof FIGURE_KINDS)[number];
 
 /** A ten-frame's counters run 0..20: a second frame carries teen numbers
@@ -86,7 +95,95 @@ export interface ObjectsFigure {
 }
 
 /** One declarative figure. Renderers switch exhaustively over `kind`. */
-export type FigureSpec = TenFrameFigure | ClockFigure | CoinsFigure | ObjectsFigure;
+export type FigureSpec =
+  | TenFrameFigure
+  | ClockFigure
+  | CoinsFigure
+  | ObjectsFigure
+  | ShapesFigure
+  | SolidsFigure
+  | AbacusFigure
+  | MeasureFigure
+  | PictographFigure;
+
+// --- the visual-math arc kinds (M5, #20) --------------------------------------
+
+/** The four named Standard-1 2D shapes (scope doc §4.6 — no other polygons). */
+export const SHAPES_2D = ["square", "rectangle", "triangle", "circle"] as const;
+export type Shape2D = (typeof SHAPES_2D)[number];
+
+/** A frieze row stays inside the figure band (pattern runs show one unit
+ * repeat, e.g. ○ △ ○ △ __). */
+export const SHAPES_MAX_SEQUENCE = 8;
+
+/** A row of 2D shapes (Pattern Gardens). One shape for name-count items
+ * ("正方形有几条边？"); a short row for pattern items, where `blank` adds a
+ * dashed "?" slot after the last shape — the child names what fills it. */
+export interface ShapesFigure {
+  kind: "shapes";
+  sequence: Shape2D[]; // 1..SHAPES_MAX_SEQUENCE
+  blank?: boolean; // trailing empty slot (pattern-continue only)
+}
+
+/** The six named Standard-1 solids (scope doc §4.6: 正方体/长方体/圆柱体/
+ * 圆锥体/角锥体/球体). */
+export const SOLIDS_3D = ["cube", "cuboid", "cylinder", "cone", "pyramid", "sphere"] as const;
+export type Solid3D = (typeof SOLIDS_3D)[number];
+
+/** A solid scavenger hunt shows one solid (name it, count 面/边/顶点), a
+ * small line-up to compare, or a short 3D pattern row. */
+export const SOLIDS_MAX_SHOWN = 4;
+
+/** Simple line-drawn 3D solids (Harvest Barn). One solid for name-count
+ * items; up to four for comparisons and pattern rows. */
+export interface SolidsFigure {
+  kind: "solids";
+  solids: Solid3D[]; // 1..SOLIDS_MAX_SHOWN
+}
+
+/** The miller's 1:4 abacus (one heaven bead worth 5, four earth beads worth
+ * 1 each) reads two rods — 十位 and 个位 — so it shows 0..99. Representation
+ * only (scope doc §3): the figure never asks for abacus arithmetic. */
+export const ABACUS_MAX_VALUE = 99;
+
+export interface AbacusFigure {
+  kind: "abacus";
+  value: number; // 0..ABACUS_MAX_VALUE
+}
+
+/** Non-standard measurement (scope doc §4.5): the measured object as one
+ * emoji, the unit as one emoji, and `count` unit icons laid end-to-end —
+ * "这支铅笔长几个回形针？". Length, mass (marbles), and volume (cups) all
+ * read as a count of unit icons. No standard units can be expressed: the
+ * spec carries no cm/kg/ℓ vocabulary at all. */
+export const MEASURE_MAX_UNITS = 10;
+
+export interface MeasureFigure {
+  kind: "measure";
+  object: string; // one emoji grapheme, e.g. "✏️"
+  unit: string; // one emoji grapheme, e.g. "📎"
+  count: number; // 1..MEASURE_MAX_UNITS unit icons
+}
+
+/** Pictograph rows stay small: a Standard-1 board shows a handful of
+ * categories with counts a child can recount by pointing. */
+export const PICTOGRAPH_MAX_ROWS = 4;
+export const PICTOGRAPH_MAX_COUNT = 10;
+
+/** One pictograph category row. The island law is structural: ONE PICTURE =
+ * ONE VALUE — the spec carries no scale field, so a scaled pictograph
+ * (1 icon = N) is unauthorable (those are original_dskp_extra only). */
+export interface PictographRow {
+  icon: string; // one emoji grapheme, e.g. "🍎"
+  label_zh: string; // category name, e.g. "苹果"
+  label_en?: string; // optional gloss, e.g. "apples"
+  count: number; // 1..PICTOGRAPH_MAX_COUNT — the value IS the icon count
+}
+
+export interface PictographFigure {
+  kind: "pictograph";
+  rows: PictographRow[]; // 2..PICTOGRAPH_MAX_ROWS, distinct icons
+}
 
 // --- presentation axis bridge --------------------------------------------------
 
@@ -110,6 +207,26 @@ const TEN_FRAME_FIELDS = new Set(["kind", "filled"]);
 const CLOCK_FIELDS = new Set(["kind", "hour", "minute"]);
 const COINS_FIELDS = new Set(["kind", "coins"]);
 const OBJECTS_FIELDS = new Set(["kind", "icon", "count", "crossedOut"]);
+const SHAPES_FIELDS = new Set(["kind", "sequence", "blank"]);
+const SOLIDS_FIELDS = new Set(["kind", "solids"]);
+const ABACUS_FIELDS = new Set(["kind", "value"]);
+const MEASURE_FIELDS = new Set(["kind", "object", "unit", "count"]);
+const PICTOGRAPH_FIELDS = new Set(["kind", "rows"]);
+const PICTOGRAPH_ROW_FIELDS = new Set(["icon", "label_zh", "label_en", "count"]);
+
+/** A required enum member from a small readonly vocabulary (figure kinds
+ * reuse this for shape/solid names; bank-level enums live in parse-util). */
+function requiredFigureEnum<const T extends readonly string[]>(
+  value: unknown,
+  vocabulary: T,
+  label: string,
+): T[number] {
+  const text = requiredString(value, label);
+  if (!(vocabulary as readonly string[]).includes(text)) {
+    throw new Error(`${label} must be one of: ${vocabulary.join(", ")}`);
+  }
+  return text as T[number];
+}
 
 /**
  * Validate an untrusted figure spec. Same posture as the bank parsers:
@@ -180,6 +297,101 @@ export function parseFigureSpec(raw: unknown, label: string): FigureSpec {
       }
       return { kind: "objects", icon, count, crossedOut };
     }
+    case "shapes": {
+      rejectUnknownFields(spec, SHAPES_FIELDS, label);
+      if (!Array.isArray(spec.sequence) || spec.sequence.length === 0) {
+        throw new Error(`${label}.sequence must be a non-empty array`);
+      }
+      if (spec.sequence.length > SHAPES_MAX_SEQUENCE) {
+        throw new Error(
+          `${label}.sequence shows ${spec.sequence.length} shapes; a frieze row shows at most ${SHAPES_MAX_SEQUENCE}`,
+        );
+      }
+      const sequence = spec.sequence.map((value, index) =>
+        requiredFigureEnum(value, SHAPES_2D, `${label}.sequence[${index}]`),
+      );
+      if (spec.blank === undefined) return { kind: "shapes", sequence };
+      if (typeof spec.blank !== "boolean") {
+        throw new Error(`${label}.blank must be a boolean`);
+      }
+      return { kind: "shapes", sequence, blank: spec.blank };
+    }
+    case "solids": {
+      rejectUnknownFields(spec, SOLIDS_FIELDS, label);
+      if (!Array.isArray(spec.solids) || spec.solids.length === 0) {
+        throw new Error(`${label}.solids must be a non-empty array`);
+      }
+      if (spec.solids.length > SOLIDS_MAX_SHOWN) {
+        throw new Error(
+          `${label}.solids shows ${spec.solids.length} solids; at most ${SOLIDS_MAX_SHOWN} fit the figure band`,
+        );
+      }
+      const solids = spec.solids.map((value, index) =>
+        requiredFigureEnum(value, SOLIDS_3D, `${label}.solids[${index}]`),
+      );
+      return { kind: "solids", solids };
+    }
+    case "abacus": {
+      rejectUnknownFields(spec, ABACUS_FIELDS, label);
+      const value = requiredInteger(spec.value, `${label}.value`);
+      if (value < 0 || value > ABACUS_MAX_VALUE) {
+        throw new Error(
+          `${label}.value must be in [0, ${ABACUS_MAX_VALUE}] (the 1:4 abacus figure reads two rods: 十位 and 个位)`,
+        );
+      }
+      return { kind: "abacus", value };
+    }
+    case "measure": {
+      rejectUnknownFields(spec, MEASURE_FIELDS, label);
+      const object = requiredString(spec.object, `${label}.object`);
+      const unit = requiredString(spec.unit, `${label}.unit`);
+      const count = requiredInteger(spec.count, `${label}.count`);
+      if (count < 1 || count > MEASURE_MAX_UNITS) {
+        throw new Error(`${label}.count must be in [1, ${MEASURE_MAX_UNITS}]`);
+      }
+      return { kind: "measure", object, unit, count };
+    }
+    case "pictograph": {
+      rejectUnknownFields(spec, PICTOGRAPH_FIELDS, label);
+      if (!Array.isArray(spec.rows) || spec.rows.length < 2) {
+        throw new Error(`${label}.rows must list at least 2 categories`);
+      }
+      if (spec.rows.length > PICTOGRAPH_MAX_ROWS) {
+        throw new Error(
+          `${label}.rows shows ${spec.rows.length} categories; a Standard-1 board shows at most ${PICTOGRAPH_MAX_ROWS}`,
+        );
+      }
+      const icons = new Set<string>();
+      const rows = spec.rows.map((value, index): PictographRow => {
+        const row = record(value);
+        const rowLabel = `${label}.rows[${index}]`;
+        if (!row) throw new Error(`${rowLabel} must be an object`);
+        rejectUnknownFields(row, PICTOGRAPH_ROW_FIELDS, rowLabel);
+        const icon = requiredString(row.icon, `${rowLabel}.icon`);
+        if (icons.has(icon)) {
+          throw new Error(
+            `${rowLabel}.icon repeats "${icon}" — pictograph categories must be distinct`,
+          );
+        }
+        icons.add(icon);
+        const count = requiredInteger(row.count, `${rowLabel}.count`);
+        if (count < 1 || count > PICTOGRAPH_MAX_COUNT) {
+          throw new Error(
+            `${rowLabel}.count must be in [1, ${PICTOGRAPH_MAX_COUNT}] (one picture = one value)`,
+          );
+        }
+        const parsed: PictographRow = {
+          icon,
+          label_zh: requiredString(row.label_zh, `${rowLabel}.label_zh`),
+          count,
+        };
+        if (row.label_en !== undefined) {
+          parsed.label_en = requiredString(row.label_en, `${rowLabel}.label_en`);
+        }
+        return parsed;
+      });
+      return { kind: "pictograph", rows };
+    }
     default:
       throw new Error(`${label}.kind must be one of: ${FIGURE_KINDS.join(", ")}`);
   }
@@ -244,4 +456,18 @@ export function tenFrameFrames(filled: number): number[] {
 /** Total of a coins figure in sen (validated ≤ COINS_MAX_TOTAL_SEN). */
 export function coinsTotalSen(coins: readonly number[]): number {
   return coins.reduce((total, coin) => total + coin, 0);
+}
+
+/** Per-rod digits of an abacus value, high rod first: 7 → [0, 7],
+ * 40 → [4, 0]. The renderer labels the rods 十位 / 个位. */
+export function abacusDigits(value: number): [number, number] {
+  return [Math.floor(value / 10), value % 10];
+}
+
+/** Bead engagement for one 1:4 rod showing `digit` (0..9): the heaven bead
+ * (worth 5) is engaged at 5+, and `digit % 5` of the four earth beads are
+ * engaged. Engaged beads are drawn touching the beam; the rest park at the
+ * frame edge. */
+export function abacusBeads(digit: number): { heaven: boolean; earth: number } {
+  return { heaven: digit >= 5, earth: digit % 5 };
 }

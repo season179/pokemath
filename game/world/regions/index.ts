@@ -122,6 +122,9 @@ export const REGION_TOPICS: Readonly<Record<string, readonly string[]>> = {
   "meadow/woolly": ["4.1"], // whole numbers to 100; ten-frame bonds (#17)
   "meadow/ticktock": ["4.4"], // time & calendar (#19)
   "meadow/orchard": ["4.2", "4.3"], // arithmetic & fruit-stand money (#18)
+  "meadow/gardens": ["4.6"], // space & shapes: 2D shapes, repeating patterns (#20)
+  "meadow/barn": ["4.5", "4.6"], // non-standard measure + the shared shapes slice (#20)
+  "meadow/festival": ["4.7"], // data handling: pictographs & classification (#20)
 };
 
 /** The topic served in regions with no arc of their own yet. */

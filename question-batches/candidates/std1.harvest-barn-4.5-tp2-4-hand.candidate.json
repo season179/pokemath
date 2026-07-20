@@ -1,0 +1,598 @@
+{
+  "schema_version": 2,
+  "bank_id": "std1.harvest-barn",
+  "version": 1,
+  "source": "Hand-authored for the M5 visual-math arcs (issue #20): the Harvest Barn & Mill arc — non-standard measurement only (no cm/kg/ℓ, no scaled instruments), the marble balance, and the miller's 1:4 abacus (representation only, scope doc §3; the abacus items ride the Barn's measurement slice per the issue's Barn assignment — flagged in the review doc). Scope: docs/curriculum/standard-1-sjkc-math.md §2 + §4.5; formats: standard-1-question-style.md §A/§C.5/§D.",
+  "currency": "RM",
+  "profile": "dpk3_2026_core",
+  "scope": "standard-1-sjkc-math §2 (hard constraints) + §4.5 (度量衡: non-standard units for length/mass/volume); TP2–TP4 (Harvest Barn & Mill)",
+  "questions": [
+    {
+      "id": 101,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:measure",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "这支铅笔大约长几个回形针？",
+      "question_en": "About how many paper clips long is this pencil?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "✏️",
+        "unit": "📎",
+        "count": 5
+      }
+    },
+    {
+      "id": 102,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:measure",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "8",
+      "answer": 8,
+      "bilingual": {
+        "numeral": "8",
+        "zh_word": "八"
+      },
+      "question_zh": "谷仓的门大约宽几个脚掌？",
+      "question_en": "About how many footprints wide is the barn door?",
+      "distractors": [
+        {
+          "value": 7,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 10,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "🚪",
+        "unit": "🦶",
+        "count": 8
+      }
+    },
+    {
+      "id": 103,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:measure",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "大约几杯水能装满这个桶？",
+      "question_en": "About how many cups of water fill this pail?",
+      "distractors": [
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "🪣",
+        "unit": "🥤",
+        "count": 4
+      }
+    },
+    {
+      "id": 104,
+      "topic": "4.5",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:measure",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "7",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "这个南瓜大约重几颗玻璃弹珠？",
+      "question_en": "About how many glass marbles heavy is this pumpkin?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 9,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "🎃",
+        "unit": "🔮",
+        "count": 7
+      }
+    },
+    {
+      "id": 105,
+      "topic": "4.5",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "figure:measure",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "8 - 6",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "锄头长 8 个回形针，铲子长 6 个回形针。锄头比铲子长几个回形针？",
+      "question_en": "The hoe is 8 paper clips long and the spade is 6. How many paper clips longer is the hoe?",
+      "distractors": [
+        {
+          "value": 14,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 6,
+          "strategy": "raw-operand"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "⛏️",
+        "unit": "📎",
+        "count": 8
+      }
+    },
+    {
+      "id": 106,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:measure",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6 > 3",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：丝带长 6 个回形针，橡皮长 3 个回形针，丝带比较长",
+      "question_en": "Mark ✓ for true and ✗ for false: the ribbon is 6 paper clips long, the eraser is 3 — the ribbon is longer",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "more-fewer-flip"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "🎀",
+        "unit": "📎",
+        "count": 6
+      }
+    },
+    {
+      "id": 107,
+      "topic": "4.5",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "order-sequence",
+      "presentation": "plain",
+      "answer_form": "ordering",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "2 < 6 < 10",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "水杯能装 2 杯水，脸盆能装 6 杯，水桶能装 10 杯。从装得最少到最多排列。",
+      "question_en": "A cup holds 2 cupfuls, a basin 6, a bucket 10. Arrange them from least to most.",
+      "distractors": [],
+      "sequence": {
+        "direction": "ascending",
+        "items": [
+          {
+            "value": 2
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": 108,
+      "topic": "4.5",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "picture-sentence",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "addition",
+      "expression": "5 + 5 + 5",
+      "answer": 15,
+      "bilingual": {
+        "numeral": "15",
+        "zh_word": "十五"
+      },
+      "question_zh": "1 本故事书大约 5 枚回形针长，3 本故事书排成一排，大约长多少枚回形针？",
+      "question_en": "One storybook is about 5 paper clips long. About how many paper clips long are 3 storybooks in a row?",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "count-all-vs-add"
+        },
+        {
+          "value": 53,
+          "strategy": "no-carry-concat"
+        },
+        {
+          "value": 16,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 109,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "compare",
+      "presentation": "figure:measure",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "6 - 4",
+      "answer": 2,
+      "bilingual": {
+        "numeral": "2",
+        "zh_word": "二"
+      },
+      "question_zh": "一瓶牛奶能倒 4 杯，一壶果汁能倒 6 杯。果汁比牛奶多几杯？",
+      "question_en": "A milk bottle pours 4 cups and a juice jug pours 6. How many more cups does the juice make?",
+      "distractors": [
+        {
+          "value": 10,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 4,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 3,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "measure",
+        "object": "🧃",
+        "unit": "🥤",
+        "count": 6
+      }
+    },
+    {
+      "id": 110,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:abacus",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "24",
+      "answer": 24,
+      "bilingual": {
+        "numeral": "24",
+        "zh_word": "二十四"
+      },
+      "question_zh": "磨坊主在算盘上拨出今天磨的面粉袋数。算盘表示的数目是多少？",
+      "question_en": "The miller beads today's bags of flour on the abacus. What number does the abacus show?",
+      "distractors": [
+        {
+          "value": 42,
+          "strategy": "digit-reversal"
+        },
+        {
+          "value": 4,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 34,
+          "strategy": "place-value-slip"
+        }
+      ],
+      "figure": {
+        "kind": "abacus",
+        "value": 24
+      }
+    },
+    {
+      "id": 111,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:abacus",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "7",
+      "answer": 7,
+      "bilingual": {
+        "numeral": "7",
+        "zh_word": "七"
+      },
+      "question_zh": "算盘表示的数目是多少？",
+      "question_en": "What number does the abacus show?",
+      "distractors": [
+        {
+          "value": 70,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 6,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 8,
+          "strategy": "off-by-one-count"
+        }
+      ],
+      "figure": {
+        "kind": "abacus",
+        "value": 7
+      }
+    },
+    {
+      "id": 112,
+      "topic": "4.5",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:abacus",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "40",
+      "answer": 40,
+      "bilingual": {
+        "numeral": "40",
+        "zh_word": "四十"
+      },
+      "question_zh": "算盘表示的数目是多少？",
+      "question_en": "What number does the abacus show?",
+      "distractors": [
+        {
+          "value": 4,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 30,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 50,
+          "strategy": "place-value-slip"
+        }
+      ],
+      "figure": {
+        "kind": "abacus",
+        "value": 40
+      }
+    },
+    {
+      "id": 113,
+      "topic": "4.5",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:abacus",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "5",
+      "answer": 5,
+      "bilingual": {
+        "numeral": "5",
+        "zh_word": "五"
+      },
+      "question_zh": "算盘上，十位上的数是几？",
+      "question_en": "On the abacus, what is the digit in the tens place?",
+      "distractors": [
+        {
+          "value": 6,
+          "strategy": "place-value-slip"
+        },
+        {
+          "value": 56,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 50,
+          "strategy": "place-value-slip"
+        }
+      ],
+      "figure": {
+        "kind": "abacus",
+        "value": 56
+      }
+    },
+    {
+      "id": 114,
+      "topic": "4.5",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "word-single",
+      "presentation": "story",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "12 - 8",
+      "answer": 4,
+      "bilingual": {
+        "numeral": "4",
+        "zh_word": "四"
+      },
+      "question_zh": "一袋苹果和 12 颗玻璃弹珠一样重，一个南瓜和 8 颗一样重。苹果袋比南瓜重几颗玻璃弹珠？",
+      "question_en": "A bag of apples balances 12 glass marbles; a pumpkin balances 8. How many marbles heavier is the bag?",
+      "distractors": [
+        {
+          "value": 20,
+          "strategy": "wrong-operation"
+        },
+        {
+          "value": 8,
+          "strategy": "raw-operand"
+        },
+        {
+          "value": 5,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    },
+    {
+      "id": 115,
+      "topic": "4.5",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "true-false",
+      "presentation": "figure:balance",
+      "answer_form": "true-false",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "9 > 6",
+      "answer": 1,
+      "bilingual": {
+        "numeral": "1",
+        "zh_word": "一"
+      },
+      "question_zh": "对的画 ✓，错的画 ✗：剪刀和 6 颗玻璃弹珠一样重，锤子和 9 颗一样重，锤子比较重",
+      "question_en": "Mark ✓ for true and ✗ for false: scissors balance 6 marbles, a hammer balances 9 — the hammer is heavier",
+      "distractors": [
+        {
+          "value": 0,
+          "strategy": "more-fewer-flip"
+        }
+      ]
+    },
+    {
+      "id": 116,
+      "topic": "4.5",
+      "tp_level": 4,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "classify-sort",
+      "presentation": "plain",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "3",
+      "answer": 3,
+      "bilingual": {
+        "numeral": "3",
+        "zh_word": "三"
+      },
+      "question_zh": "下面这些东西里，能用来量水的有几个：水杯、勺子、锄头、水桶。",
+      "question_en": "How many of these can measure water: a cup, a ladle, a hoe, a bucket?",
+      "distractors": [
+        {
+          "value": 2,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 4,
+          "strategy": "off-by-one-count"
+        },
+        {
+          "value": 1,
+          "strategy": "off-by-one-count"
+        }
+      ]
+    }
+  ]
+}

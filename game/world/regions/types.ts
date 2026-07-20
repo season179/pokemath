@@ -75,6 +75,34 @@ export interface NpcDef {
    * `message` above is only a fallback for tooling.
    */
   readonly arcId?: string;
+  /**
+   * If set, this NPC gives the region's help-quest dialog (M5 topic arcs,
+   * issue #20): the ask before the area badge is earned, the thanks after.
+   * The region must declare `payoff`; the NPC's own `message` is unused.
+   */
+  readonly payoff?: boolean;
+}
+
+/**
+ * An area's session payoff (M5 topic arcs, issue #20): after `helps`
+ * successful wild resolutions (won or captured — fled and defeated never
+ * count) in this region, the area badge is awarded and the landmark visibly
+ * changes (painted by world/payoff-art.ts). The badge is the persistent
+ * quest record: it survives reload, and re-entering a helped region keeps
+ * the change. Helping again in a new session is always possible until the
+ * badge lands.
+ */
+export interface PayoffDef {
+  /** Badge id written to the save on completion; doubles as quest state. */
+  readonly badge: string;
+  /** Successful wild resolutions needed in this region (2–4 per the island plan). */
+  readonly helps: number;
+  /** The quest giver's ask, shown while the badge is unearned (bilingual). */
+  readonly quest: string;
+  /** Shown once the badge is held (bilingual). */
+  readonly thanks: string;
+  /** World notice at the moment the last help lands — the visible change. */
+  readonly changedNotice: string;
 }
 
 export type TileHandler = "heal" | "shop" | "workshop";
@@ -143,6 +171,8 @@ export interface RegionDef {
   readonly handlers?: Partial<Record<string, TileHandler>>;
   /** If present, tall-grass (`g`) tiles in this region can start wild battles. */
   readonly encounters?: EncounterTable;
+  /** The area's session payoff (M5, #20); omit for regions without one yet. */
+  readonly payoff?: PayoffDef;
 }
 
 export function regionW(def: RegionDef): number {

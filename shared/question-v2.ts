@@ -61,7 +61,9 @@ export const QUESTION_FORMAT_TYPES = [
 export type QuestionFormatType = (typeof QUESTION_FORMAT_TYPES)[number];
 
 /** Presentation axis (style doc §E): how the item is shown. figure:* values
- * name the declarative figure the FigureView kit (#16) will render. */
+ * name the declarative figure the FigureView kit renders (#16; the
+ * visual-math kinds — shapes, solids, abacus, measure, pictograph — landed
+ * with the topic arcs, #20). */
 export const QUESTION_PRESENTATIONS = [
   "plain",
   "picture",
@@ -73,6 +75,8 @@ export const QUESTION_PRESENTATIONS = [
   "figure:abacus",
   "figure:coins",
   "figure:shapes",
+  "figure:solids",
+  "figure:measure",
   "figure:pictograph",
   "figure:objects",
   "figure:balance",
