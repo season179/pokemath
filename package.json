@@ -11,6 +11,7 @@
     "review:question-batch": "node tools/review-question-batch.mjs",
     "import:questions": "node tools/import-question-batch.mjs",
     "report:learning": "node tools/render-learning-report.mjs",
+    "report:calibration": "node tools/render-calibration-report.mjs",
     "generate:creature": "node tools/generate-creature.mjs",
     "setup-art": "node tools/art-registry.mjs setup",
     "publish-art": "node tools/art-registry.mjs publish",

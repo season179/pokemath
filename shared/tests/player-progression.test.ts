@@ -6,6 +6,9 @@ import {
   PLAYER_LEVEL_FLOOR,
   PLAYER_XP_BASE,
   PLAYER_XP_GROWTH,
+  formatPlayerLevel,
+  formatPlayerProgress,
+  formatPlayerXpGain,
   legacyToPlayerProgress,
   levelForTotalXp,
   mintCreatureId,
@@ -95,4 +98,12 @@ test("mintCreatureId returns a unique non-empty string", () => {
 
 test("PLAYER_LEVEL_FLOOR is 1", () => {
   assert.equal(PLAYER_LEVEL_FLOOR, 1);
+});
+
+test("reward display formatters match the HUD and result card", () => {
+  const info = levelForTotalXp(23); // L2, 3/30
+  assert.equal(formatPlayerXpGain(6), "+6 XP");
+  assert.equal(formatPlayerLevel(info), "Lv 2");
+  assert.equal(formatPlayerProgress(info), "3/30");
+  assert.throws(() => formatPlayerXpGain(-1));
 });

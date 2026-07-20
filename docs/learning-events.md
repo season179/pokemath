@@ -84,13 +84,20 @@ land first.
 npx wrangler d1 execute pokemath-db --remote --json \
   --command "SELECT name, occurred_at, props_json FROM events" > /tmp/events.json
 npm run report:learning -- /tmp/events.json
+npm run report:calibration -- /tmp/events.json
 ```
 
-The report compares **predicted difficulty** (TP level ordering) with
+`report:learning` compares **predicted difficulty** (TP level ordering) with
 **observed outcomes** (correct rates by operation/topic/TP, battle
 abandonment, collection variety, voluntary stopping) and flags TP
 inversions — where a higher-TP band is answered *more* correctly than a
-lower one, the first place #25 calibration should look.
+lower one.
+
+`report:calibration` (#25) pairs the same events with the **configured**
+XP curve, level-gap, encounter tables, capture rates, and question-rank
+distribution, and opens with an evidence gate that keeps the shipped
+baseline until every signal is reviewable. Operator guide and desktop
+playtest worksheet: [calibration.md](calibration.md).
 
 ## Deploying the migration
 

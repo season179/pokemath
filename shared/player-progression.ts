@@ -50,6 +50,23 @@ export interface PlayerLevelInfo {
   span: number;
 }
 
+/** Pure display formatters shared by the HUD, result card, and calibration
+ * fixtures so the numbers approved in review are exactly what players see. */
+export function formatPlayerXpGain(gain: number): string {
+  if (!Number.isInteger(gain) || gain < 0) {
+    throw new Error(`formatPlayerXpGain: invalid gain ${gain}`);
+  }
+  return `+${gain} XP`;
+}
+
+export function formatPlayerLevel(info: PlayerLevelInfo): string {
+  return `Lv ${info.level}`;
+}
+
+export function formatPlayerProgress(info: PlayerLevelInfo): string {
+  return `${info.intoLevel}/${info.span}`;
+}
+
 /**
  * Inverse of totalXpForLevel: given a total XP total, return the resulting
  * level and how far it is into that level (for the XP bar). total=0 → level 1.
