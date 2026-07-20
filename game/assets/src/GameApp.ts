@@ -599,7 +599,7 @@ export class GameApp {
 
   // The world map is informational only (#30): opening it pauses world
   // movement (update() skips world.update while the screen is "map"), and the
-  // M key / HUD button are blocked while any other overlay (e.g. NameScreen)
+  // M key / mini-map tap are blocked while any other overlay (e.g. NameScreen)
   // is active. Closing returns to the world without respawning.
   private openMap(): void {
     if (this.screen !== "world" || this.nameScreen) return;
@@ -713,7 +713,7 @@ export class GameApp {
   }
 
   // Player name + sign-out in the bottom-right corner — whose adventure this
-  // is. A HUD chip (same cream panel as the Bag/Map buttons) so it stays
+  // is. A HUD chip (same cream panel as the Bag/Guide buttons) so it stays
   // readable over any world art; bare labels vanished against dark water.
   // The chip hugs its text — short names get a small chip, not a wide slab.
   // Tapping the name opens the name screen (names are changeable anytime).

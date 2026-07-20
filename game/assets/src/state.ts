@@ -87,8 +87,8 @@ export class GameState {
    * Award battle XP to the PLAYER (M2A, issue #7). The battle tallies
    * per-question XP as turns are answered, then applies the tally once here
    * on victory/capture — the number shown in the result panel IS the number
-   * written to the save. Returns the award (before/after level info +
-   * levelsGained) so the result panel can render the level-up state.
+   * written to the save. A level-up fully heals the active creature. Returns
+   * the award (before/after level info + levelsGained) for the result panel.
    */
   awardPlayerXp(gain: number): PlayerXpAward {
     const award = awardPlayerXp(this.player, gain);

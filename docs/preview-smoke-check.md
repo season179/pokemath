@@ -192,7 +192,7 @@ agent-browser --session "$SN" errors  --clear
 
 You should land in **Harbor Town** (pixel ground, buildings, the player and
 NPCs), with the bilingual `HARBOR TOWN · 港湾镇` toast at the top, the
-mini-map bottom-left, and Bag/Map buttons top-right — and **no blue on-screen
+tappable mini-map bottom-left, and Bag/Guide buttons top-right — and **no blue on-screen
 directional pad** anywhere (criterion 2; the only lower-left control is the
 mini-map).
 
@@ -403,14 +403,14 @@ mv ArrowDown 3                                                            # → 
 agent-browser --session "$SN" screenshot /tmp/smoke/07-minimap-tracks.png
 ```
 
-**World map.** Open with M and assert the overlay renders from the region
+**World map.** Tap the mini-map and assert the overlay renders from the region
 registry — every area a bilingual node, **all of them open since #9 (no
 padlocks anywhere)**, plus a legend and the current-region caption:
 
 ```bash
-agent-browser --session "$SN" press KeyM; agent-browser --session "$SN" wait 900
+tapnode "mini-map-touch-target"; agent-browser --session "$SN" wait 900
 ck meadow/woolly || exit 1
-agent-browser --session "$SN" screenshot /tmp/smoke/08-worldmap-open-M.png   # capture WHILE open
+agent-browser --session "$SN" screenshot /tmp/smoke/08-worldmap-open-minimap.png # capture WHILE open
 ```
 
 Assert `World Map · 世界地图`, the "Informational — explore on foot or by
@@ -420,7 +420,7 @@ ground all open (no padlock icons), and a caption `… · You are here! 你在�
 
 Movement **pauses** while open (press arrows — no-op) and there is **no fast
 travel** — tapping any node only changes the caption. Exercise every control
-(open via **M** and the **HUD Map button**; close via **M**, **Esc**, and the
+(open via **M** and the **mini-map**; close via **M**, **Esc**, and the
 **Close button**):
 
 ```bash
@@ -429,7 +429,7 @@ tapnode "node-meadow/gardens"                                          # open no
 ck meadow/woolly || exit 1                                                       # region unchanged
 agent-browser --session "$SN" wait 400
 agent-browser --session "$SN" press KeyM; agent-browser --session "$SN" wait 500   # close via M
-taplabel "Map";   agent-browser --session "$SN" wait 800               # reopen via the HUD Map button
+tapnode "mini-map-touch-target"; agent-browser --session "$SN" wait 800 # reopen via the mini-map
 taplabel "Close"; agent-browser --session "$SN" wait 500               # close via the Close button
 agent-browser --session "$SN" press KeyM;   agent-browser --session "$SN" wait 800   # reopen
 agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 500   # close via Esc
@@ -570,7 +570,7 @@ check passed with any box unchecked.
       `07` shows the dot moving; `08` captured while open with **every node
       open (no padlocks since #9)**; movement paused while open; an
       open-node tap (`node-meadow/gardens`) gave the `Open — wild creatures
-      about!` caption only; opened via **M** and the **HUD Map button**,
+      about!` caption only; opened via **M** and the **mini-map**,
       closed via **M**, **Esc**, and the **Close button**.
 - [ ] **6 — Return via Dock, sail home** — `10..11` show the Dock then Harbor
       arrival toasts after the return trip.

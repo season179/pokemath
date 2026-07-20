@@ -4,8 +4,8 @@
 // Nodes, connections, labels, and lock state all derive from the pure
 // world-map graph (./world-map), which in turn derives them from the region
 // registry and the open/encounter scope helpers — so this screen owns no
-// geography of its own. Opening it is the job of GameApp (the M key and the
-// HUD button); this screen renders itself and signals close via onBack.
+// geography of its own. Opening it is the job of GameApp (the M key or a
+// mini-map tap); this screen renders itself and signals close via onBack.
 
 import { Color, EventKeyboard, Graphics, KeyCode, Label, Node, UITransform } from "cc";
 import { PALETTE, makeButton, makeLabel, makePanel, makeRect } from "../ui";

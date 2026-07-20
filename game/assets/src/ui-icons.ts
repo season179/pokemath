@@ -36,50 +36,6 @@ export function paintBagIcon(g: Graphics, size: number): void {
   g.stroke();
 }
 
-// A folded paper map with a pin — the world-map HUD button (#30).
-export function paintMapIcon(g: Graphics, size: number): void {
-  const half = size / 2;
-
-  g.fillColor = new Color(255, 245, 220, 255);
-  g.strokeColor = INK;
-  g.lineWidth = Math.max(2, size * 0.08);
-  g.roundRect(-half * 0.8, -half * 0.62, size * 0.8, size * 0.66, size * 0.1);
-  g.fill();
-  g.stroke();
-
-  // fold creases
-  g.moveTo(-half * 0.25, -half * 0.62);
-  g.lineTo(-half * 0.25, size * 0.04);
-  g.moveTo(half * 0.22, -half * 0.62);
-  g.lineTo(half * 0.22, size * 0.04);
-  g.stroke();
-
-  // a wandering road
-  g.strokeColor = new Color(126, 145, 80, 255);
-  g.lineWidth = Math.max(2, size * 0.07);
-  g.moveTo(-half * 0.6, -half * 0.4);
-  g.bezierCurveTo(-half * 0.1, -half * 0.5, half * 0.1, -half * 0.05, half * 0.55, -half * 0.32);
-  g.stroke();
-
-  // location pin: a triangular point below a head circle (teardrop) — drawn
-  // only with circle + lines so the shape is unambiguous at small sizes.
-  g.fillColor = BALL;
-  g.strokeColor = INK;
-  g.lineWidth = Math.max(1.5, size * 0.05);
-  g.moveTo(0, size * 0.02);
-  g.lineTo(-size * 0.11, size * 0.17);
-  g.lineTo(size * 0.11, size * 0.17);
-  g.close();
-  g.fill();
-  g.stroke();
-  g.circle(0, size * 0.21, size * 0.13);
-  g.fill();
-  g.stroke();
-  g.fillColor = LIGHT;
-  g.circle(0, size * 0.21, size * 0.05);
-  g.fill();
-}
-
 // An open field-guide book — the Field Guide HUD button (#5).
 export function paintGuideIcon(g: Graphics, size: number): void {
   const half = size / 2;

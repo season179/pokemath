@@ -9,6 +9,7 @@
 
 import {
   Color,
+  EventTouch,
   Graphics,
   Label,
   Node,
@@ -62,7 +63,7 @@ import {
 import { paintAreaPayoff } from "./payoff-art";
 import { GameState } from "../state";
 import { PALETTE, destroyChildren, makeButton, makeLabel, makePanel, makeRect, makeWrappedLabel } from "../ui";
-import { paintBagIcon, paintGuideIcon, paintMapIcon } from "../ui-icons";
+import { paintBagIcon, paintGuideIcon } from "../ui-icons";
 import { colorFromHex } from "../creature-art";
 import { makeCreaturePortrait } from "../creature-portrait";
 import { loadPixelTexture, pixelFrame } from "../remote-art";
@@ -119,7 +120,7 @@ export interface WorldActions {
   onEncounter: (wild: Creature) => void;
   /** True once the current region's reviewed question bank has loaded and battles may start. */
   encounterReady: () => boolean;
-  /** Open the informational world map overlay (M key / HUD button). */
+  /** Open the informational world map (M key / mini-map tap). */
   onMap: () => void;
   /** Open the Field Guide overlay (G key / HUD button, issue #5). */
   onGuide: () => void;
@@ -1298,32 +1299,11 @@ export class WorldScreen {
     makeLabel(bag, "Bag [B]", 0, -17, { fontSize: 9, color: PALETTE.sub });
     bag.on(Node.EventType.TOUCH_END, this.actions.onBag);
 
-    // Visible desktop control that opens the world map (#30). The M key is
-    // the keyboard equivalent, routed by GameApp.
-    const mapBtn = makePanel(
-      this.hudLayer,
-      size.width / 2 - 107,
-      size.height / 2 - 47,
-      54,
-      54,
-      {
-        fill: new Color(255, 253, 245, 230),
-        stroke: PALETTE.panelStroke,
-        lineWidth: 3,
-      },
-    );
-    const mapIcon = new Node("map-icon");
-    mapIcon.parent = mapBtn;
-    mapIcon.setPosition(0, 4);
-    paintMapIcon(mapIcon.addComponent(Graphics), 30);
-    makeLabel(mapBtn, "Map [M]", 0, -17, { fontSize: 9, color: PALETTE.sub });
-    mapBtn.on(Node.EventType.TOUCH_END, this.actions.onMap);
-
-    // Field Guide HUD chip (#5) — same family as Bag/Map; the G key is the
+    // Field Guide HUD chip (#5) — same family as Bag; the G key is the
     // keyboard equivalent, routed by GameApp.
     const guideBtn = makePanel(
       this.hudLayer,
-      size.width / 2 - 167,
+      size.width / 2 - 107,
       size.height / 2 - 47,
       54,
       54,
@@ -1404,8 +1384,9 @@ export class WorldScreen {
   /**
    * Compact local map in the bottom-left HUD corner. Pure view of the current
    * region: walkable route shape, exits (green = open, amber = sealed,
-   * grey = reserved pocket), the ferry captain, and a live player dot. It never
-   * overlaps the creature card (top-left) or the bag/map buttons (top-right).
+   * grey = reserved pocket), the ferry captain, and a live player dot. Tapping
+   * it opens the world map. It never overlaps the creature card (top-left) or
+   * the bag/guide buttons (top-right).
    */
   private buildMiniMap() {
     const size = view.getVisibleSize();
@@ -1419,7 +1400,9 @@ export class WorldScreen {
       MH,
       { fill: new Color(255, 253, 245, 218), stroke: PALETTE.panelStroke, lineWidth: 3 },
     );
-    const title = makeLabel(panel, this.def.title, 0, MH / 2 - 15, { fontSize: 14 });
+    const title = makeLabel(panel, `${this.def.title}  ·  Tap [M]`, 0, MH / 2 - 15, {
+      fontSize: 14,
+    });
     title.horizontalAlign = Label.HorizontalAlign.CENTER;
     title.overflow = Label.Overflow.SHRINK;
     title.node.getComponent(UITransform)!.setContentSize(MW - 16, 20);
@@ -1488,6 +1471,16 @@ export class WorldScreen {
     this.updateMiniPlayer();
 
     this.buildMiniLegend(panel, MW, MH);
+
+    // A topmost transparent hit area makes the whole mini-map reliably
+    // tappable even where child UITransforms would otherwise win hit-testing.
+    const touchTarget = new Node("mini-map-touch-target");
+    touchTarget.parent = panel;
+    touchTarget.addComponent(UITransform).setContentSize(MW, MH);
+    touchTarget.on(Node.EventType.TOUCH_END, (event: EventTouch) => {
+      event.propagationStopped = true;
+      this.actions.onMap();
+    });
   }
 
   private miniDot(g: Graphics, x: number, y: number, r: number, color: Color) {
