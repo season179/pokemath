@@ -260,9 +260,14 @@ test("topic arcs: encounter regions serve their own curriculum topics (#18/#19)"
   assert.deepEqual(topicsForRegion("meadow/ticktock"), ["4.4"]);
   // The orchard arc battles from two merged topics: arithmetic + money.
   assert.deepEqual(topicsForRegion("meadow/orchard"), ["4.2", "4.3"]);
+  // The #20 visual-math arcs: the Barn merges its measurement slice with
+  // the Gardens' shared shapes slice (solids are honestly 4.6 content).
+  assert.deepEqual(topicsForRegion("meadow/gardens"), ["4.6"]);
+  assert.deepEqual(topicsForRegion("meadow/barn"), ["4.5", "4.6"]);
+  assert.deepEqual(topicsForRegion("meadow/festival"), ["4.7"]);
   // Regions without an arc yet keep the Woolly default, and the harbor
   // (never encounter-capable) defaults harmlessly too.
-  assert.deepEqual(topicsForRegion("meadow/festival"), [DEFAULT_REGION_TOPIC]);
+  assert.deepEqual(topicsForRegion("meadow/stones"), [DEFAULT_REGION_TOPIC]);
   assert.deepEqual(topicsForRegion("harbor"), [DEFAULT_REGION_TOPIC]);
   // Every mapped region hosts encounters.
   for (const id of Object.keys(REGION_TOPICS)) {
@@ -276,6 +281,37 @@ test("ticktock arc payoff constants stay honest (#19)", () => {
   // The clue is bilingual and names the knoll's mascot line (咕咕/Owlet).
   assert.match(TICKTOCK_ARC_CLUE, /咕咕/);
   assert.match(TICKTOCK_ARC_CLUE, /Owlet/);
+});
+
+test("M5 topic arcs (#20): routed topics name real curriculum topics", () => {
+  const TOPICS = ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "extra"];
+  for (const topics of Object.values(REGION_TOPICS)) {
+    for (const topic of topics) {
+      assert.ok(TOPICS.includes(topic), `REGION_TOPICS routes unknown topic ${topic}`);
+    }
+  }
+});
+
+test("M5 topic arcs (#20): payoff regions are coherent and completable", () => {
+  for (const def of Object.values(REGIONS)) {
+    const payoffNpcs = def.npcs.filter((npc) => npc.payoff);
+    if (!def.payoff) {
+      assert.equal(payoffNpcs.length, 0, `${def.id} has a payoff NPC but no payoff def`);
+      continue;
+    }
+    assert.equal(payoffNpcs.length, 1, `${def.id} has exactly one payoff NPC`);
+    // The island session shape: 2–4 battles plus the payoff.
+    assert.ok(def.payoff.helps >= 1 && def.payoff.helps <= 4, `${def.id} helps fits a 10–15 minute visit`);
+    assert.ok(def.payoff.badge.length > 0, `${def.id} payoff needs a badge id`);
+    assert.ok(def.payoff.quest.length > 0, `${def.id} payoff needs quest copy`);
+    assert.ok(def.payoff.thanks.length > 0, `${def.id} payoff needs thanks copy`);
+    assert.ok(def.payoff.changedNotice.length > 0, `${def.id} payoff needs the change notice`);
+    // Help battles must actually be possible here: encounters on, a table
+    // present, and a routed topic declared (REGION_TOPICS, not the default).
+    assert.ok(isEncounterRegion(def.id), `${def.id} payoff needs encounters enabled`);
+    assert.ok(def.encounters, `${def.id} payoff needs an encounter table`);
+    assert.notDeepEqual(topicsForRegion(def.id), [DEFAULT_REGION_TOPIC], `${def.id} payoff needs its own topic route`);
+  }
 });
 
 test("a sealed wired gateway falls back to the bilingual opens-later notice", () => {

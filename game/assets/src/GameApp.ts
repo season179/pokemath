@@ -23,6 +23,7 @@ import {
   TICKTOCK_ARC_WINS,
   isEncounterRegion,
   isOpenRegion,
+  region,
   topicsForRegion,
 } from "./world/regions/index";
 import { WorldScreen, WorldActions } from "./world/WorldScreen";
@@ -87,6 +88,12 @@ export class GameApp {
   // Ticktock arc progress (#19): session counter toward the re-chime badge.
   private ticktockWins = 0;
   private arcBadgeJustAwarded = false;
+  // Area help-quest progress (#20): session counts of calm wild resolutions
+  // per region, toward that region's PayoffDef badge. Session-only by
+  // design — the badge is the persistent record; mid-quest progress may
+  // reset on reload, completion never does.
+  private helpCounts = new Map<string, number>();
+  private payoffJustAwarded: string | null = null;
   // The in-flight scripted arc battle's terminal outcome (#17): onOutcome
   // always fires before the exit callback, so endArcBattle reads it here.
   private arcOutcome: BattleOutcome | null = null;
@@ -312,12 +319,28 @@ export class GameApp {
   // pays off in gold, and the habitat clue is revealed on battle exit.
   private trackArcOutcome(outcome: BattleOutcome): void {
     if (outcome !== "won" && outcome !== "captured") return;
+    this.recordHelp(this.world.regionId);
     if (this.world.regionId !== "meadow/ticktock") return;
     if (this.state.hasBadge(TICKTOCK_ARC_BADGE)) return;
     this.ticktockWins += 1;
     if (this.ticktockWins >= TICKTOCK_ARC_WINS && this.state.awardBadge(TICKTOCK_ARC_BADGE)) {
       this.arcBadgeJustAwarded = true;
     }
+  }
+
+  /**
+   * Area help quests (#20): a region declaring `payoff` counts won/captured
+   * wild resolutions here; the `helps`-th one awards the area badge and the
+   * world repaints (WorldScreen.refreshArcPayoff) with the payoff notice
+   * shown on battle exit. Fled and defeated never count.
+   */
+  private recordHelp(regionId: string): void {
+    const payoff = region(regionId).payoff;
+    if (!payoff || this.state.hasBadge(payoff.badge)) return;
+    const helps = (this.helpCounts.get(regionId) ?? 0) + 1;
+    this.helpCounts.set(regionId, helps);
+    if (helps < payoff.helps) return;
+    if (this.state.awardBadge(payoff.badge)) this.payoffJustAwarded = payoff.changedNotice;
   }
 
   private endBattle(respawn: boolean): void {
@@ -327,6 +350,11 @@ export class GameApp {
     if (this.arcBadgeJustAwarded) {
       this.arcBadgeJustAwarded = false;
       this.world.showNotice(TICKTOCK_ARC_CLUE);
+    }
+    if (this.payoffJustAwarded) {
+      const notice = this.payoffJustAwarded;
+      this.payoffJustAwarded = null;
+      this.world.showNotice(notice);
     }
     this.checkpoint();
   }

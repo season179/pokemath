@@ -18,7 +18,7 @@ export const MEADOW_GARDENS: RegionDef = {
     "T...fffffggggg...............T",
     "T...fffffggggg....ffffff.....T",
     "T...fffffggggg....ffffff.....T",
-    "T.......p.........ffffff.....T",
+    "T.......p........Nffffff.....T",
     "T.......p....................T",
     "T...fffffggggg...............T",
     "T...fffffggggg....ffffff.....T",
@@ -34,7 +34,31 @@ export const MEADOW_GARDENS: RegionDef = {
     "TTTTTTTTTTTTTTT.TTTTTTTTTTTTTT",
   ],
   spawn: { x: 8, y: 1 },
-  npcs: [guide(10, 1, "characters/character_5/character05-sheet.png")],
+  npcs: [
+    guide(10, 1, "characters/character_5/character05-sheet.png"),
+    // The topic-arc payoff NPC (M5, #20): Gardener Po tends the pattern
+    // beds beside the east bed block.
+    {
+      x: 17,
+      y: 6,
+      name: "Gardener Po 园丁婆婆",
+      message: "", // payoff NPC — the dialog comes from `payoff` below
+      characterSheet: "characters/character_7/character07-sheet.png",
+      payoff: true,
+    },
+  ],
+  // M5 topic arc (#20): the Gardens serve space & shapes — 2D shapes and
+  // repeating patterns (routed in REGION_TOPICS, world/regions/index.ts).
+  payoff: {
+    badge: "meadow-gardens-helped",
+    helps: 3,
+    quest:
+      "The pattern beds lost their last row to the rain! Help 3 wild friends in the grass with their math, and my flowerbeds will bloom again. 花坛的最后一排被雨打乱了！去草丛里帮助 3 只野生小伙伴答题，花坛就会重新开满花。",
+    thanks:
+      "Look at the beds — every pattern in bloom! Thank you, little helper. 看这些花坛——每排图案都开满了！谢谢你，小帮手。",
+    changedNotice:
+      "The flowerbeds burst into bloom — every pattern complete! 花坛开满了花——每排图案都完成了！",
+  },
   // M2B roster (issue #9): Mothling anchors the garden beds (the slate calls
   // this the best place to meet all three of its stages). Weights sum to 100
   // (percentages); membership and rarity match the MEADOW_HABITATS rows for
