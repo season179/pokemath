@@ -11,13 +11,17 @@ import {
   QuestionRound,
   QuestionTurn,
   correctAnswerDamage,
+  createUniqueHunt,
   isOrdering,
   playerXpForTurn,
   prizeMoney,
   resultFeedback,
   rollDamage,
+  settleUniqueQuestion,
   turnsOf,
   type PlayerXpAward,
+  type SpeciesRarity,
+  type UniqueHuntState,
 } from "../../shared/index";
 import { GameState } from "../state";
 import { colorFromHex } from "../creature-art";
@@ -52,7 +56,7 @@ interface BattleResult {
   award: PlayerXpAward;
 }
 
-export type BattleOutcome = "won" | "captured" | "fled" | "defeated";
+export type BattleOutcome = "won" | "captured" | "fled" | "escaped" | "defeated";
 
 export interface BattleActions {
   onExit: () => void;
@@ -62,14 +66,10 @@ export interface BattleActions {
   onOutcome?: (outcome: BattleOutcome) => void;
 }
 
-/** Per-battle rule overrides (GameApp passes them for scripted beats). */
+/** Species rules for this battle (resolved by GameApp's registry lookup). */
 export interface BattleOptions {
-  /**
-   * False only for a Unique guardian (#21): an ordinary ball never holds
-   * it — throwBall refuses BEFORE spending a ball, telegraphing #22's
-   * trust-capture path. Omit for ordinary battles (catchable).
-   */
-  capturable?: boolean;
+  /** `guardian` is Meadow's authored Unique; every other rarity stays calm. */
+  rarity?: SpeciesRarity;
 }
 
 export class BattleScreen {
@@ -89,6 +89,9 @@ export class BattleScreen {
   private bossTurns: QuestionTurn[] | null = null;
   private bossIndex = 0;
   private switchForced = false;
+  // Null for every ordinary rarity. Unique pressure is battle-local: time
+  // never changes it, only a submitted question does.
+  private uniqueHunt: UniqueHuntState | null = null;
   // Per-battle question tallies for the battle_outcome event (#24).
   private asked = 0;
   private answeredCorrect = 0;
@@ -102,7 +105,12 @@ export class BattleScreen {
     private telemetry: TelemetrySink = NULL_SINK,
     private options: BattleOptions = {},
   ) {
-    const intro = [`A wild ${wild.name} appeared!`];
+    this.uniqueHunt = createUniqueHunt(options.rarity ?? "common");
+    const intro = this.uniqueHunt
+      ? [
+          `${wild.name} is curious, but may fly away after ${this.uniqueHunt.actionsLeft} questions. Earn ${this.uniqueHunt.trustMax} trust to befriend it! 天马很好奇，但答完 ${this.uniqueHunt.actionsLeft} 题后可能飞走。获得 ${this.uniqueHunt.trustMax} 点信任吧！`,
+        ]
+      : [`A wild ${wild.name} appeared!`];
     if (wild.boss) intro.push("It asks tricky problems — solve them step by step!");
     this.say(intro, () => this.showMenu());
   }
@@ -188,6 +196,33 @@ export class BattleScreen {
       ...(turn.question.tp_level !== undefined ? { tp: turn.question.tp_level } : {}),
       ...(turn.step !== null ? { step: turn.stepIndex, steps: turn.stepCount } : {}),
     });
+
+    // Unique pressure (#22): only a submitted answer spends a flee action,
+    // never wall-clock thinking. Trust is flat friendship, not mastery.
+    if (this.uniqueHunt) {
+      const settled = settleUniqueQuestion(this.uniqueHunt, correct);
+      this.uniqueHunt = settled.state;
+      if (correct) {
+        this.earnedXp += playerXpForTurn(turn, this.state.playerLevel, this.wild.level);
+      }
+      const messages = [resultFeedback(turn, correct)];
+      if (correct) {
+        messages.push(
+          `Trust ${this.uniqueHunt.trust}/${this.uniqueHunt.trustMax} · ${this.uniqueHunt.actionsLeft} questions left. 信任 ${this.uniqueHunt.trust}/${this.uniqueHunt.trustMax} · 还剩 ${this.uniqueHunt.actionsLeft} 题。`,
+        );
+      } else {
+        messages.push(
+          `Still shy… ${this.uniqueHunt.actionsLeft} questions left. 还在害羞……还剩 ${this.uniqueHunt.actionsLeft} 题。`,
+        );
+      }
+      this.say(messages, () => {
+        if (settled.outcome === "captured") this.finishTrustCapture();
+        else if (settled.outcome === "escaped") this.uniqueEscapes();
+        else this.showMenu();
+      });
+      return;
+    }
+
     if (!correct) {
       this.say([resultFeedback(turn, false)], () => this.wildAttack());
       return;
@@ -265,13 +300,12 @@ export class BattleScreen {
   }
 
   private throwBall(): void {
-    // Unique guardian (#21): an ordinary ball never holds it — refused
-    // BEFORE any ball is spent. The refusal telegraphs the real path:
-    // trust, not luck (#22's trust capture).
-    if (this.options.capturable === false) {
+    // Unique hunt (#22): ordinary balls never hold a Unique. The refusal
+    // spends neither a ball nor a flee action — trust is the only path.
+    if (this.uniqueHunt) {
       this.say(
         [
-          `The ball melts into mist — ${this.wild.name} can't be caught that way! It only follows a friend it trusts. 精灵球化成了雾——天马不会被球收服！它只跟随信任的朋友。`,
+          `The ball melts into mist — ${this.wild.name} only follows a friend it trusts. 精灵球化成了雾——天马只跟随信任的朋友。`,
         ],
         () => this.showMenu(),
       );
@@ -321,18 +355,61 @@ export class BattleScreen {
     }
     this.state.bag.potion--;
     const healed = this.state.active.heal(POTION_HEAL);
-    this.say([`Glug glug! ${this.state.active.name} healed ${healed} HP!`], () => this.wildAttack());
+    // Unique hunts have no combat math: only a submitted answer moves the
+    // pressure state. Healing is free bookkeeping, never a counter-attack.
+    this.say([`Glug glug! ${this.state.active.name} healed ${healed} HP!`], () => {
+      if (this.uniqueHunt) this.showMenu();
+      else this.wildAttack();
+    });
   }
 
   private runAway(): void {
     // Battle abandonment (#24): the healthy-stopping counterpart to wins.
+    // On a Unique hunt this is the player's choice; the guardian's own
+    // departure uses uniqueEscapes() → "escaped".
     this.emitOutcome("fled");
     this.say(["Got away safely!"], this.actions.onExit);
   }
 
-  // One terminal outcome per battle, guaranteed by the guard. The four
-  // endings: won (giveRewards), captured (throwBall), fled (runAway),
-  // defeated (all-fainted branch of wildAttack above).
+  /** Full trust: the Unique joins without a ball, for the answered XP only. */
+  private finishTrustCapture(): void {
+    const outcome = this.state.capture(this.wild);
+    this.telemetry.emit("creature_captured", { speciesId: this.wild.speciesId! });
+    this.emitOutcome("captured");
+    const award = this.state.awardPlayerXp(this.earnedXp);
+    const subtitle =
+      outcome === "joined-team"
+        ? `${this.wild.name} trusts you and joined your team! 信任你了，加入了队伍！`
+        : `${this.wild.name} trusts you and joined your collection! 信任你了，加入了收藏！`;
+    this.showResult(
+      { title: "A new friend! 新朋友！", subtitle, xpGain: this.earnedXp, prize: null, award },
+      this.actions.onExit,
+    );
+  }
+
+  /**
+   * The Unique flies off with trust unfinished. XP for the questions already
+   * answered still lands — the child is never punished for a fair escape —
+   * and trail progress is preserved by the waiting second-chance critter.
+   */
+  private uniqueEscapes(): void {
+    this.emitOutcome("escaped");
+    const award = this.state.awardPlayerXp(this.earnedXp);
+    this.showResult(
+      {
+        title: `${this.wild.name} flew away! 飞走了！`,
+        subtitle: "It will wait among the stones. 它会在石阵等你。",
+        xpGain: this.earnedXp,
+        prize: null,
+        award,
+      },
+      this.actions.onExit,
+    );
+  }
+
+  // One terminal outcome per battle, guaranteed by the guard. The five
+  // endings: won (giveRewards), captured (throwBall / trust), fled (runAway),
+  // escaped (Unique flew off), defeated (all-fainted branch of wildAttack).
   private emitOutcome(outcome: BattleOutcome): void {
     if (this.outcomeEmitted) return;
     this.outcomeEmitted = true;
@@ -356,7 +433,9 @@ export class BattleScreen {
     this.switchForced = false;
     this.state.switchTo(index);
     this.say([`Go, ${this.state.active.name}!`], () => {
-      if (forced) this.showMenu();
+      // Unique hunts never counter-attack; forced ordinary switches also skip
+      // the free hit so a fainted-lead swap isn't punished twice.
+      if (forced || this.uniqueHunt) this.showMenu();
       else this.wildAttack();
     });
   }
@@ -422,6 +501,35 @@ export class BattleScreen {
     this.drawCreature(220, 115, this.wild, 52);
     this.drawHpPanel(-310, 235, this.wild, false);
     this.drawHpPanel(300, -85, this.state.active, true);
+    if (this.uniqueHunt) this.drawUniquePressure();
+  }
+
+  /**
+   * Telegraphed Unique pressure (#22): remaining questions and trust, always
+   * visible before the next commitment. No wall-clock is involved.
+   */
+  private drawUniquePressure(): void {
+    const hunt = this.uniqueHunt;
+    if (!hunt) return;
+    const panel = makePanel(this.root, 0, 250, 360, 54, {
+      fill: PALETTE.panel,
+      stroke: PALETTE.panelStroke,
+      radius: 12,
+      lineWidth: 3,
+    });
+    makeLabel(panel, `Questions left ${hunt.actionsLeft} · 还剩 ${hunt.actionsLeft} 题`, 0, 12, {
+      fontSize: 15,
+    });
+    makeLabel(panel, `Trust ${hunt.trust}/${hunt.trustMax} · 信任`, -120, -10, {
+      fontSize: 14,
+      color: PALETTE.sub,
+      align: "left",
+    });
+    makeRect(panel, 20, -10, 180, 10, new Color(221, 221, 221, 255), 5);
+    if (hunt.trust > 0) {
+      const width = 180 * (hunt.trust / hunt.trustMax);
+      makeRect(panel, -70 + width / 2, -10, width, 10, new Color(129, 199, 132, 255), 5);
+    }
   }
 
   private drawCreature(x: number, y: number, creature: Creature, size: number): void {

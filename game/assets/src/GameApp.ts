@@ -330,11 +330,14 @@ export class GameApp {
     }
     this.screen = "battle";
     this.hideWorld();
+    // Ordinary wild tables never name a guardian (#4/#9), so createUniqueHunt
+    // always returns null here; rarity is still required so the gate stays pure.
+    const rarity = (wild.speciesId && SPECIES_BY_ID[wild.speciesId]?.rarity) || "common";
     this.battle = new BattleScreen(this.state, wild, bank, {
       onExit: () => this.endBattle(false),
       onRespawn: () => this.endBattle(true),
       onOutcome: (outcome) => this.trackArcOutcome(outcome),
-    }, this.telemetry);
+    }, this.telemetry, { rarity });
     this.canvasNode.addChild(this.battle.root);
   }
 
@@ -405,10 +408,10 @@ export class GameApp {
       console.warn(`Arc critter names an unknown speciesId: ${critter.speciesId}`);
       return;
     }
-    // Ordinary battle rules even for the summoned guardian (#21): the boss
-    // question path needs multi-step banks the routed Std-1 banks don't
-    // carry, and the fixed guardian slate is #23 either way. Uncapturable
-    // critters pass the refusal through — a Unique is never ball-caught.
+    // The summoned guardian (#21/#22) is ordinary for combat math — the boss
+    // multi-step path needs banks the routed Std-1 slices don't carry, and
+    // the fixed guardian slate is #23. Unique pressure comes only from the
+    // species rarity gate (guardian → trust/flee), never from a UI option.
     const wild = Creature.fromSpecies(species);
     if (wild.speciesId && this.state.markSeenEntry(wild.speciesId)) {
       this.checkpoint();
@@ -424,11 +427,14 @@ export class GameApp {
       onOutcome: (outcome) => {
         this.arcOutcome = outcome;
       },
-    }, this.telemetry, { capturable: critter.capturable !== false });
+    }, this.telemetry, { rarity: species.rarity });
     this.canvasNode.addChild(this.battle.root);
   }
 
-  private endArcBattle(critter: ArcCritter, outcome: "won" | "captured" | "fled" | "defeated"): void {
+  private endArcBattle(
+    critter: ArcCritter,
+    outcome: "won" | "captured" | "fled" | "escaped" | "defeated",
+  ): void {
     this.battle?.root.destroy();
     this.battle = null;
     const settlement = settleArcBattle(this.state.arcFlags(), critter.id, outcome);

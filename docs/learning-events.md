@@ -37,7 +37,7 @@ contract. An event that isn't in the registry cannot reach the database.
 | Event | Properties (required · optional) | Emitted when |
 | --- | --- | --- |
 | `question_answered` | `battle: "wild"\|"boss"`, `operation`, `correct: bool` · `topic`, `tp: 1–6`, `step: 0–7`, `steps: 1–8` | Each answered question turn. Boss multi-step problems emit one event per step (`step`/`steps` set). |
-| `battle_outcome` | `battle`, `outcome: "won"\|"captured"\|"fled"\|"defeated"`, `asked: 0–99`, `correct: 0–99` | Battle ends. `fled` is the abandonment signal; `defeated` is the all-fainted loss. Exactly one per battle. |
+| `battle_outcome` | `battle`, `outcome: "won"\|"captured"\|"fled"\|"escaped"\|"defeated"`, `asked: 0–99`, `correct: 0–99` | Battle ends. `fled` is player abandonment; `escaped` is a Unique flying off with trust unfinished (#22); `defeated` is the all-fainted loss. Exactly one per battle. |
 | `creature_captured` | `speciesId` | A wild creature joins the collection. Distinct `speciesId` over time is the collection-variety signal. Stage/variant omitted: every wild capture is stage 1 / normal today. |
 | `session_ended` | `reason: "sign_out"\|"page_unload"`, `duringBattle: bool` | The player stops. `sign_out` is always deliberate. `page_unload` covers tab close/navigation — it also fires on refresh, so treat its absolute count with care and segment on `duringBattle`. |
 

@@ -121,7 +121,8 @@ test("trail: the guardian appears only after the Call, and only at the stones", 
 test("trail: the waiting guardian is the standing second chance", () => {
   // Every battle outcome leaves the guardian standing: arc settlement never
   // touches trail flags, and the critter derives only from `summoned`.
-  for (const outcome of ["won", "captured", "fled", "defeated"] as const) {
+  // "escaped" is the Unique-flee outcome (#22) — progress still survives.
+  for (const outcome of ["won", "captured", "fled", "escaped", "defeated"] as const) {
     assert.equal(settleArcBattle(SUMMONED, CLOUDMANE_CRITTER_ID, outcome), null);
     assert.equal(trailCrittersFor("meadow/stones", SUMMONED).length, 1);
   }

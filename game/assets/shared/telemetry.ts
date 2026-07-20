@@ -96,15 +96,15 @@ export const TELEMETRY_EVENTS: Record<string, TelemetryEventSpec> = {
       steps: intIn(1, 8),
     },
   },
-  // One finished battle. `fled` is the abandonment signal; `defeated` is the
-  // all-fainted loss. asked/correct give the battle's question context
-  // without per-question timing.
+  // One finished battle. `fled` is player abandonment; `escaped` is a Unique
+  // flying off with trust unfinished (#22); `defeated` is the all-fainted
+  // loss. asked/correct give the battle's question context without timing.
   battle_outcome: {
-    summary: "How often are battles finished, fled, or lost?",
+    summary: "How often are battles finished, fled, escaped, or lost?",
     emitted: true,
     required: {
       battle: oneOf(...BATTLE_KIND),
-      outcome: oneOf("won", "captured", "fled", "defeated"),
+      outcome: oneOf("won", "captured", "fled", "escaped", "defeated"),
       asked: intIn(0, 99),
       correct: intIn(0, 99),
     },
