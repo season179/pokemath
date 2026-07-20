@@ -93,6 +93,7 @@ export class GameState {
   awardPlayerXp(gain: number): PlayerXpAward {
     const award = awardPlayerXp(this.player, gain);
     this.player = { level: award.level, totalXp: award.totalXp };
+    if (award.levelsGained > 0) this.active.healFull();
     return award;
   }
 

@@ -1,6 +1,6 @@
 # Meadow Isle — Standard 1 Island Design
 
-**Status: Plan of record — approved; revised implementation order locked 2026-07-18.** Companion to
+**Status: Plan of record — approved; revised implementation order locked 2026-07-18; M1–M6 shipped 2026-07-20.** Companion to
 [world-map-design.md](../world-map-design.md). Curriculum authority:
 [standard-1-sjkc-math.md](../curriculum/standard-1-sjkc-math.md) (scope) and
 [standard-1-question-style.md](../curriculum/standard-1-question-style.md)
@@ -424,25 +424,30 @@ These foundations land in **M1.5 before broad encounters**:
 
 ## Revised implementation order (2026-07-18)
 
-1. **M1 — Sail there and walk it.** Finish the region graph without changing
+Progress (2026-07-20): M1–M6 shipped; M7 instrumented, constants gated on representative play data.
+
+1. **M1 — Sail there and walk it.** ✅ (#28–#30) Finish the region graph without changing
    its current scope.
-2. **M1.5 — Save, progression, and collection foundation.** Save v2,
+2. **M1.5 — Save, progression, and collection foundation.** ✅ (#3–#6) Save v2,
    persistent location, player XP, semantic species identity, owned storage,
    active team, Field Guide state, badges, profile, and migration tests.
-3. **M2A — One satisfying encounter loop.** One area, small real roster,
+3. **M2A — One satisfying encounter loop.** ✅ (#7, #8) One area, small real roster,
    compliant hand-authored bank, immediate feedback, calm capture, gentle
    defeat, XP bar, and victory result.
-4. **M2B — Expand encounters and collection.** All ordinary habitat tables,
+4. **M2B — Expand encounters and collection.** ✅ (#9) All ordinary habitat tables,
    replaceable art references, Field Guide UI, and Harbor Sanctuary.
-5. **M3 — Versioned Std-1 question schema.** New answer forms stay additive;
+5. **M3 — Versioned Std-1 question schema.** ✅ (#10–#13) New answer forms stay additive;
    the legacy path is protected by golden tests.
-6. **M4 — Validated offline generator.** Mechanical rejection, adversarial
+6. **M4 — Validated offline generator.** ✅ (#14, #15, #76) Mechanical rejection, adversarial
    verify pass, and human sampling; no generation during a child's battle.
-7. **M5 — Landmarks, topic arcs, and session payoffs.** Shared figure kit,
+7. **M5 — Landmarks, topic arcs, and session payoffs.** ✅ (#16–#20) Shared figure kit,
    short goals, shortcuts, visible world changes, and selected mini-guardians.
-8. **M6 — Unique hunt and finale.** Unique-only pressure, persistent second
+8. **M6 — Unique hunt and finale.** ✅ (#21–#23) Unique-only pressure, persistent second
    chances, fixed guardian slate, Meadow Badge, and starter evolution.
-9. **M7 — Observed tuning and healthy return.** Tune XP/capture/question rank,
+9. **M7 — Observed tuning and healthy return.** 🚧 Telemetry (#24) and the calibration
+   report + baseline fixtures (#25, partially merged) ship; constant changes stay
+   gated until representative play data exists, and the journal (#26) waits with them.
+   Tune XP/capture/question rank,
    measure learning-quality retention, then optionally add a non-resetting
    three-day expedition journal and interleaved review.
 

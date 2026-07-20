@@ -1,5 +1,7 @@
 # Battle animation — research
 
+**Overlay effects shipped 2026-07-20 (#50); HP-bar drain and authored pose frames remain follow-ups, as scoped below.**
+
 How to bring juice (HP drain, damage shake, hit flash, attack lunge, faint,
 damage-number popups, capture-ball arc) into the existing Woolly battle loop.
 This is a **research note**, not an implementation plan — it scopes what the
