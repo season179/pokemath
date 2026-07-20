@@ -19,14 +19,21 @@
 //   node tools/generate-question-batch.mjs \
 //     --bank std1.sample-money --topic 4.3 --tp 2-3 \
 //     --profile dpk3_2026_core --count 20 --seed 43
+//   node tools/generate-question-batch.mjs ... --allow-routed-slice
 //
 // Outputs (never overwritten — pick a new seed for a new batch):
 //   question-batches/candidates/<batch-id>.candidate.json    schema-v2 bank
 //   question-batches/candidates/<batch-id>.provenance.json   generation record
 //
+// Slice precheck (#76): refuses to write a batch whose grade/topic/TP-band/
+// profile already has a live route in the active manifest — those batches
+// can never be activated without --replace at import. Pass
+// --allow-routed-slice to override (merge into the same bank_id, or a
+// deliberate replace candidate).
+//
 // Next steps: npm run validate:questions -- <candidate> (gate), then
 // npm run review:question-batch -- <candidate> (sampling + review doc), then
-// npm run import:questions -- <candidate> --decisions <file> (import).
+// npm run import:questions -- <candidate> --decisions <file> [--replace] (import).
 
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
@@ -34,6 +41,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { CURRICULUM_PROFILES } from "../shared/curriculum.ts";
+import {
+  parseActiveManifestPointer,
+  parseQuestionBankManifest,
+  routesOverlap,
+} from "../shared/question-bank-manifest.ts";
 import { chineseNumeral } from "../shared/question-v2.ts";
 
 // Version 3 (M5): #18 added figure-carrying templates (objects/coins) and
@@ -1269,6 +1281,57 @@ export function batchIdFor({ bankId, topic, tpMin, tpMax, seed }) {
 }
 
 /**
+ * Live active-manifest routes that would overlap a proposed batch slice.
+ * Missing/unreadable resources trees yield [] so tests and fresh worktrees
+ * still generate; a parse failure on a present pointer is a hard error.
+ */
+export async function findLiveRouteOverlaps(
+  { topic, tpMin, tpMax, profile, grade = "std1" },
+  resourcesDir = DEFAULT_RESOURCES_DIR,
+) {
+  const pointerPath = join(resourcesDir, "question-banks", "active-manifest.json");
+  let pointerRaw;
+  try {
+    pointerRaw = JSON.parse(await readFile(pointerPath, "utf8"));
+  } catch (e) {
+    if (e.code === "ENOENT") return [];
+    throw e;
+  }
+  const pointer = parseActiveManifestPointer(pointerRaw);
+  const manifest = parseQuestionBankManifest(
+    JSON.parse(await readFile(join(resourcesDir, `${pointer.manifest}.json`), "utf8")),
+  );
+  const proposed = {
+    grade,
+    topic,
+    tp_min: tpMin,
+    tp_max: tpMax,
+    profile,
+    bank_id: "__proposed__",
+    version: 1,
+    path: "question-banks/std1/__proposed__.v1",
+  };
+  return manifest.entries.filter((e) => routesOverlap(e, proposed));
+}
+
+/** Human-readable collision message used by writeBatch and the CLI. */
+export function formatRoutedSliceCollision(params, overlaps) {
+  const live = overlaps
+    .map(
+      (e) =>
+        `${e.bank_id} v${e.version} (${e.grade}/${e.topic} TP${e.tp_min}–${e.tp_max} ${e.profile})`,
+    )
+    .join("; ");
+  return (
+    `slice std1/${params.topic} TP${params.tpMin}–${params.tpMax} ${params.profile} ` +
+    `already has a live route: ${live}. ` +
+    "Generating this batch would produce content that cannot activate without `import --replace`. " +
+    "Pick a disjoint TP band/topic, or pass --allow-routed-slice to override " +
+    "(merge into the same bank_id, or a deliberate replace candidate)."
+  );
+}
+
+/**
  * Generate one candidate batch as a schema-v2 bank object. Deterministic:
  * the same params and seed always produce the same questions in the same
  * order. Candidate ids are 1..count (batch-local; import renumbers on merge).
@@ -1393,6 +1456,13 @@ export function buildProvenance(params, batchId, bank, templateCounts) {
 export async function writeBatch(params, opts = {}) {
   const resourcesDir = opts.resourcesDir ?? DEFAULT_RESOURCES_DIR;
   const candidatesDir = opts.candidatesDir ?? DEFAULT_CANDIDATES_DIR;
+  const allowRoutedSlice = Boolean(opts.allowRoutedSlice);
+  if (!allowRoutedSlice) {
+    const overlaps = await findLiveRouteOverlaps(params, resourcesDir);
+    if (overlaps.length > 0) {
+      throw new Error(formatRoutedSliceCollision(params, overlaps));
+    }
+  }
   const versions = await bankVersionsOnDisk(params.bankId, resourcesDir);
   const version = versions.length === 0 ? 1 : Math.max(...versions) + 1;
   const { batchId, bank, templateCounts } = buildBatchArtifacts(params, version);
@@ -1417,7 +1487,7 @@ export async function writeBatch(params, opts = {}) {
 // --- CLI -------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const args = { tp: "1-2", profile: "dpk3_2026_core", count: 20 };
+  const args = { tp: "1-2", profile: "dpk3_2026_core", count: 20, allowRoutedSlice: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--bank") args.bankId = argv[++i];
@@ -1427,6 +1497,7 @@ function parseArgs(argv) {
     else if (arg === "--count") args.count = Number(argv[++i]);
     else if (arg === "--seed") args.seed = Number(argv[++i]);
     else if (arg === "--out") args.out = argv[++i];
+    else if (arg === "--allow-routed-slice") args.allowRoutedSlice = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
   const m = /^(\d+)-(\d+)$/.exec(args.tp ?? "");
@@ -1443,14 +1514,15 @@ function parseArgs(argv) {
       seed: args.seed,
     },
     out: args.out,
+    allowRoutedSlice: args.allowRoutedSlice,
   };
 }
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === join(process.argv[1]);
 if (isMain) {
   try {
-    const { params, out } = parseArgs(process.argv.slice(2));
-    const result = await writeBatch(params, { candidatesDir: out });
+    const { params, out, allowRoutedSlice } = parseArgs(process.argv.slice(2));
+    const result = await writeBatch(params, { candidatesDir: out, allowRoutedSlice });
     console.log(`candidate batch: ${result.candidatePath}`);
     console.log(`provenance:      ${result.provenancePath}`);
     console.log(`bank: ${result.bank.bank_id} v${result.bank.version} · ${result.bank.questions.length} questions`);
