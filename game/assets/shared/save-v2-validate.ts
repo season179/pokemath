@@ -18,6 +18,7 @@ import {
   type OwnedCreatureState,
   type PlayerProgress,
   type SaveStateV2,
+  WORLD_LAYOUT_REVISION,
 } from "./save-v2";
 import { levelForTotalXp } from "./player-progression";
 
@@ -58,6 +59,7 @@ export function validateSaveV2(value: unknown): value is SaveStateV2 {
   if (!isBoundedInt(value.money, 0, MAX_MONEY)) return false;
   if (!isBag(value.bag)) return false;
   if (!isLocationOrNull(value.location)) return false;
+  if (!isBoundedInt(value.worldLayoutRevision, 0, WORLD_LAYOUT_REVISION)) return false;
   if (!isFieldGuide(value.fieldGuide)) return false;
   if (!isBadges(value.badges)) return false;
   if (!isFlags(value.flags)) return false;

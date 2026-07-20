@@ -5,6 +5,8 @@
 // keeps its change across reloads and re-entries.
 
 import { Color, Graphics } from "cc";
+import { MEADOW_BARN_ANCHORS } from "./regions/meadow-barn";
+import { MEADOW_FESTIVAL_ANCHORS } from "./regions/meadow-festival";
 import { TILE, regionH, regionW, tileAt, type RegionDef } from "./regions/index";
 
 const CORAL = new Color(255, 111, 145, 255);
@@ -72,8 +74,8 @@ function paintGardens(g: Graphics, def: RegionDef): void {
 /** Harvest Barn: a pennant garland swags across the barn's front wall, and
  * two blossom pots flank the door. */
 function paintBarn(g: Graphics, def: RegionDef): void {
-  const [x1, y1] = tileCenter(def, 9, 3);
-  const [x2, y2] = tileCenter(def, 19, 3);
+  const [x1, y1] = tileCenter(def, MEADOW_BARN_ANCHORS.garland.from.x, MEADOW_BARN_ANCHORS.garland.from.y);
+  const [x2, y2] = tileCenter(def, MEADOW_BARN_ANCHORS.garland.to.x, MEADOW_BARN_ANCHORS.garland.to.y);
   const sag = 46;
   paintString(g, x1, y1, x2, y2, sag);
   const colors = [RED, GOLD, SNOW, CORAL];
@@ -86,8 +88,9 @@ function paintBarn(g: Graphics, def: RegionDef): void {
     g.close();
     g.fill();
   }
-  // Blossom pots flanking the barn door (door path at 14,9).
-  for (const [px, py] of [tileCenter(def, 13, 9), tileCenter(def, 16, 9)]) {
+  // Blossom pots flank the compact barn's central door.
+  for (const anchor of MEADOW_BARN_ANCHORS.flowerPots) {
+    const [px, py] = tileCenter(def, anchor.x, anchor.y);
     g.fillColor = WOOD;
     g.roundRect(px - 12, py - 18, 24, 16, 4);
     g.fill();
@@ -102,12 +105,7 @@ function paintBarn(g: Graphics, def: RegionDef): void {
 /** Harvest Festival: three lantern strings light the plaza — warm gold
  * lanterns with a soft glow, strung across the green. */
 function paintFestival(g: Graphics, def: RegionDef): void {
-  const strings: [number, number, number][] = [
-    [7, 11, 19],
-    [10, 11, 19],
-    [13, 11, 19],
-  ];
-  for (const [row, xa, xb] of strings) {
+  for (const { row, fromX: xa, toX: xb } of MEADOW_FESTIVAL_ANCHORS.lanternStrings) {
     const [x1, y1] = tileCenter(def, xa, row);
     const [x2, y2] = tileCenter(def, xb, row);
     const sag = 34;

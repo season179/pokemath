@@ -26,6 +26,10 @@ import {
   topicsForRegion,
 } from "../world/regions/index.ts";
 import type { GatewayDef, RegionDef } from "../world/regions/index.ts";
+import { MEADOW_BARN_ANCHORS } from "../world/regions/meadow-barn.ts";
+import { MEADOW_FESTIVAL_ANCHORS } from "../world/regions/meadow-festival.ts";
+import { MEADOW_GARDENS_ANCHORS } from "../world/regions/meadow-gardens.ts";
+import { MEADOW_TICKTOCK_ANCHORS } from "../world/regions/meadow-ticktock.ts";
 import { MEADOW_HABITATS, SPECIES_BY_ID, habitatFor } from "../../shared/index.ts";
 
 const MEADOW_IDS = [
@@ -55,6 +59,109 @@ function reachableTiles(def: RegionDef, from: { x: number; y: number }): Set<str
     }
   }
   return visited;
+}
+
+type Point = { x: number; y: number };
+const STEP_DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0]] as const;
+
+function pointKey(point: Point): string {
+  return `${point.x},${point.y}`;
+}
+
+function shortestPath(
+  def: RegionDef,
+  from: Point,
+  targets: readonly Point[],
+  allow: (tile: string) => boolean = () => true,
+): Point[] {
+  const targetKeys = new Set(targets.map(pointKey));
+  const startKey = pointKey(from);
+  const parents = new Map<string, string | null>([[startKey, null]]);
+  const points = new Map<string, Point>([[startKey, from]]);
+  const queue: Point[] = [from];
+  for (let i = 0; i < queue.length; i++) {
+    const point = queue[i];
+    const key = pointKey(point);
+    if (targetKeys.has(key)) {
+      const path: Point[] = [];
+      let cursor: string | null = key;
+      while (cursor !== null) {
+        path.push(points.get(cursor)!);
+        cursor = parents.get(cursor)!;
+      }
+      return path.reverse();
+    }
+    const nextSteps = STEP_DIRS.map(([dx, dy]) => ({ x: point.x + dx, y: point.y + dy }));
+    for (const next of nextSteps) {
+      const nextKey = pointKey(next);
+      const tile = tileAt(def, next.x, next.y);
+      if (!parents.has(nextKey) && isWalkable(def, next.x, next.y) && allow(tile)) {
+        parents.set(nextKey, key);
+        points.set(nextKey, next);
+        queue.push(next);
+      }
+    }
+  }
+  return [];
+}
+
+function shortestDistance(
+  def: RegionDef,
+  from: Point,
+  to: Point,
+  allow: (tile: string) => boolean = () => true,
+): number {
+  const path = shortestPath(def, from, [to], allow);
+  return path.length === 0 ? Number.POSITIVE_INFINITY : path.length - 1;
+}
+
+function landmarkApproaches(def: RegionDef): Point[] {
+  const landmark = def.landmark!;
+  if (isWalkable(def, landmark.x, landmark.y)) return [landmark];
+  return STEP_DIRS.flatMap(([dx, dy]) => {
+    const point = { x: landmark.x + dx, y: landmark.y + dy };
+    return isWalkable(def, point.x, point.y) ? [point] : [];
+  });
+}
+
+function connectedGrass(def: RegionDef): Point[] {
+  const grass = new Set<string>();
+  for (let y = 0; y < regionH(def); y++) {
+    for (let x = 0; x < regionW(def); x++) {
+      if (tileAt(def, x, y) === "g") grass.add(`${x},${y}`);
+    }
+  }
+  const qualifying: Point[] = [];
+  while (grass.size > 0) {
+    const first = grass.values().next().value as string;
+    const [x, y] = first.split(",").map(Number);
+    const component: Point[] = [{ x, y }];
+    grass.delete(first);
+    for (let i = 0; i < component.length; i++) {
+      for (const [dx, dy] of STEP_DIRS) {
+        const next = { x: component[i].x + dx, y: component[i].y + dy };
+        const key = pointKey(next);
+        if (grass.delete(key)) component.push(next);
+      }
+    }
+    if (component.length >= 3) qualifying.push(...component);
+  }
+  return qualifying;
+}
+
+function longestDeadAirRun(def: RegionDef, path: readonly Point[]): number {
+  const gateways = new Set(def.gateways.flatMap((gateway) => gateway.tiles.map(pointKey)));
+  let longest = 0;
+  let run = 0;
+  for (const point of path) {
+    const nearbyFeature = [[0, 0], ...STEP_DIRS].some(([dx, dy]) =>
+      "gNXoC".includes(tileAt(def, point.x + dx, point.y + dy)),
+    );
+    const meaningful = nearbyFeature || gateways.has(pointKey(point)) || pointKey(point) === pointKey(def.landmark!);
+    run = meaningful ? 0 : run + 1;
+    longest = Math.max(longest, run);
+  }
+  return longest;
 }
 
 test("every region is rectangular with a walkable spawn", () => {
@@ -292,6 +399,26 @@ test("M5 topic arcs (#20): routed topics name real curriculum topics", () => {
   }
 });
 
+test("compact landmark payoff anchors still sit on their authored structures", () => {
+  const barn = REGIONS["meadow/barn"];
+  for (const point of [
+    MEADOW_BARN_ANCHORS.garland.from,
+    MEADOW_BARN_ANCHORS.garland.to,
+    ...MEADOW_BARN_ANCHORS.flowerPots,
+  ]) {
+    assert.equal(tileAt(barn, point.x, point.y), "X", `barn payoff anchor ${pointKey(point)} left the wall`);
+  }
+
+  const festival = REGIONS["meadow/festival"];
+  for (const { row, fromX, toX } of MEADOW_FESTIVAL_ANCHORS.lanternStrings) {
+    assert.equal(tileAt(festival, fromX, row), "p", `festival string ${fromX},${row} left the plaza`);
+    assert.equal(tileAt(festival, toX, row), "p", `festival string ${toX},${row} left the plaza`);
+  }
+
+  assert.equal(tileAt(REGIONS["meadow/ticktock"], MEADOW_TICKTOCK_ANCHORS.landmark.x, MEADOW_TICKTOCK_ANCHORS.landmark.y), "C");
+  assert.equal(tileAt(REGIONS["meadow/gardens"], MEADOW_GARDENS_ANCHORS.trailClue.x, MEADOW_GARDENS_ANCHORS.trailClue.y), "f");
+});
+
 test("M5 topic arcs (#20): payoff regions are coherent and completable", () => {
   for (const def of Object.values(REGIONS)) {
     const payoffNpcs = def.npcs.filter((npc) => npc.payoff);
@@ -330,6 +457,24 @@ test("a sealed wired gateway falls back to the bilingual opens-later notice", ()
   assert.equal(gatewayNotice(pocket), pocket.message);
 });
 
+test("compact Meadow grids stay within their reviewed footprint ceilings", () => {
+  const ceilings: Record<string, readonly [number, number]> = {
+    "meadow/dock": [18, 13],
+    "meadow/woolly": [24, 16],
+    "meadow/ticktock": [19, 14],
+    "meadow/orchard": [20, 15],
+    "meadow/festival": [19, 14],
+    "meadow/barn": [19, 14],
+    "meadow/gardens": [20, 15],
+    "meadow/stones": [19, 13],
+  };
+  for (const id of MEADOW_IDS) {
+    const [maxW, maxH] = ceilings[id];
+    assert.ok(regionW(REGIONS[id]) <= maxW, `${id}: wider than ${maxW}`);
+    assert.ok(regionH(REGIONS[id]) <= maxH, `${id}: taller than ${maxH}`);
+  }
+});
+
 test("Meadow Isle regions are explorable: every gateway is reachable from spawn", () => {
   for (const id of MEADOW_IDS) {
     const def = REGIONS[id];
@@ -339,6 +484,61 @@ test("Meadow Isle regions are explorable: every gateway is reachable from spawn"
         assert.ok(
           reachable.has(`${tile.x},${tile.y}`),
           `${id}.${gateway.name} tile ${tile.x},${tile.y} reachable from spawn`,
+        );
+      }
+    }
+  }
+});
+
+test("compact Meadow regions keep arrivals close to their primary landmark", () => {
+  for (const id of MEADOW_IDS) {
+    const def = REGIONS[id];
+    assert.ok(def.landmark, `${id}: missing primary landmark`);
+    const targets = landmarkApproaches(def);
+    assert.ok(targets.length > 0, `${id}: landmark has no walkable approach`);
+    const entries = [def.spawn, ...def.gateways.flatMap((gateway) => gateway.arriveAt ? [gateway.arriveAt] : [])];
+    for (const entry of entries) {
+      const path = shortestPath(def, entry, targets);
+      assert.ok(path.length > 0 && path.length - 1 <= 10, `${id}: arrival ${pointKey(entry)} is too far from its landmark`);
+      assert.ok(longestDeadAirRun(def, path) <= 8, `${id}: arrival ${pointKey(entry)} has a dead-air approach`);
+    }
+  }
+});
+
+test("compact Meadow encounter regions keep a real grass patch near an entry or landmark", () => {
+  for (const id of MEADOW_IDS) {
+    const def = REGIONS[id];
+    if (!def.encounters) continue;
+    const grass = connectedGrass(def);
+    assert.ok(grass.length >= 3, `${id}: needs a connected grass patch of at least three tiles`);
+    const starts = [
+      def.spawn,
+      ...def.gateways.flatMap((gateway) => gateway.arriveAt ? [gateway.arriveAt] : []),
+      ...landmarkApproaches(def),
+    ];
+    const nearest = Math.min(...starts.map((start) => {
+      const path = shortestPath(def, start, grass);
+      return path.length === 0 ? Number.POSITIVE_INFINITY : path.length - 1;
+    }));
+    assert.ok(nearest <= 8, `${id}: no connected grass patch within 8 tiles of an entry or landmark`);
+  }
+});
+
+test("compact Meadow regions keep ring travel short, optional, and free of dead air", () => {
+  for (const id of MEADOW_IDS) {
+    const def = REGIONS[id];
+    assert.ok(def.landmark, `${id}: missing primary landmark`);
+    const active = def.gateways.filter((gateway) => gateway.to !== null && gateway.tiles.length > 0);
+    for (let i = 0; i < active.length; i++) {
+      for (let j = i + 1; j < active.length; j++) {
+        const from = active[i].tiles[0];
+        const to = active[j].tiles[0];
+        const path = shortestPath(def, from, [to]);
+        assert.ok(path.length > 0 && path.length - 1 <= 18, `${id}: ${active[i].name} → ${active[j].name} exceeds 18 tiles`);
+        assert.ok(longestDeadAirRun(def, path) <= 8, `${id}: ${active[i].name} → ${active[j].name} has a dead-air run`);
+        assert.ok(
+          shortestDistance(def, from, to, (tile) => tile !== "g") <= 24,
+          `${id}: ${active[i].name} → ${active[j].name} has no short grass-free route`,
         );
       }
     }
@@ -370,18 +570,21 @@ test("camOffset centers small maps and clamps large maps", () => {
   assert.equal(camOffset(1950, 2000, 960), -1520);
 });
 
-test("coverScale zooms small maps to cover 1280×720 and leaves large maps at 1", () => {
-  const px = (def: RegionDef) => [regionW(def) * TILE, regionH(def) * TILE] as const;
-  // Harbor (20×13 → 960×624 px) is smaller than the canvas on both axes:
-  // zooms 4/3 so the width exactly fills 1280 (height becomes 832 and pans).
-  assert.equal(coverScale(...px(REGIONS.harbor), 1280, 720), 4 / 3);
-  // Meadow Dock (24×16 → 1152×768 px) covers vertically but not horizontally:
-  // zooms 10/9 so the width exactly fills 1280.
-  assert.equal(coverScale(...px(REGIONS["meadow/dock"]), 1280, 720), 10 / 9);
-  // Woolly (32×24 → 1536×1152 px) already exceeds the canvas: untouched.
-  assert.equal(coverScale(...px(REGIONS["meadow/woolly"]), 1280, 720), 1);
-  // Any map larger than the canvas on both axes stays at exactly 1.
+test("coverScale fills the canvas for compact maps and leaves large maps at 1", () => {
+  // Synthetic camera cases stay stable when authored region dimensions change.
+  assert.equal(coverScale(960, 624, 1280, 720), 4 / 3);
+  assert.equal(coverScale(1152, 768, 1280, 720), 10 / 9);
   assert.equal(coverScale(2000, 3000, 1280, 720), 1);
+
+  // Every compact Meadow map still covers the target canvas after scaling.
+  for (const id of MEADOW_IDS) {
+    const def = REGIONS[id];
+    const mapW = regionW(def) * TILE;
+    const mapH = regionH(def) * TILE;
+    const scale = coverScale(mapW, mapH, 1280, 720);
+    assert.ok(mapW * scale >= 1280, `${id}: scaled width leaves a gap`);
+    assert.ok(mapH * scale >= 720, `${id}: scaled height leaves a gap`);
+  }
 });
 
 test("NPC sail routes target real regions with real arrival gateways", () => {

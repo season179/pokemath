@@ -8,6 +8,7 @@ import {
   MEADOW_BADGE_NOTICE,
   QuestionBank,
   SPECIES_BY_ID,
+  WORLD_LAYOUT_REVISION,
   starterEvolvedNotice,
   type SaveStateV2,
 } from "../shared/index";
@@ -24,6 +25,7 @@ import { FieldGuideScreen } from "./guide/FieldGuideScreen";
 import { SanctuaryScreen } from "./sanctuary/SanctuaryScreen";
 import { GameState } from "./state";
 import { Telemetry } from "./client/telemetry";
+import { resolveWorldResume } from "./client/world-layout";
 import {
   Direction,
   TICKTOCK_ARC_BADGE,
@@ -147,12 +149,15 @@ export class GameApp {
     private playerName: string,
   ) {
     this.state = new GameState(boot);
-    // Resume where the save left off (#3): the saved region when it is still
-    // open, on the exact saved tile when it is still walkable — WorldScreen
-    // validates the tile and falls back to the region's safe spawn. A saved
-    // region that is no longer open falls back to the harbor spawn entirely.
-    const startAt = boot.location && isOpenRegion(boot.location.regionId) ? boot.location : null;
-    this.world = new WorldScreen(this.state, this.worldActions, startAt?.regionId ?? "harbor", null, startAt);
+    // Exact-tile resume for current grids; old compact-Meadow coordinates
+    // retain their region but intentionally restart at its safe spawn once.
+    const resume = resolveWorldResume(boot);
+    this.world = new WorldScreen(this.state, this.worldActions, resume.regionId, null, resume.startAt);
+    if (resume.migrated) {
+      this.state.worldLayoutRevision = WORLD_LAYOUT_REVISION;
+      this.state.location = { regionId: this.world.regionId, ...this.world.playerTile };
+      this.persistence.checkpoint(this.state.toSave());
+    }
     this.canvasNode.addChild(this.world.root);
   }
 

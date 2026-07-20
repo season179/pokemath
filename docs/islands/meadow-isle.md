@@ -67,14 +67,13 @@ break them):**
 
 ## Island layout
 
-**Shape decision (Season, 2026-07-17): the map is big — it does not fit one
-screen — and its shape must absorb future growth (rest stops, mini-game
-areas) without redrawing existing geography.**
+**Compact-region revision (Season): each area is small and dense enough that
+its landmark or next choice arrives quickly. Future growth still attaches as
+new regions through reserved pockets; it does not make existing walks longer.**
 
-The island is a **ring road** (the Meadow Loop) with regions hanging off it
-clockwise, and **The Hundred Stones at the island's center** — the heart you
-keep glimpsing between the trees on your way around. The camera follows the
-player; exploration is the point.
+The island is a **ring road** (the Meadow Loop) with compact regions hanging
+off it clockwise, and **The Hundred Stones at the island's center**. The
+camera may follow within an area, but empty traversal is not the exploration.
 
 ```
                     N
@@ -107,30 +106,33 @@ player; exploration is the point.
 - The **Hidden Grove** (`original_dskp_extra`) is one such pocket (SW,
   beside the Pattern Gardens) whose gate exists only under the profile flag.
 - **Shortcuts**: once a region is visited, its ring signpost offers a
-  "run back to the dock" option, so over-levelled players crossing the big
-  map are never forced to re-walk the whole loop.
+  "run back to the dock" option, so over-levelled players can still skip the
+  loop when they want to.
 
 **Implemented as regions, not one rectangle.** The Loop is a *graph* of
-region maps — each in the existing `MAP: string[]` format with its own
-local coordinates — stitched by named gateways:
+region maps with local coordinates, stitched by named gateways:
 
-- Each region is its own map data (`meadow/dock`, `meadow/loop-west`,
-  `meadow/woolly`, `meadow/ticktock`, `meadow/orchard`, `meadow/festival`,
-  `meadow/barn`, `meadow/gardens`, `meadow/stones`) and is **never resized
-  after it ships**. Regions can still be bigger than one screen; the camera
-  follows within the current region.
+- Each region is its own map data (`meadow/dock`, `meadow/woolly`,
+  `meadow/ticktock`, `meadow/orchard`, `meadow/festival`, `meadow/barn`,
+  `meadow/gardens`, `meadow/stones`). Region ids, world-map positions, and
+  graph connections are stable; a local grid may be re-authored only behind
+  an explicit `worldLayoutRevision` migration.
+- Compactness is tested as interaction pacing, not just dimensions: active
+  gateways are at most 18 walking tiles apart, each arrival is at most 10
+  tiles from the area's primary landmark, encounter grass has a connected
+  patch near an entry or landmark, and intended routes have no dead-air run
+  longer than eight tiles. Every active gateway pair also keeps a short
+  grass-free route so wild encounters remain optional.
 - **Gateways are named** edge/gate tiles (`loop-west.north → woolly.south`).
   An expansion pocket is a gateway whose target region doesn't exist yet —
   attaching a future rest stop or mini-game area means adding **one new
-  region file and enabling one gateway**. No existing map, NPC, encounter,
-  or save coordinate ever moves, and growth works on both the inner and
-  outer ring.
-- Player location persists as `regionId + local x/y` — but that lands with
-  **save v2 (the migration PR, before M2)**; M1 keeps today's session-only
-  spawn at Harbor Town, so the island work is never blocked on the
-  migration. On load, the saved tile is **validated walkable**; if a layout
-  edit made it solid, the player spawns at the region's named safe gateway
-  instead of stranding the save.
+  region file and enabling one gateway**. Growth works on both the inner and
+  outer ring without stretching an existing area's route.
+- Player location persists as `regionId + local x/y + worldLayoutRevision`.
+  Current-revision saves resume on their exact walkable tile. After an
+  intentional grid revision, an older Meadow location keeps its region but
+  resumes once at that region's new safe spawn; Harbor and all progression,
+  collection, badges, and arc flags remain unchanged.
 - Crossing a gateway shows the region banner ("Woolly Meadows 羊毛草原") —
   named places as you explore, classic route feel.
 

@@ -1,9 +1,13 @@
-// Harvest Barn & Mill: measures and halves/quarters, at the ring's south.
-// M2B (issue #9): tall grass (`g`) in the pastures hosts the Barn's
-// ordinary roster.
+// Harvest Barn & Mill: compact three-way farm junction around the barn door.
 
 import { guide } from "./meadow-shared.ts";
 import type { RegionDef } from "./types.ts";
+
+export const MEADOW_BARN_ANCHORS = {
+  landmark: { x: 9, y: 6 }, // central barn door
+  garland: { from: { x: 5, y: 2 }, to: { x: 13, y: 2 } },
+  flowerPots: [{ x: 8, y: 6 }, { x: 10, y: 6 }],
+} as const;
 
 export const MEADOW_BARN: RegionDef = {
   id: "meadow/barn",
@@ -11,43 +15,34 @@ export const MEADOW_BARN: RegionDef = {
   art: "meadow",
   map: { group: "meadow", role: "monster", position: { x: 62, y: 24 } },
   rows: [
-    "TTTTTTTTTTTTTTpTTTTTTTTTTTTT",
-    "T.ggggg.......p..gggggg....T",
-    "T.ggggg.......p..gggggg....T",
-    "T........XXXXXXXXXXX.......T",
-    "T........X.........X..XX...T",
-    "T........X.........X..XX...T",
-    "T........X.........X..XX...T",
-    "T........X.........X.......T",
-    "T........X.........X.......T",
-    "T........XXXXXpXXXXX.......T",
-    "T.............pN...........T",
-    "pppppppppppppppppppppppppppp",
-    "T....ggggg.................T",
-    "T.N.fgggg...........T......T",
-    "T....ggggg.................T",
-    "T..........T...............T",
-    "T................ggggg.....T",
-    "T...............fggggg.....T",
-    "T................ggggg.....T",
-    "TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTpTTTTTTTTT",
+    "T........p........T",
+    "T.gggXXXXpXXXXggg.T",
+    "T.gggX...p...Xggg.T",
+    "T.gggX...p...Xggg.T",
+    "T....X...p...X....T",
+    "T....XXXXpXNXX....T",
+    "ppppppppppppppppppp",
+    "TN.............f..T",
+    "T..gggg.....gggg..T",
+    "T..ggggT....gggg..T",
+    "T..gggg.....gggg..T",
+    "T.................T",
+    "TTTTTTTTTTTTTTTTTTT",
   ],
-  spawn: { x: 1, y: 11 },
+  spawn: { x: 1, y: 7 },
+  landmark: MEADOW_BARN_ANCHORS.landmark,
   npcs: [
-    guide(2, 13, "characters/character_9/character09-sheet.png"),
-    // The topic-arc payoff NPC (M5, #20): Miller Han by the barn door.
+    guide(1, 8, "characters/character_9/character09-sheet.png"),
     {
-      x: 15,
-      y: 10,
+      x: 11,
+      y: 6,
       name: "Miller Han 磨坊主韩师傅",
-      message: "", // payoff NPC — the dialog comes from `payoff` below
+      message: "",
       characterSheet: "characters/character_10/character10-sheet.png",
       payoff: true,
     },
   ],
-  // M5 topic arc (#20): the Barn serves non-standard measurement (4.5) and,
-  // for the solid scavenger hunt, shares the space & shapes slice (4.6)
-  // with the Pattern Gardens (routed in REGION_TOPICS, world/regions/index.ts).
   payoff: {
     badge: "meadow-barn-helped",
     helps: 3,
@@ -58,11 +53,6 @@ export const MEADOW_BARN: RegionDef = {
     changedNotice:
       "Garlands rise over the Harvest Barn — the mill is festival-ready! 丰收谷仓挂起了彩旗——磨坊准备好过节了！",
   },
-  // M2B roster (issue #9): Plumelet roosts on the roof and Barnpup works the
-  // farm; even here the barn mouse stays below the anchor pair. Weights sum
-  // to 100 (percentages); membership and rarity match the MEADOW_HABITATS
-  // rows for "meadow/barn" exactly.
-  //   Plumelet (common) 45 · Barnpup (uncommon) 30 · Pufftail (common) 25
   encounters: {
     rate: 0.2,
     entries: [
@@ -74,24 +64,24 @@ export const MEADOW_BARN: RegionDef = {
   gateways: [
     {
       name: "east",
-      tiles: [{ x: 27, y: 11 }],
+      tiles: [{ x: 18, y: 7 }],
       to: "meadow/festival",
       toGateway: "west",
-      arriveAt: { x: 26, y: 11 },
+      arriveAt: { x: 17, y: 7 },
     },
     {
       name: "west",
-      tiles: [{ x: 0, y: 11 }],
+      tiles: [{ x: 0, y: 7 }],
       to: "meadow/gardens",
       toGateway: "east",
-      arriveAt: { x: 1, y: 11 },
+      arriveAt: { x: 1, y: 7 },
     },
     {
       name: "north",
-      tiles: [{ x: 14, y: 0 }],
+      tiles: [{ x: 9, y: 0 }],
       to: "meadow/stones",
       toGateway: "south",
-      arriveAt: { x: 14, y: 1 },
+      arriveAt: { x: 9, y: 1 },
     },
   ],
 };
