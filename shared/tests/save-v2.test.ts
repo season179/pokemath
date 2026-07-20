@@ -8,6 +8,7 @@ import {
   STARTING_BAG,
   STARTING_MONEY,
   SAVE_VERSION,
+  WORLD_LAYOUT_REVISION,
   captureCreature,
   createNewGameV2,
   markCaught,
@@ -52,6 +53,7 @@ test("createNewGameV2: starter is the only owned creature, party of one, validat
   assert.equal(starter.variant, "normal");
   assert.equal(starter.boss, false);
   assert.equal(save.location, null);
+  assert.equal(save.worldLayoutRevision, WORLD_LAYOUT_REVISION);
   assert.equal(save.savedAt, "2026-01-01T00:00:00.000Z");
   assert.equal(save.profile, "dpk3_2026_core");
   assert.deepEqual(save.badges, []);
@@ -267,6 +269,12 @@ rejects("location with negative coord", (s) => {
 });
 rejects("location with empty regionId", (s) => {
   s.location = { regionId: "", x: 0, y: 0 };
+});
+rejects("world layout revision missing", (s) => {
+  delete s.worldLayoutRevision;
+});
+rejects("world layout revision beyond the client", (s) => {
+  s.worldLayoutRevision = WORLD_LAYOUT_REVISION + 1;
 });
 rejects("fieldGuide with duplicate species", (s) => {
   s.fieldGuide = [

@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { settleArcBattle } from "../assets/src/world/arc.ts";
+import { settleArcBattle } from "../world/arc.ts";
 import {
   CLOUDMANE_CRITTER_ID,
   FLAG_TRAIL_STARTED,
@@ -26,8 +26,12 @@ import {
   trailGuideLine,
   trailReadyToCall,
   yunDialogFor,
-} from "../assets/src/world/trail.ts";
+} from "../world/trail.ts";
 import { isWalkable, npcAt, region, tileAt } from "../world/regions/index.ts";
+import { MEADOW_GARDENS_ANCHORS } from "../world/regions/meadow-gardens.ts";
+import { MEADOW_ORCHARD_ANCHORS } from "../world/regions/meadow-orchard.ts";
+import { MEADOW_STONES_ANCHORS } from "../world/regions/meadow-stones.ts";
+import { MEADOW_TICKTOCK_ANCHORS } from "../world/regions/meadow-ticktock.ts";
 
 const STARTED = { [FLAG_TRAIL_STARTED]: 1 };
 const ALL_FOUND = {
@@ -42,12 +46,24 @@ const SUMMONED = { ...ALL_FOUND, [FLAG_TRAIL_SUMMONED]: 1 };
 
 test("trail: Keeper Yun stands at the stones on a blocked N marker with the trail arcId", () => {
   const stones = region("meadow/stones");
-  const yun = npcAt(stones, 12, 2);
+  const yun = npcAt(stones, MEADOW_STONES_ANCHORS.landmark.x, MEADOW_STONES_ANCHORS.landmark.y);
   assert.ok(yun, "no NPC at the keeper's tile");
   assert.equal(yun.name, "Keeper Yun 阿云");
   assert.equal(yun.arcId, "cloudmane-trail");
-  assert.equal(tileAt(stones, 12, 2), "N");
-  assert.equal(isWalkable(stones, 12, 2), false);
+  assert.equal(tileAt(stones, MEADOW_STONES_ANCHORS.landmark.x, MEADOW_STONES_ANCHORS.landmark.y), "N");
+  assert.equal(isWalkable(stones, MEADOW_STONES_ANCHORS.landmark.x, MEADOW_STONES_ANCHORS.landmark.y), false);
+});
+
+test("trail: runtime clue coordinates match the anchors beside each compact map", () => {
+  assert.deepEqual(
+    TRAIL_CLUES.map(({ regionId, x, y }) => ({ regionId, x, y })),
+    [
+      { regionId: "meadow/ticktock", ...MEADOW_TICKTOCK_ANCHORS.trailClue },
+      { regionId: "meadow/orchard", ...MEADOW_ORCHARD_ANCHORS.trailClue },
+      { regionId: "meadow/gardens", ...MEADOW_GARDENS_ANCHORS.trailClue },
+    ],
+  );
+  assert.deepEqual(GUARDIAN_SPOT, MEADOW_STONES_ANCHORS.guardian);
 });
 
 test("trail: every evidence spot's center tile is walkable in the shipped maps", () => {

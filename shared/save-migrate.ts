@@ -14,7 +14,7 @@
 import type { CreatureState } from "./creature.ts";
 import { mintCreatureId, legacyToPlayerProgress, LEGACY_XP_PER_LEVEL } from "./player-progression.ts";
 import type { OwnedCreatureState, SaveStateV2 } from "./save-v2.ts";
-import { markCaught, SAVE_VERSION } from "./save-v2.ts";
+import { markCaught, SAVE_VERSION, WORLD_LAYOUT_REVISION } from "./save-v2.ts";
 import { validateSaveV2 } from "./save-v2-validate.ts";
 import type { SaveState } from "./save-types.ts";
 import { validateSaveState } from "./save-validate.ts";
@@ -89,6 +89,7 @@ export function migrateSave(raw: unknown, options: MigrateOptions = {}): SaveSta
     money: v1.money,
     bag: { potion: v1.bag.potion, ball: v1.bag.ball },
     location: null, // v1 never persisted location; client spawns at the safe gateway
+    worldLayoutRevision: WORLD_LAYOUT_REVISION,
     fieldGuide,
     badges: [],
     flags: {},
@@ -118,6 +119,9 @@ export function normalizeSave(raw: unknown, options: MigrateOptions = {}): SaveS
       // rather than dying as "unreadable" — migrate on read, not a shim.
       const record = raw as Record<string, unknown>;
       if (record.flags === undefined) record.flags = {};
+      // Saves written before compact Meadow maps have revision 0. The pure
+      // client migration keeps their region but discards old local x/y once.
+      if (record.worldLayoutRevision === undefined) record.worldLayoutRevision = 0;
       if (validateSaveV2(raw)) return raw as SaveStateV2;
       throw new SaveMigrationError("version-2 save failed validation");
     }

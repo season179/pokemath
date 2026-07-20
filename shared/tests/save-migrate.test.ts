@@ -13,7 +13,7 @@ import {
 import { createNewGame, type SaveState } from "../save-types.ts";
 import { validateSaveState } from "../save-validate.ts";
 import { legacyToPlayerProgress, totalXpForLevel } from "../player-progression.ts";
-import { createNewGameV2, type OwnedCreatureState } from "../save-v2.ts";
+import { WORLD_LAYOUT_REVISION, createNewGameV2, type OwnedCreatureState } from "../save-v2.ts";
 import { validateSaveV2 } from "../save-v2-validate.ts";
 import { migrateSave, normalizeSave, SaveMigrationError } from "../save-migrate.ts";
 
@@ -87,6 +87,7 @@ test("migrateSave: a fresh v1 save becomes a valid v2 save", () => {
   assert.deepEqual(v2.bag, { potion: 1, ball: 3 });
   assert.equal(v2.savedAt, "2026-07-18T12:00:00.000Z");
   assert.equal(v2.location, null);
+  assert.equal(v2.worldLayoutRevision, WORLD_LAYOUT_REVISION);
   assert.equal(v2.profile, "dpk3_2026_core");
   assert.deepEqual(v2.badges, []);
   assert.ok(validateSaveV2(v2));
@@ -257,6 +258,15 @@ test("normalizeSave: a pre-flags v2 row backfills an empty flag record (#17)", (
   delete v2.flags; // a row written before world/arc flags existed
   const normalized = normalizeSave(v2);
   assert.deepEqual(normalized.flags, {});
+  assert.ok(validateSaveV2(normalized));
+});
+
+test("normalizeSave: a pre-compact-map v2 row backfills layout revision 0", () => {
+  const v2 = createNewGameV2(STARTERS[0]) as unknown as Record<string, unknown>;
+  delete v2.worldLayoutRevision;
+  assert.equal(validateSaveV2(v2), false, "the trust-boundary field is required");
+  const normalized = normalizeSave(v2);
+  assert.equal(normalized.worldLayoutRevision, 0);
   assert.ok(validateSaveV2(normalized));
 });
 

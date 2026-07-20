@@ -8,9 +8,9 @@
 // state lives in save v2 `flags` (number-valued; missing key = not started),
 // so a paused intention resumes exactly where the child left it.
 
-import { MEADOW_DOCK_ANCHORS } from "./regions/meadow-dock";
-import { MEADOW_WOOLLY_ANCHORS } from "./regions/meadow-woolly";
-import type { RegionDef } from "./regions/types";
+import { MEADOW_DOCK_ANCHORS } from "./regions/meadow-dock.ts";
+import { MEADOW_WOOLLY_ANCHORS } from "./regions/meadow-woolly.ts";
+import type { RegionDef } from "./regions/types.ts";
 
 // --- flag keys ---------------------------------------------------------------
 

@@ -294,11 +294,11 @@ the reserved pockets.
 
 ### 5b. Dock south gate → Pattern Gardens (open since #9) and a real wild battle
 
-The #29 seal is lifted: the south gate **travels** now. From the ferry
-arrival `(2, 12)` walk to the gate tile `(12, 15)`:
+The #29 seal is lifted: the south gate **travels** now. From the compact
+ferry arrival `(2, 9)` walk to the gate tile `(9, 12)`:
 
 ```bash
-mv ArrowUp 4; mv ArrowRight 10; mv ArrowDown 7; agent-browser --session "$SN" wait 1100   # <1500
+mv ArrowRight 1; mv ArrowDown 2; mv ArrowRight 6; mv ArrowDown 1; agent-browser --session "$SN" wait 1100
 ck meadow/gardens || exit 1; tp "PATTERN GARDENS" || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/03-gardens.png
 ```
@@ -307,21 +307,20 @@ Assert `region: "meadow/gardens"` and toast `PATTERN GARDENS · 图案花园`,
 arrival `(8, 1)`.
 
 **A wild battle in a newly opened region (issue #9).** Every monster region
-now hosts its own habitat table — prove it live. The grass patch beside the
-arrival (rows 3–5, x9–13) rolls an encounter ~20 % per step. Define the
-battle detector, step onto the grass, then pace one grass column until a
-battle starts (column pacing keeps the post-flee tile deterministic):
+now hosts its own habitat table — prove it live. From arrival `(8, 1)`, walk
+to the safe flower tile `(2, 5)` beside the west grass patch, then repeatedly
+enter the same grass tile `(3, 5)`. This keeps the post-flee tile deterministic:
 
 ```bash
 # Battle detector: PASS when the battle screen node exists and is active.
 inbattle() { local got; got=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let b=null;(function w(n){if(n.name==='battle')b=n;if(n.children)for(const c of n.children)w(c);})(s);return b&&b.active?'PASS':'FAIL';})()"); got=${got//\"/}; [[ "$got" == PASS ]]; }
 
-mv ArrowDown 1; mv ArrowRight 1; mv ArrowDown 1                          # (8,1) → (9,3): first grass tile
+mv ArrowDown 3; mv ArrowLeft 6; mv ArrowDown 1                         # (8,1) → safe (2,5)
 steps=0
 until inbattle || (( steps >= 40 )); do
-  mv ArrowDown 1; inbattle && break                                      # (9,4) roll
-  mv ArrowUp 1                                                           # (9,3) roll
-  steps=$((steps+2))
+  mv ArrowRight 1; inbattle && break                                     # enter (3,5): one roll
+  mv ArrowLeft 1                                                         # return to safe (2,5)
+  steps=$((steps+1))
 done
 inbattle || { echo "FAIL: no wild encounter after ${steps} grass steps in Pattern Gardens"; exit 1; }
 agent-browser --session "$SN" wait 600
@@ -340,66 +339,65 @@ inbattle && { echo "FAIL: battle did not close after fleeing"; exit 1; }
 ck meadow/gardens || exit 1
 ```
 
-Walk back to the dock through the north gate. The flee tile is `(9, 3)` or
-`(9, 4)`; `ArrowUp 3` normalises both to `(9, 1)`:
+Walk back to the dock through the north gate. The deterministic flee tile
+is `(3, 5)`:
 
 ```bash
-mv ArrowUp 3; mv ArrowLeft 1; mv ArrowUp 1; agent-browser --session "$SN" wait 1100   # via gate (8,0)
+mv ArrowUp 1; mv ArrowRight 5; mv ArrowUp 4; agent-browser --session "$SN" wait 1100   # via gate (8,0)
 ck meadow/dock || exit 1; tp "MEADOW DOCK" || exit 1
 ```
 
 **Pockets stay sealed.** The #9 lift opened only the wired ring gates — the
-reserved expansion pockets keep their rustle notice. From the dock arrival
-`(12, 14)`, walk to the north pocket `(8, 0)`:
+reserved expansion pockets keep their rustle notice. From the compact Dock south arrival `(9, 11)`, walk to the north pocket
+`(7, 0)`:
 
 ```bash
-mv ArrowUp 6; mv ArrowLeft 4; mv ArrowUp 8; agent-browser --session "$SN" wait 400
+mv ArrowUp 10; mv ArrowLeft 1; mv ArrowUp 1; mv ArrowLeft 1; agent-browser --session "$SN" wait 400
 ck meadow/dock || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/04b-dock-pocket-locked.png
 ```
 
 Assert the bilingual rustle notice and that you **stay in Dock** (player
-lands on `(8, 0)`):
+lands on `(7, 0)`):
 
 > The bushes rustle… something is in there, but the way isn't open yet.
 > 树丛沙沙响……这条路还没开。
 
-Dismiss it, then take the east exit `(23, 8)` to Woolly:
+Dismiss it, then take the east exit `(17, 6)` to Woolly:
 
 ```bash
 agent-browser --session "$SN" press Space       # dismiss the notice
-mv ArrowDown 8; mv ArrowRight 15; agent-browser --session "$SN" wait 1100   # <1500
+mv ArrowDown 6; mv ArrowRight 10; agent-browser --session "$SN" wait 1100
 ck meadow/woolly || exit 1; tp "WOOLLY MEADOWS" || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/05-woolly.png
 ```
 
 Assert `region: "meadow/woolly"` and toast `WOOLLY MEADOWS · 羊毛草原`,
-arrival `(1, 10)`.
+arrival `(1, 7)`.
 
 ### 5c. Woolly north gate → Ticktock Knoll (open since #9), mini-map, and world map
 
-The Woolly north gate **travels** now. From the Woolly arrival `(1, 10)`:
+The Woolly north gate **travels** now. From the Woolly arrival `(1, 7)`:
 
 ```bash
-mv ArrowUp 8; mv ArrowRight 15; mv ArrowUp 2; agent-browser --session "$SN" wait 1100   # via row 2: avoids the row-1 tall grass
+mv ArrowUp 6; mv ArrowRight 10; mv ArrowUp 1; agent-browser --session "$SN" wait 1100
 ck meadow/ticktock || exit 1; tp "TICKTOCK KNOLL" || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/06-ticktock.png
 ```
 
 Assert `region: "meadow/ticktock"` and toast `TICKTOCK KNOLL · 滴答山丘`,
-arrival `(1, 8)`. Then walk back through the west gate to Woolly:
+arrival `(1, 6)`. Then walk back through the west gate to Woolly:
 
 ```bash
 mv ArrowLeft 1; agent-browser --session "$SN" wait 1100
 ck meadow/woolly || exit 1; tp "WOOLLY MEADOWS" || exit 1
 ```
 
-Arrival `(16, 1)`. Verify the **mini-map tracks the player** (move in a
-walkable direction; the white dot moves at the region's mini-scale —
-≈ 0.0885 here):
+Arrival `(11, 1)`. Verify the **mini-map tracks the player** (move in a
+walkable direction; the white dot moves at the region's mini-scale):
 
 ```bash
-mv ArrowDown 3                                                            # → (16, 4)
+mv ArrowDown 3                                                            # → (11, 4)
 agent-browser --session "$SN" screenshot /tmp/smoke/07-minimap-tracks.png
 ```
 
@@ -443,20 +441,20 @@ changed.
 
 ### 5d. Return: Woolly → Dock → Harbor
 
-You are near `(16, 4)`. Walk to the west exit `(0, 10)` back to Dock:
+You are near `(11, 4)`. Walk to the west exit `(0, 7)` back to Dock:
 
 ```bash
-mv ArrowDown 6; mv ArrowLeft 16; agent-browser --session "$SN" wait 1100   # <1500
+mv ArrowDown 3; mv ArrowLeft 11; agent-browser --session "$SN" wait 1100
 ck meadow/dock || exit 1; tp "MEADOW DOCK" || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/10-back-to-dock.png
 ```
 
 Assert `region: "meadow/dock"`, toast `MEADOW DOCK · 青草码头`, arrival
-`(22, 8)`. Walk to Dock's Captain Ro at `(5, 12)`, bump him, confirm the
+`(16, 6)`. Walk to Dock's Captain Ro at `(8, 8)`, bump him, confirm the
 return sail:
 
 ```bash
-mv ArrowLeft 17; mv ArrowDown 5; agent-browser --session "$SN" wait 400    # travel dialog
+mv ArrowLeft 7; mv ArrowDown 2; mv ArrowLeft 1; agent-browser --session "$SN" wait 400  # bump Captain
 agent-browser --session "$SN" press Space       # Go → Harbor
 agent-browser --session "$SN" wait 1000          # <1500
 ck harbor || exit 1; tp "HARBOR TOWN" || exit 1
@@ -563,7 +561,7 @@ check passed with any box unchecked.
       Woolly, and Ticktock Knoll (Woolly north gate, open since #9) — `tp`
       non-empty after a <1500 ms wait, each gate walked **both** ways.
 - [ ] **4 — Pockets stay sealed; a real wild battle fires in a newly opened
-      region** — `04b` (Dock north pocket `(8,0)`) shows the bilingual
+      region** — `04b` (Dock north pocket `(7,0)`) shows the bilingual
       rustle notice and no travel; `04` shows a live wild battle from the
       Pattern Gardens habitat table, fled cleanly back to the world.
 - [ ] **5 — Mini-map tracks player; world map opens/closes; no fast travel** —

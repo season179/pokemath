@@ -36,6 +36,8 @@ export class GameState {
   bag: BagState;
   /** Last checkpointed region + tile; null until the world first syncs it. */
   location: LocationState | null;
+  /** Authored grid revision that wrote the local location coordinates. */
+  worldLayoutRevision: number;
 
   private teamIds: string[];
   private ownedCreatures: OwnedCreatureState[];
@@ -63,6 +65,7 @@ export class GameState {
     this.flags = { ...save.flags };
     this.profile = save.profile;
     this.location = save.location ? { ...save.location } : null;
+    this.worldLayoutRevision = save.worldLayoutRevision;
     const active = this.teamIds.indexOf(save.activeTeamId);
     this.activeIndex = active >= 0 ? active : 0;
     this.money = save.money;
@@ -281,6 +284,7 @@ export class GameState {
       money: this.money,
       bag: { ...this.bag },
       location: this.location ? { ...this.location } : null,
+      worldLayoutRevision: this.worldLayoutRevision,
       fieldGuide: this.fieldGuide.map((e) => ({ ...e, variants: [...e.variants] })),
       badges: this.badges,
       flags: { ...this.flags },

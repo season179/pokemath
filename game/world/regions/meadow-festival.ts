@@ -1,9 +1,16 @@
-// Harvest Festival Green: money and data, around a plaza of stalls.
-// M2B (issue #9): tall grass (`g`) on the green's margins hosts the
-// Festival's ordinary roster — island-wide spillover around a rare anchor.
+// Harvest Festival Green: compact data-and-money plaza with optional grass margins.
 
 import { POCKET_MESSAGE, guide } from "./meadow-shared.ts";
 import type { RegionDef } from "./types.ts";
+
+export const MEADOW_FESTIVAL_ANCHORS = {
+  landmark: { x: 7, y: 8 }, // Festival Host Mei
+  lanternStrings: [
+    { row: 5, fromX: 6, toX: 12 },
+    { row: 7, fromX: 6, toX: 12 },
+    { row: 9, fromX: 6, toX: 12 },
+  ],
+} as const;
 
 export const MEADOW_FESTIVAL: RegionDef = {
   id: "meadow/festival",
@@ -11,42 +18,33 @@ export const MEADOW_FESTIVAL: RegionDef = {
   art: "meadow",
   map: { group: "meadow", role: "monster", position: { x: 86, y: 40 } },
   rows: [
-    "TTTTTTTTTTTTTTpTTTTTTTTTTTTT",
-    "T.ggg..........p...........T",
-    "T.ggg..........p...........T",
-    "T.............p.....gggg...T",
-    "T.............p.....gggg...T",
-    "T.............p............T",
-    "T.......XX........XX.......T",
-    "T..........ppppppppp.......T",
-    "T..........ppppppppp.......T",
-    "T..........ppppppppp.......T",
-    "ppppppppppppppppppp........T",
-    "T.N.......Nppppppppp.......T",
-    "T..........ppppppppp.......T",
-    "T..........ppppppppp.......T",
-    "T.......XX........XX.......T",
-    "T.gggg.........p...........T",
-    "T.gggg.........p...........T",
-    "T.............p.....f.gggg.T",
-    "T.............p.......gggg.T",
-    "TTTTTTTTTTTTTT.TTTTTTTTTTTTT",
+    "TTTTTTTTTpTTTTTTTTT",
+    "T.ggg....p........T",
+    "T.ggg....p....ggg.T",
+    "T.ggg....p....ggg.T",
+    "T....XpppppppXggg.T",
+    "T.....ppppppp.....T",
+    "T.....ppppppp.....T",
+    "ppppppppppppppppppp",
+    "TN....pNppppp..f..T",
+    "T.....ppppppp.....T",
+    "T.gggXpppppppXggg.T",
+    "T.gggg...p....ggg.T",
+    "T.gggg...p....ggg.T",
+    "TTTTTTTTT.TTTTTTTTT",
   ],
-  spawn: { x: 14, y: 1 },
+  spawn: { x: 9, y: 1 },
+  landmark: MEADOW_FESTIVAL_ANCHORS.landmark,
   npcs: [
-    guide(2, 11, "characters/character_8/character08-sheet.png"),
-    // The topic-arc payoff NPC (M5, #20): Festival Host Mei by the plaza.
+    guide(1, 8, "characters/character_8/character08-sheet.png"),
     {
-      x: 10,
-      y: 11,
+      ...MEADOW_FESTIVAL_ANCHORS.landmark,
       name: "Festival Host Mei 丰收节主持人梅姐",
-      message: "", // payoff NPC — the dialog comes from `payoff` below
+      message: "",
       characterSheet: "characters/character_6/character06-sheet.png",
       payoff: true,
     },
   ],
-  // M5 topic arc (#20): the Festival serves data handling — pictographs
-  // (one picture = one value) and classification (routed in REGION_TOPICS).
   payoff: {
     badge: "meadow-festival-helped",
     helps: 3,
@@ -56,16 +54,6 @@ export const MEADOW_FESTIVAL: RegionDef = {
       "Every lantern is lit — count them if you like! The Green glows thanks to you. 灯笼全亮了——数一数也行！草地因你而亮。",
     changedNotice: "The festival lanterns light up the Green! 丰收节的灯笼点亮了草地！",
   },
-  // M2B roster (issue #9): a calm common spillover pool around the Festival's
-  // rare dusk anchor. Per the habitat registry header the Festival draws
-  // island-wide common spillover as a share of the common pool — the three
-  // non-Pufftail commons below are that spillover (each is common and lives
-  // in another Meadow habitat); they are not extra registry rows. Petalfae is
-  // the area anchor AND the rare slot, so it intentionally weighs less than
-  // the commons (rare means rare); Pufftail leads the spillover pool only.
-  // Weights sum to 100 (percentages).
-  //   Pufftail 44 · Fluffball 20 · Mothling 14 · Plumelet 14 (all common)
-  //   · Petalfae (rare) 8
   encounters: {
     rate: 0.2,
     entries: [
@@ -79,18 +67,18 @@ export const MEADOW_FESTIVAL: RegionDef = {
   gateways: [
     {
       name: "north",
-      tiles: [{ x: 14, y: 0 }],
+      tiles: [{ x: 9, y: 0 }],
       to: "meadow/orchard",
       toGateway: "south",
-      arriveAt: { x: 14, y: 1 },
+      arriveAt: { x: 9, y: 1 },
     },
     {
       name: "west",
-      tiles: [{ x: 0, y: 10 }],
+      tiles: [{ x: 0, y: 7 }],
       to: "meadow/barn",
       toGateway: "east",
-      arriveAt: { x: 1, y: 10 },
+      arriveAt: { x: 1, y: 7 },
     },
-    { name: "pocket-south", tiles: [{ x: 14, y: 19 }], to: null, message: POCKET_MESSAGE },
+    { name: "pocket-south", tiles: [{ x: 9, y: 13 }], to: null, message: POCKET_MESSAGE },
   ],
 };

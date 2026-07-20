@@ -1,6 +1,6 @@
-// Shared region types and pure helpers. Regions are tile maps with stable
-// LOCAL coordinates — a region file is never resized after it ships, so
-// saved positions, gateways, and NPCs never shift.
+// Shared region types and pure helpers. Region ids and graph connections are
+// stable; local grids may be re-authored behind an explicit world-layout save
+// migration so persisted coordinates never silently drift.
 //
 //   T = tree (blocked)        X = fence/building (blocked)
 //   . = grass                 p = path
@@ -11,11 +11,12 @@
 //   N = NPC marker (blocked; bump/talk)
 //   H = home door (heal)      P = workshop          S = shop
 //
-// Tile edits stay within the shipped grid: a region is never resized, so
-// swapping `.`/`f` for `g` (M2B) must replace characters in place — never
-// insert — or saved positions, gateways, and the mini-map shift.
-
 export const TILE = 48;
+
+export interface TilePoint {
+  readonly x: number;
+  readonly y: number;
+}
 
 const SOLID_TILES = new Set(["T", "X", "w", "N", "o", "C"]);
 
@@ -166,7 +167,9 @@ export interface RegionDef {
   /** World-map pin. Required so no region can ship without appearing on the map. */
   readonly map: RegionMapDef;
   readonly rows: readonly string[];
-  readonly spawn: { readonly x: number; readonly y: number };
+  readonly spawn: TilePoint;
+  /** Primary authored feature used to keep arrivals close to the area's identity. */
+  readonly landmark?: TilePoint;
   readonly npcs: readonly NpcDef[];
   readonly gateways: readonly GatewayDef[];
   readonly handlers?: Partial<Record<string, TileHandler>>;

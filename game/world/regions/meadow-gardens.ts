@@ -1,10 +1,12 @@
-// Pattern Gardens: shape and pattern beds on the ring's south-west.
-// The south pocket is reserved for the Hidden Grove (original_dskp_extra).
-// M2B (issue #9): tall grass (`g`) among the beds hosts the Gardens'
-// ordinary roster — the best place to meet the Mothling line.
+// Pattern Gardens: compact flowerbeds and encounter patches on the south-west loop.
 
 import { POCKET_MESSAGE, guide } from "./meadow-shared.ts";
 import type { RegionDef } from "./types.ts";
+
+export const MEADOW_GARDENS_ANCHORS = {
+  landmark: { x: 13, y: 5 }, // Gardener Po beside the pattern beds
+  trailClue: { x: 5, y: 4 },
+} as const;
 
 export const MEADOW_GARDENS: RegionDef = {
   id: "meadow/gardens",
@@ -12,43 +14,34 @@ export const MEADOW_GARDENS: RegionDef = {
   art: "meadow",
   map: { group: "meadow", role: "monster", position: { x: 42, y: 34 } },
   rows: [
-    "TTTTTTTTpTTTTTTTTTTTTTTTTTTTTT",
-    "T.......p.N..................T",
-    "T.......p....................T",
-    "T...fffffggggg...............T",
-    "T...fffffggggg....ffffff.....T",
-    "T...fffffggggg....ffffff.....T",
-    "T.......p........Nffffff.....T",
-    "T.......p....................T",
-    "T...fffffggggg...............T",
-    "T...fffffggggg....ffffff.....T",
-    "T...fffffggggg....ffffff.....T",
-    "T.......p....................T",
-    "T.......pppppppppppppppppppppp",
-    "T..............p.ggggg.......T",
-    "T..............p.ggggg.......T",
-    "T..............p.ggggg.......T",
-    "T.ggggg........p.............T",
-    "T.ggggg........p.............T",
-    "T.ggggg........p.............T",
-    "TTTTTTTTTTTTTTT.TTTTTTTTTTTTTT",
+    "TTTTTTTTpTTTTTTTTTTT",
+    "T.......p.N........T",
+    "T.fffff.p...ffffff.T",
+    "T.fffff.p...ffffff.T",
+    "T.fffffXp...ffffff.T",
+    "T..gggg.p...gNgg...T",
+    "T..gggg.p...gggg...T",
+    "T.......pppppppppppp",
+    "T.........p........T",
+    "T.fffff...p..fffff.T",
+    "T.fffff...p..fffff.T",
+    "T.fffff...p..fffff.T",
+    "T..gggg...p..gggg..T",
+    "T..gggg...p..gggg..T",
+    "TTTTTTTTTT.TTTTTTTTT",
   ],
   spawn: { x: 8, y: 1 },
+  landmark: MEADOW_GARDENS_ANCHORS.landmark,
   npcs: [
     guide(10, 1, "characters/character_5/character05-sheet.png"),
-    // The topic-arc payoff NPC (M5, #20): Gardener Po tends the pattern
-    // beds beside the east bed block.
     {
-      x: 17,
-      y: 6,
+      ...MEADOW_GARDENS_ANCHORS.landmark,
       name: "Gardener Po 园丁婆婆",
-      message: "", // payoff NPC — the dialog comes from `payoff` below
+      message: "",
       characterSheet: "characters/character_7/character07-sheet.png",
       payoff: true,
     },
   ],
-  // M5 topic arc (#20): the Gardens serve space & shapes — 2D shapes and
-  // repeating patterns (routed in REGION_TOPICS, world/regions/index.ts).
   payoff: {
     badge: "meadow-gardens-helped",
     helps: 3,
@@ -59,11 +52,6 @@ export const MEADOW_GARDENS: RegionDef = {
     changedNotice:
       "The flowerbeds burst into bloom — every pattern complete! 花坛开满了花——每排图案都完成了！",
   },
-  // M2B roster (issue #9): Mothling anchors the garden beds (the slate calls
-  // this the best place to meet all three of its stages). Weights sum to 100
-  // (percentages); membership and rarity match the MEADOW_HABITATS rows for
-  // "meadow/gardens" exactly, with Pufftail below the area anchor.
-  //   Mothling (common) 60 · Balltail Hare (uncommon) 25 · Pufftail (common) 15
   encounters: {
     rate: 0.2,
     entries: [
@@ -82,12 +70,11 @@ export const MEADOW_GARDENS: RegionDef = {
     },
     {
       name: "east",
-      tiles: [{ x: 29, y: 12 }],
+      tiles: [{ x: 19, y: 7 }],
       to: "meadow/barn",
       toGateway: "west",
-      arriveAt: { x: 28, y: 12 },
+      arriveAt: { x: 18, y: 7 },
     },
-    // The Hidden Grove (original_dskp_extra) will open here one day.
-    { name: "pocket-grove", tiles: [{ x: 15, y: 19 }], to: null, message: POCKET_MESSAGE },
+    { name: "pocket-grove", tiles: [{ x: 10, y: 14 }], to: null, message: POCKET_MESSAGE },
   ],
 };

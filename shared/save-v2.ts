@@ -17,6 +17,8 @@ export type { BagState };
 export { MAX_TEAM_SIZE, STARTING_BAG, STARTING_MONEY };
 
 export const SAVE_VERSION = 2 as const;
+/** Current authored world-grid revision. Old local coordinates reset once. */
+export const WORLD_LAYOUT_REVISION = 1 as const;
 // Network payload cap for a v2 save (matches the v1 ceiling; the collection is
 // bounded by validation, and the Field Guide stays modest at this scale).
 export const MAX_SAVE_JSON_BYTES_V2 = 16 * 1024;
@@ -51,13 +53,11 @@ export interface PlayerProgress {
   totalXp: number;
 }
 
-// Location persists as regionId + LOCAL x/y inside that region's map (regions
-// are never resized after they ship, so saved tiles never drift). `null` means
-// "never persisted" — the client spawns at the region's default (safe gateway)
-// and validates the saved tile is still walkable on load, falling back to the
-// safe gateway if a layout edit stranded the save (meadow-isle.md region
-// graph). The region registry + walkable check live in the client (game/world),
-// not here, so this module stays free of Cocos/world data.
+// Location persists as regionId + LOCAL x/y inside that region's authored
+// grid. `worldLayoutRevision` makes intentional grid changes explicit: the
+// client keeps an old Meadow region but resumes once at its new safe spawn.
+// The region registry and spawn lookup live in the client (game/world), not
+// here, so this shared module stays free of Cocos/world data.
 export interface LocationState {
   regionId: string;
   x: number;
@@ -95,6 +95,8 @@ export interface SaveStateV2 {
   bag: BagState;
   /** Persisted regionId + tile; null until the client first checkpoints it. */
   location: LocationState | null;
+  /** Revision of the local-coordinate grids that wrote `location`. */
+  worldLayoutRevision: number;
   fieldGuide: FieldGuideEntryState[];
   badges: readonly string[];
   /**
@@ -145,6 +147,7 @@ export function createNewGameV2(
     money: STARTING_MONEY,
     bag: { ...STARTING_BAG },
     location: null,
+    worldLayoutRevision: WORLD_LAYOUT_REVISION,
     fieldGuide: [
       { speciesId: starter.id, status: "caught", variants: ["normal"] },
     ],

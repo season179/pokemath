@@ -21,11 +21,11 @@
 // Pure and Node-testable (type-only imports, like arc.ts): WorldScreen and
 // GameApp only render and route it; game/tests/trail.test.ts pins the logic.
 
-import type { ArcCritter } from "./arc";
-import { MEADOW_GARDENS_ANCHORS } from "./regions/meadow-gardens";
-import { MEADOW_ORCHARD_ANCHORS } from "./regions/meadow-orchard";
-import { MEADOW_STONES_ANCHORS } from "./regions/meadow-stones";
-import { MEADOW_TICKTOCK_ANCHORS } from "./regions/meadow-ticktock";
+import type { ArcCritter } from "./arc.ts";
+import { MEADOW_GARDENS_ANCHORS } from "./regions/meadow-gardens.ts";
+import { MEADOW_ORCHARD_ANCHORS } from "./regions/meadow-orchard.ts";
+import { MEADOW_STONES_ANCHORS } from "./regions/meadow-stones.ts";
+import { MEADOW_TICKTOCK_ANCHORS } from "./regions/meadow-ticktock.ts";
 
 // --- flag keys ---------------------------------------------------------------
 

@@ -88,6 +88,15 @@ async function mirrorRegions(srcDir, destDir) {
 
 await mirrorRegions(WORLD_SRC, WORLD_DEST);
 
+// Pure root world modules share region anchors but are consumed by Cocos-only
+// screens. Mirror only the reviewed files so unrelated Cocos world modules in
+// the destination are never deleted.
+for (const name of ["arc.ts", "trail.ts"]) {
+  const src = await readFile(join(root, "game", "world", name), "utf8");
+  await writeFile(join(root, "game", "assets", "src", "world", name), src.replace(TS_SPECIFIER, "$1$2"));
+  console.log(`synced game/world/${name}`);
+}
+
 // Pure, Node-runnable world modules (no Cocos) live in their own directory so
 // the mirror can be deletion-safe just like regions/ — the dest dir holds
 // ONLY mirrored files, never Cocos-only code. Add a future pure world module

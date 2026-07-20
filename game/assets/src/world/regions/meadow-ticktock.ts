@@ -1,11 +1,12 @@
-// Ticktock Knoll: the clock post on a stone-ringed rise, due north.
-// M2B (issue #9): tall grass (`g`) hosts the Knoll's ordinary roster — the
-// owl keeper's friends gather here, so this is deliberately uncommon-majority
-// country (catch difficulty is HP-based and uniform everywhere; rarity is
-// flavour and collection pacing, never a wall).
+// Ticktock Knoll: a compact three-way junction around the working clock post.
 
 import { guide } from "./meadow-shared";
 import type { RegionDef } from "./types";
+
+export const MEADOW_TICKTOCK_ANCHORS = {
+  landmark: { x: 9, y: 4 },
+  trailClue: { x: 9, y: 7 },
+} as const;
 
 export const MEADOW_TICKTOCK: RegionDef = {
   id: "meadow/ticktock",
@@ -13,36 +14,24 @@ export const MEADOW_TICKTOCK: RegionDef = {
   art: "meadow",
   map: { group: "meadow", role: "monster", position: { x: 62, y: 82 } },
   rows: [
-    "TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
-    "T.ggg......................T",
-    "T.gggf.............T.......T",
-    "T...........ooooo..........T",
-    "T..........o..C..o.........T",
-    "T..........o.....o.........T",
-    "T...........ooooo..........T",
-    "T.............p............T",
-    "pppppppppppppppppppppppppppp",
-    "T.N...........p............T",
-    "T.gggg........p.....f......T",
-    "T.gggg........p............T",
-    "T..T..........p............T",
-    "T.............p............T",
-    "T.............p....T.......T",
-    "T.............p............T",
-    "T.......f.....p..ggggg.....T",
-    "T.............p..ggggg.....T",
-    "T.............p..ggggg.....T",
-    "TTTTTTTTTTTTTTpTTTTTTTTTTTTT",
+    "TTTTTTTTTTTTTTTTTTT",
+    "T.ggg.............T",
+    "T.ggg....o........T",
+    "T.ggg...o.o...T...T",
+    "T......o.C.o......T",
+    "T.......opo.......T",
+    "ppppppppppppppppppp",
+    "TN.......p........T",
+    "T........p.....f..T",
+    "T.gggg...p...gggg.T",
+    "T.gggg...p...gggg.T",
+    "T.gggg...p...gggg.T",
+    "T........p........T",
+    "TTTTTTTTTpTTTTTTTTT",
   ],
-  spawn: { x: 1, y: 8 },
-  npcs: [guide(2, 9, "characters/character_6/character06-sheet.png")],
-  // M2B roster (issue #9): the tower is Owlet country — the island's one
-  // uncommon-majority table, so the mascot line is genuinely findable here.
-  // Weights sum to 100 (percentages); membership and rarity match the
-  // MEADOW_HABITATS rows for "meadow/ticktock" exactly, and Pufftail (the
-  // island-wide background mouse) sits below the area anchor as the slate
-  // requires.
-  //   Owlet (uncommon) 40 · Pufftail (common) 35 · Blossomfox (uncommon) 25
+  spawn: { x: 1, y: 6 },
+  landmark: MEADOW_TICKTOCK_ANCHORS.landmark,
+  npcs: [guide(1, 7, "characters/character_6/character06-sheet.png")],
   encounters: {
     rate: 0.2,
     entries: [
@@ -54,24 +43,24 @@ export const MEADOW_TICKTOCK: RegionDef = {
   gateways: [
     {
       name: "west",
-      tiles: [{ x: 0, y: 8 }],
+      tiles: [{ x: 0, y: 6 }],
       to: "meadow/woolly",
       toGateway: "north",
-      arriveAt: { x: 1, y: 8 },
+      arriveAt: { x: 1, y: 6 },
     },
     {
       name: "east",
-      tiles: [{ x: 27, y: 8 }],
+      tiles: [{ x: 18, y: 6 }],
       to: "meadow/orchard",
       toGateway: "north",
-      arriveAt: { x: 26, y: 8 },
+      arriveAt: { x: 17, y: 6 },
     },
     {
       name: "south",
-      tiles: [{ x: 14, y: 19 }],
+      tiles: [{ x: 9, y: 13 }],
       to: "meadow/stones",
       toGateway: "north",
-      arriveAt: { x: 14, y: 18 },
+      arriveAt: { x: 9, y: 12 },
     },
   ],
 };
