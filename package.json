@@ -19,6 +19,7 @@
     "sync": "node tools/sync-shared.mjs",
     "typecheck": "tsc --noEmit -p game/tsconfig.check.json && tsc --noEmit -p worker/tsconfig.json",
     "cf-types": "cd worker && npx wrangler types",
+    "check:metas": "node tools/check-missing-metas.mjs",
     "deploy": "cd worker && npx wrangler deploy"
   },
   "devDependencies": {

@@ -16,5 +16,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run check:metas
       - name: Typecheck worker + shared (game tsconfig needs editor-generated Cocos types)
         run: npx tsc --noEmit -p worker/tsconfig.json
