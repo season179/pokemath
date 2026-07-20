@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "batch_id": "std1.pattern-gardens-4.6-tp2-3-hand",
+  "generator": {
+    "tool": "hand-authored",
+    "version": 0,
+    "note": "Pattern Gardens arc — 2D shapes, repeating patterns, shared 3D-solids slice (issue #20). Authored directly as a schema-v2 candidate (the M4 generator's templates cover topics 4.1–4.4 only; figure-first content is hand-written)."
+  },
+  "generated_at": "2026-07-19T16:27:04.544461+00:00",
+  "params": {
+    "bank_id": "std1.pattern-gardens",
+    "grade": "std1",
+    "topic": "4.6",
+    "tp_min": 2,
+    "tp_max": 3,
+    "profile": "dpk3_2026_core",
+    "count": 16,
+    "seed": null,
+    "bank_version": 1
+  },
+  "question_count": 16,
+  "template_counts": {
+    "name-count": 6,
+    "true-false": 2,
+    "compare": 2,
+    "pattern-continue": 3,
+    "count-write": 1,
+    "order-sequence": 1,
+    "word-single": 1
+  },
+  "sha256": "a058da91ff0ec7ef9c1fe17fd9e9387aa8ce42dfc7ac53985f517a9937907999",
+  "reproduce": "hand-authored candidate; gate: npm run validate:questions -- question-batches/candidates/std1.pattern-gardens-4.6-tp2-3-hand.candidate.json"
+}
