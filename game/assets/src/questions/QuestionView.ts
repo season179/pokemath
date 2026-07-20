@@ -67,13 +67,15 @@ export class QuestionView {
     // step layout below is untouched.
     const figureModel = resolveFigureView(q);
     if (figureModel.mode === "figure" && !turn.step) {
-      makeWrappedLabel(card, q.question_zh, 0, 137, 760, 56, { fontSize: 20, lineHeight: 26 });
-      makeWrappedLabel(card, q.question_en, 0, 93, 760, 30, {
+      // Card half-height is 165; keep ~16px pad under the rounded top so
+      // the ZH line doesn't sit on the stroke.
+      makeWrappedLabel(card, q.question_zh, 0, 122, 760, 52, { fontSize: 20, lineHeight: 26 });
+      makeWrappedLabel(card, q.question_en, 0, 82, 760, 30, {
         fontSize: 15,
         color: PALETTE.sub,
         lineHeight: 19,
       });
-      renderFigure(card, figureModel.spec, { x: 0, y: -38, width: 740, height: 190 });
+      renderFigure(card, figureModel.spec, { x: 0, y: -42, width: 740, height: 190 });
     } else {
       this.buildProse(card);
     }
