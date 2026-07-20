@@ -62,8 +62,10 @@ answer-form are separate axes (§E).
 `presentation` axis (orthogonal to format): `plain` · `picture` · `story` ·
 `figure:ten-frame` · `figure:number-bond` · `figure:number-line` ·
 `figure:clock` · `figure:abacus` · `figure:coins` · `figure:shapes` ·
-`figure:pictograph` · `figure:objects` · `figure:balance` · `figure:calendar` ·
-`figure:grid` · `figure:table`.
+`figure:solids` · `figure:measure` · `figure:pictograph` · `figure:objects` ·
+`figure:balance` · `figure:calendar` · `figure:grid` · `figure:table`.
+(`figure:solids` and `figure:measure` joined with the visual-math renderers,
+issue #20.)
 
 `answer_form` axis: `numeral` · `chinese-word` · `number-sentence` · `circle` ·
 `match` · `color` · `ordering` · `tick` · `drawing` · `count`.
@@ -308,7 +310,8 @@ item := {
   format_type:  <one of §A IDs>,
   presentation: "plain"|"picture"|"story"|"figure:ten-frame"|"figure:number-bond"
                |"figure:number-line"|"figure:clock"|"figure:abacus"|"figure:coins"
-               |"figure:shapes"|"figure:pictograph"|"figure:objects"
+               |"figure:shapes"|"figure:solids"|"figure:measure"
+               |"figure:pictograph"|"figure:objects"
                |"figure:balance"|"figure:calendar"|"figure:grid"|"figure:table",
   answer_form:  "numeral"|"chinese-word"|"number-sentence"|"circle"|"match"
                |"color"|"ordering"|"tick"|"drawing"|"count",
@@ -325,8 +328,10 @@ Key gaps vs. the current numeric-`answer` + `makeChoices()` engine:
   prose — this is the dominant mode at Standard 1, not an edge case. **Landed
   (M5, #16):** `shared/figures.ts` defines the spec DSL (ten-frame, clock, coins,
   objects — validated at the v2 trust boundary as the `figure` field) and
-  `game/assets/src/questions/FigureView.ts` renders it; the remaining
-  presentations fall back to prose until their renderers land.
+  `game/assets/src/questions/FigureView.ts` renders it. **Extended (M5, #20):**
+  the visual-math kinds — shapes, solids, abacus, measure, pictograph — landed
+  with the Gardens/Barn/Festival topic arcs; the remaining presentations fall
+  back to prose until their renderers land.
 - **Non-numeric answers.** `match`, `color`, `ordering`, `number-sentence`,
   `chinese-word`, `drawing`, `tick` need answer types and graders the numeric
   field can't hold.

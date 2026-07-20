@@ -145,6 +145,8 @@
             "figure:abacus",
             "figure:coins",
             "figure:shapes",
+            "figure:solids",
+            "figure:measure",
             "figure:pictograph",
             "figure:objects",
             "figure:balance",
@@ -253,19 +255,29 @@
               { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "ten-frame" } } }, "presentation": { "const": "figure:ten-frame" } } },
               { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "clock" } } }, "presentation": { "const": "figure:clock" } } },
               { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "coins" } } }, "presentation": { "const": "figure:coins" } } },
-              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "objects" } } }, "presentation": { "const": "figure:objects" } } }
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "objects" } } }, "presentation": { "const": "figure:objects" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "shapes" } } }, "presentation": { "const": "figure:shapes" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "solids" } } }, "presentation": { "const": "figure:solids" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "abacus" } } }, "presentation": { "const": "figure:abacus" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "measure" } } }, "presentation": { "const": "figure:measure" } } },
+              { "type": "object", "properties": { "figure": { "properties": { "kind": { "const": "pictograph" } } }, "presentation": { "const": "figure:pictograph" } } }
             ]
           }
         }
       ]
     },
     "figure": {
-      "description": "One declarative figure (#16), discriminated by kind",
+      "description": "One declarative figure (#16; visual-math kinds #20), discriminated by kind",
       "anyOf": [
         { "$ref": "#/$defs/figure-ten-frame" },
         { "$ref": "#/$defs/figure-clock" },
         { "$ref": "#/$defs/figure-coins" },
-        { "$ref": "#/$defs/figure-objects" }
+        { "$ref": "#/$defs/figure-objects" },
+        { "$ref": "#/$defs/figure-shapes" },
+        { "$ref": "#/$defs/figure-solids" },
+        { "$ref": "#/$defs/figure-abacus" },
+        { "$ref": "#/$defs/figure-measure" },
+        { "$ref": "#/$defs/figure-pictograph" }
       ]
     },
     "figure-ten-frame": {
@@ -321,6 +333,90 @@
           "type": "integer",
           "minimum": 1,
           "description": "Trailing items drawn struck through (picture-sentence subtraction); must be ≤ count (parser-enforced)"
+        }
+      }
+    },
+    "figure-shapes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sequence"],
+      "properties": {
+        "kind": { "const": "shapes" },
+        "sequence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "enum": ["square", "rectangle", "triangle", "circle"] },
+          "description": "The four named Standard-1 2D shapes (scope doc §4.6) in frieze order"
+        },
+        "blank": {
+          "type": "boolean",
+          "description": "Adds a dashed \"?\" slot after the last shape (pattern-continue)"
+        }
+      }
+    },
+    "figure-solids": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "solids"],
+      "properties": {
+        "kind": { "const": "solids" },
+        "solids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": { "enum": ["cube", "cuboid", "cylinder", "cone", "pyramid", "sphere"] },
+          "description": "The six named Standard-1 solids (正方体/长方体/圆柱体/圆锥体/角锥体/球体)"
+        }
+      }
+    },
+    "figure-abacus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "abacus" },
+        "value": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99,
+          "description": "The 1:4 abacus figure reads two rods (十位/个位); representation only (scope doc §3)"
+        }
+      }
+    },
+    "figure-measure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "object", "unit", "count"],
+      "properties": {
+        "kind": { "const": "measure" },
+        "object": { "type": "string", "minLength": 1, "description": "One emoji grapheme: the measured object, e.g. ✏️" },
+        "unit": { "type": "string", "minLength": 1, "description": "One emoji grapheme: the non-standard unit, e.g. 📎 — no standard-unit vocabulary exists in the DSL" },
+        "count": { "type": "integer", "minimum": 1, "maximum": 10, "description": "Unit icons laid end-to-end" }
+      }
+    },
+    "figure-pictograph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "rows"],
+      "properties": {
+        "kind": { "const": "pictograph" },
+        "rows": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "description": "Category rows; icons must be distinct (parser-enforced). One picture = one value, structurally — no scale field exists.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["icon", "label_zh", "count"],
+            "properties": {
+              "icon": { "type": "string", "minLength": 1, "description": "One emoji grapheme, e.g. 🍎" },
+              "label_zh": { "type": "string", "minLength": 1, "description": "Category name, e.g. 苹果" },
+              "label_en": { "type": "string", "minLength": 1, "description": "Optional English gloss" },
+              "count": { "type": "integer", "minimum": 1, "maximum": 10, "description": "The value IS the icon count (one picture = one value)" }
+            }
+          }
         }
       }
     },

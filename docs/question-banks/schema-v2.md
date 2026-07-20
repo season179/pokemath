@@ -51,7 +51,7 @@ Unknown envelope fields are rejected.
 | `profile` | `"dpk3_2026_core"`, `"original_dskp_extra"` | curriculum-profile gate (below) |
 | `item_format` | `"objective"` | item shape (style doc §B); v2 serves numeric objective rounds only |
 | `format_type` | one of the style doc §A ids (e.g. `count-write`, `number-bond`, `word-single`, `pattern-continue`, `round-ten`) | worksheet format the item models |
-| `presentation` | `plain`, `picture`, `story`, `figure:ten-frame`, `figure:number-bond`, `figure:number-line`, `figure:clock`, `figure:abacus`, `figure:coins`, `figure:shapes`, `figure:pictograph`, `figure:objects`, `figure:balance`, `figure:calendar`, `figure:grid`, `figure:table` | how the item is shown |
+| `presentation` | `plain`, `picture`, `story`, `figure:ten-frame`, `figure:number-bond`, `figure:number-line`, `figure:clock`, `figure:abacus`, `figure:coins`, `figure:shapes`, `figure:solids`, `figure:measure`, `figure:pictograph`, `figure:objects`, `figure:balance`, `figure:calendar`, `figure:grid`, `figure:table` | how the item is shown |
 | `answer_form` | `"numeral"`, `"count"`, `"chinese-word"`, `"circle"`, `"true-false"`, `"ordering"` | the objective forms v2 serves (see below) |
 | `answer_unit` | `"none"`, `"RM"`, `"sen"` | display unit; `"none"` keeps counts out of currency |
 | `operation` | `"counting"`, `"addition"`, `"subtraction"` | Std-1 hard constraints: no × ÷ |
@@ -155,8 +155,9 @@ direction**; shuffling is serve-time UI state and never enters the bank.
 Standard-1 items are overwhelmingly visual (style doc §E), so an item can
 carry a small **figure spec** — content data, rendered by the shared
 FigureView kit (`game/assets/src/questions/FigureView.ts`) rather than by
-per-question UI code. The DSL lives in `shared/figures.ts`; the four kinds
-cover the highest-frequency Standard 1 visuals:
+per-question UI code. The DSL lives in `shared/figures.ts`; the nine kinds
+cover the highest-frequency Standard 1 visuals (the four originals from #16,
+plus the five visual-math kinds from the topic arcs, #20):
 
 | `figure.kind` | Shape | Renders |
 |---|---|---|
@@ -164,6 +165,11 @@ cover the highest-frequency Standard 1 visuals:
 | `"clock"` | `{ "kind", "hour": 1–12, "minute": 0\|15\|30\|45 }` | an analog face with all twelve numerals; the hour hand travels with the minutes (3:30 points halfway between 3 and 4) |
 | `"coins"` | `{ "kind", "coins": [5\|10\|20\|50, ...] }` | Malaysian sen coins (silver; 50 sen gold), sized by value, labeled with the denomination; the pile must total ≤ 100 sen (RM1) |
 | `"objects"` | `{ "kind", "icon": "🐑", "count": 1–100, "crossedOut"? }` | rows of one emoji (10 per row); the trailing `crossedOut` icons are struck through — the picture-sentence (看图列式) subtraction convention |
+| `"shapes"` (#20) | `{ "kind", "sequence": ["square"\|"rectangle"\|"triangle"\|"circle", ... ≤8], "blank"? }` | a frieze row of the four named 2D shapes; `blank: true` adds a dashed "?" slot after the last shape — the pattern-continue prompt |
+| `"solids"` (#20) | `{ "kind", "solids": ["cube"\|"cuboid"\|"cylinder"\|"cone"\|"pyramid"\|"sphere", ... ≤4] }` | line-drawn 3D solids (oblique projection) for the scavenger hunt: name the solid, count 面/边/顶点, continue a 3D pattern |
+| `"abacus"` (#20) | `{ "kind", "value": 0–99 }` | a two-rod 1:4 abacus (十位/个位): one heaven bead (worth 5), four earth beads; engaged beads touch the beam. Representation only (scope doc §3) |
+| `"measure"` (#20) | `{ "kind", "object": "✏️", "unit": "📎", "count": 1–10 }` | the measured object above a baseline with `count` non-standard unit icons laid end-to-end — no standard-unit vocabulary exists in the DSL |
+| `"pictograph"` (#20) | `{ "kind", "rows": [{ "icon", "label_zh", "label_en"?, "count": 1–10 }, 2–4 rows] }` | labeled category rows of icons, left-aligned so most/least reads off row lengths. **One picture = one value, structurally**: there is no scale field (scaled pictographs are `original_dskp_extra` only); row icons must be distinct |
 
 Wire rules (structural; `parseFigureSpec`):
 
@@ -175,8 +181,9 @@ Wire rules (structural; `parseFigureSpec`):
 - A `figure:*` presentation **without** a spec is not an error — it is the
   deliberate fallback: the question layout renders the bilingual prose with
   the world's sprites behind it (see `resolveFigureView`). This is how the
-  remaining presentations (`figure:pictograph`, `figure:number-bond`, …)
-  serve safely until their renderers land.
+  remaining presentations (`figure:number-bond`, `figure:balance`,
+  `figure:calendar`, `figure:grid`, `figure:table`, …) serve safely until
+  their renderers land.
 - Whether the figure matches the *content* (does the ten-frame show the
   question's known part?) is an authoring-review concern, not structural —
   the canonical examples live in the gallery bank
@@ -495,6 +502,236 @@ carry the tile text; values are step identities).
         { "value": 2, "strategy": "off-by-one-count" },
         { "value": 4, "strategy": "off-by-one-count" },
         { "value": 12, "strategy": "clock-hand-swap" }
+      ]
+    }
+  ]
+}
+```
+
+### Valid: visual-math figures (#20)
+
+One served item per visual-math kind: a 2D shape name-count (Gardens), a
+solid face count (Barn), an abacus read (Barn's mill — representation only),
+a non-standard measurement (Barn), and a pictograph comparison (Festival).
+
+<!-- example: valid -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-example-visual-math",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.6",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:shapes",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "4",
+      "answer": 4,
+      "bilingual": { "numeral": "4", "zh_word": "四" },
+      "question_zh": "长方形有几条边？",
+      "question_en": "How many sides does a rectangle have?",
+      "figure": { "kind": "shapes", "sequence": ["rectangle"] },
+      "distractors": [
+        { "value": 3, "strategy": "off-by-one-count" },
+        { "value": 5, "strategy": "off-by-one-count" },
+        { "value": 6, "strategy": "off-by-one-count" }
+      ]
+    },
+    {
+      "id": 2,
+      "topic": "4.6",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:solids",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": { "numeral": "6", "zh_word": "六" },
+      "question_zh": "正方体有几个面？",
+      "question_en": "How many faces does a cube have?",
+      "figure": { "kind": "solids", "solids": ["cube"] },
+      "distractors": [
+        { "value": 5, "strategy": "off-by-one-count" },
+        { "value": 7, "strategy": "off-by-one-count" },
+        { "value": 8, "strategy": "off-by-one-count" }
+      ]
+    },
+    {
+      "id": 3,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:abacus",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "40",
+      "answer": 40,
+      "bilingual": { "numeral": "40", "zh_word": "四十" },
+      "question_zh": "磨坊的算盘表示的数目是多少？",
+      "question_en": "What number does the mill's abacus show?",
+      "figure": { "kind": "abacus", "value": 40 },
+      "distractors": [
+        { "value": 4, "strategy": "place-value-slip" },
+        { "value": 30, "strategy": "place-value-slip" },
+        { "value": 50, "strategy": "place-value-slip" }
+      ]
+    },
+    {
+      "id": 4,
+      "topic": "4.5",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "count-write",
+      "presentation": "figure:measure",
+      "answer_form": "count",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": { "numeral": "6", "zh_word": "六" },
+      "question_zh": "这支铅笔大约长几个回形针？",
+      "question_en": "About how many paper clips long is this pencil?",
+      "figure": { "kind": "measure", "object": "✏️", "unit": "📎", "count": 6 },
+      "distractors": [
+        { "value": 5, "strategy": "off-by-one-count" },
+        { "value": 7, "strategy": "off-by-one-count" },
+        { "value": 8, "strategy": "off-by-one-count" }
+      ]
+    },
+    {
+      "id": 5,
+      "topic": "4.7",
+      "tp_level": 2,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "subtraction",
+      "expression": "6 - 4",
+      "answer": 2,
+      "bilingual": { "numeral": "2", "zh_word": "二" },
+      "question_zh": "丰收板上，苹果比南瓜多几个？",
+      "question_en": "On the harvest board, how many more apples than pumpkins are there?",
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          { "icon": "🍎", "label_zh": "苹果", "label_en": "apples", "count": 6 },
+          { "icon": "🎃", "label_zh": "南瓜", "label_en": "pumpkins", "count": 4 }
+        ]
+      },
+      "distractors": [
+        { "value": 10, "strategy": "wrong-operation" },
+        { "value": 6, "strategy": "raw-operand" },
+        { "value": 4, "strategy": "raw-operand" }
+      ]
+    }
+  ]
+}
+```
+
+### Invalid: a shape outside the four named 2D shapes
+
+Standard 1 names exactly four 2D shapes (scope doc §4.6) — the DSL refuses
+anything else at the trust boundary.
+
+<!-- example: invalid: /question 1\.figure\.sequence\[0\] must be one of: square, rectangle, triangle, circle/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-example",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.6",
+      "tp_level": 1,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "name-count",
+      "presentation": "figure:shapes",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "6",
+      "answer": 6,
+      "bilingual": { "numeral": "6", "zh_word": "六" },
+      "question_zh": "六边形有几条边？",
+      "question_en": "How many sides does a hexagon have?",
+      "figure": { "kind": "shapes", "sequence": ["hexagon"] },
+      "distractors": [
+        { "value": 5, "strategy": "off-by-one-count" },
+        { "value": 7, "strategy": "off-by-one-count" },
+        { "value": 8, "strategy": "off-by-one-count" }
+      ]
+    }
+  ]
+}
+```
+
+### Invalid: a scaled pictograph is unauthorable
+
+The core pictograph DSL has no scale field — one picture is always one
+value (island law). A row that tries to smuggle one in fails the
+unknown-field guard. (Scaled pictographs belong to the
+`original_dskp_extra` profile and have no spec kind.)
+
+<!-- example: invalid: /question 1\.figure\.rows\[1\] has unknown field\(s\): scale/ -->
+```json
+{
+  "schema_version": 2,
+  "bank_id": "std1.figure-example",
+  "version": 1,
+  "source": "docs/question-banks/schema-v2.md",
+  "currency": "RM",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "4.7",
+      "tp_level": 3,
+      "profile": "dpk3_2026_core",
+      "item_format": "objective",
+      "format_type": "read-instrument",
+      "presentation": "figure:pictograph",
+      "answer_form": "numeral",
+      "answer_unit": "none",
+      "operation": "counting",
+      "expression": "30",
+      "answer": 30,
+      "bilingual": { "numeral": "30", "zh_word": "三十" },
+      "question_zh": "第一周收集了多少张贴纸？",
+      "question_en": "How many stickers were collected in week 1?",
+      "figure": {
+        "kind": "pictograph",
+        "rows": [
+          { "icon": "1️⃣", "label_zh": "第一周", "count": 6 },
+          { "icon": "2️⃣", "label_zh": "第二周", "count": 4, "scale": 5 }
+        ]
+      },
+      "distractors": [
+        { "value": 6, "strategy": "raw-operand" },
+        { "value": 35, "strategy": "off-by-one-count" },
+        { "value": 20, "strategy": "raw-operand" }
       ]
     }
   ]
