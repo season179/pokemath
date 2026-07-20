@@ -398,12 +398,12 @@ export class GameApp {
     this.returnToWorld(respawn);
     if (this.arcBadgeJustAwarded) {
       this.arcBadgeJustAwarded = false;
-      this.world.showNotice(TICKTOCK_ARC_CLUE);
+      this.world.showDialogue(TICKTOCK_ARC_CLUE);
     }
     if (this.payoffJustAwarded) {
       const notice = this.payoffJustAwarded;
       this.payoffJustAwarded = null;
-      this.world.showNotice(notice);
+      this.world.showDialogue(notice);
     }
     this.checkpoint();
   }
@@ -421,7 +421,7 @@ export class GameApp {
       // The routed bank for this beat hasn't landed — start the load and ask
       // for one more gentle bump. We never fall back to SAMPLE_BANK (#8).
       void this.loadBankFor(critter.topic);
-      this.world.showNotice("Your new friend isn't ready yet — one moment! 小伙伴还没准备好，等一下下！");
+      this.world.showDialogue("Your new friend isn't ready yet — one moment! 小伙伴还没准备好，等一下下！");
       return;
     }
     const species = SPECIES_BY_ID[critter.speciesId];
@@ -485,7 +485,7 @@ export class GameApp {
       // under the player's feet (the saved tile is validated walkable).
       this.state.bag.ball += WOOLLY_PEN_REWARD_BALLS;
       this.travel(this.world.regionId, null, this.world.playerTile);
-      this.world.showNotice(PEN_REPAIRED_NOTICE);
+      this.world.showDialogue(PEN_REPAIRED_NOTICE);
     } else if (settlement) {
       // A wanderer home or the mothling met: refresh the creatures only.
       this.world.refreshArc();
@@ -495,7 +495,7 @@ export class GameApp {
       this.world.refreshHud();
       const notice = this.meadowFinaleNotices.join(" ");
       this.meadowFinaleNotices = [];
-      this.world.showNotice(notice);
+      this.world.showDialogue(notice);
     }
     this.checkpoint();
   }
@@ -514,7 +514,7 @@ export class GameApp {
     }
     this.checkpoint();
     this.world.refreshArc();
-    this.world.showNotice(`Shepherd Fern: ${FERN_ACCEPTED}`);
+    this.world.showDialogue(`Shepherd Fern: ${FERN_ACCEPTED}`);
   }
 
   /**
@@ -529,7 +529,7 @@ export class GameApp {
       this.state.setFlag(FLAG_TRAIL_STARTED, 1);
       this.checkpoint();
       this.world.refreshArc();
-      this.world.showNotice(`Keeper Yun: ${TRAIL_ACCEPTED}`);
+      this.world.showDialogue(`Keeper Yun: ${TRAIL_ACCEPTED}`);
       return;
     }
     if (flags[FLAG_TRAIL_SUMMONED] || !trailReadyToCall(flags)) return;
@@ -540,7 +540,7 @@ export class GameApp {
     }
     this.checkpoint();
     this.world.refreshArc();
-    this.world.showNotice(`Keeper Yun: ${TRAIL_CALLED}`);
+    this.world.showDialogue(`Keeper Yun: ${TRAIL_CALLED}`);
   }
 
   /**
@@ -553,7 +553,7 @@ export class GameApp {
     this.state.setFlag(trailClueFlag(clue.n), 1);
     this.checkpoint();
     this.world.refreshArc();
-    this.world.showNotice(clue.found);
+    this.world.showDialogue(clue.found);
   }
 
   private startShop(): void {
