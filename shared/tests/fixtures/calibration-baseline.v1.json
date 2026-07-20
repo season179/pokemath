@@ -453,7 +453,7 @@
     "uniqueTrust": 3
   },
   "ranks": {
-    "manifestVersion": 8,
+    "manifestVersion": 9,
     "banks": 7,
     "questions": 132,
     "byTp": {
