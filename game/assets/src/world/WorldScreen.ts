@@ -53,6 +53,7 @@ import {
   rollEncounter,
 } from "../../shared/index";
 import { ArcCritter, arcCrittersFor, fernDialogFor, patchRegionForArc } from "./arc";
+import { flockSplitsCrittersFor } from "./flock-splits";
 import {
   TrailClue,
   nextTrailClue,
@@ -128,6 +129,8 @@ export interface WorldActions {
   onSanctuary: () => void;
   /** A visible arc creature was bumped; start its scripted battle (#17). */
   onArcBattle: (critter: ArcCritter) => void;
+  /** A mini-game corral creature was bumped; open the mini-game (#88). */
+  onMinigame: (critter: ArcCritter) => void;
   /** An arc intention was accepted (Fern's broken pen); persist + refresh (#17). */
   onArcAccept: (arcId: string) => void;
   /** A trail evidence spot was searched; persist the clue + refresh (#21). */
@@ -284,11 +287,13 @@ export class WorldScreen {
   private buildArcCritters() {
     this.arcCritterNodes.forEach((node) => node.destroy());
     this.arcCritterNodes.clear();
-    // Arc beats (#17) plus the trail's summoned guardian (#21) — both are
-    // pure flag reads, so one merged list keeps world and save in agreement.
+    // Arc beats (#17), the trail's summoned guardian (#21), and the Flock
+    // Splits corral fluffball (#88) — all are pure flag/region reads, so one
+    // merged list keeps world and save in agreement.
     this.arcCritters = [
       ...arcCrittersFor(this.regionId, this.state.arcFlags()),
       ...trailCrittersFor(this.regionId, this.state.arcFlags()),
+      ...flockSplitsCrittersFor(this.regionId),
     ];
     for (const critter of this.arcCritters) {
       const [px, py] = this.gridToLocal(critter.x, critter.y);
@@ -353,8 +358,10 @@ export class WorldScreen {
   }
 
   /** A solid arc creature blocking tile (x, y), if one stands there. */
-  private battleCritterAt(x: number, y: number): ArcCritter | undefined {
-    return this.arcCritters.find((c) => c.kind === "battle" && c.x === x && c.y === y);
+  private solidCritterAt(x: number, y: number): ArcCritter | undefined {
+    return this.arcCritters.find(
+      (c) => (c.kind === "battle" || c.kind === "minigame") && c.x === x && c.y === y,
+    );
   }
 
   pressDir(direction: Direction) {
@@ -404,11 +411,11 @@ export class WorldScreen {
         const [dx, dy] = DIR_DELTA[direction];
         const nextX = this.px + dx;
         const nextY = this.py + dy;
-        const critter = this.battleCritterAt(nextX, nextY);
+        const critter = this.solidCritterAt(nextX, nextY);
         if (critter) {
-          // A visible arc friend blocks its tile like an NPC; bumping it
-          // starts its scripted battle (#17).
-          this.startArcCritterBattle(critter);
+          // A visible arc friend or the mini-game corral fluffball blocks its
+          // tile like an NPC; bumping it routes by kind (#17/#88).
+          this.bumpCritter(critter);
         } else if (isWalkable(this.def, nextX, nextY)) {
           this.beginCompanionMove(this.px, this.py);
           this.px = nextX;
@@ -467,18 +474,21 @@ export class WorldScreen {
 
   private interactAhead() {
     const [dx, dy] = DIR_DELTA[this.dir];
-    const critter = this.battleCritterAt(this.px + dx, this.py + dy);
+    const critter = this.solidCritterAt(this.px + dx, this.py + dy);
     if (critter) {
-      this.startArcCritterBattle(critter);
+      this.bumpCritter(critter);
       return;
     }
     const npc = npcAt(this.def, this.px + dx, this.py + dy);
     if (npc) this.showNpcDialog(npc);
   }
 
-  private startArcCritterBattle(critter: ArcCritter) {
+  // Route a bumped solid critter by its kind: a mini-game corral fluffball
+  // opens the mini-game, every other arc creature starts its scripted battle.
+  private bumpCritter(critter: ArcCritter) {
     this.releaseAll();
-    this.actions.onArcBattle(critter);
+    if (critter.kind === "minigame") this.actions.onMinigame(critter);
+    else this.actions.onArcBattle(critter);
   }
 
   private onArrive() {

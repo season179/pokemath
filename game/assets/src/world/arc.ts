@@ -44,7 +44,7 @@ export interface ArcCritter {
   readonly speciesId: string;
   /** Curriculum topic the scripted battle draws from (routed bank, #13). */
   readonly topic: string;
-  readonly kind: "battle" | "decor";
+  readonly kind: "battle" | "decor" | "minigame";
   /**
    * Legacy opt-out kept for the trail's guardian row (#21). Unique pressure
    * itself is gated purely by species rarity in BattleScreen (#22); ordinary

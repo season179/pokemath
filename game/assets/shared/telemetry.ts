@@ -129,6 +129,25 @@ export const TELEMETRY_EVENTS: Record<string, TelemetryEventSpec> = {
       duringBattle: isBool,
     },
   },
+  // One mini-game visit ended (M8, #88). The first non-battle mechanic: the
+  // learning question is whether kids voluntarily replay an open-ended loop,
+  // so `rounds` (playthroughs in one visit) and `reason` carry that signal.
+  // `splitsFound` is the distinct decompositions found in the final round;
+  // after replay it may be 0..2 even when sticky `reason` is `completed`, and
+  // `rounds > 1` distinguishes that voluntary-replay case. `duplicateAttempts`
+  // is session-total. No timing props (registry
+  // convention) and no per-tap events — one row per orderly screen exit.
+  minigame_session_ended: {
+    summary: "Do kids voluntarily replay a non-battle mechanic?",
+    emitted: true,
+    required: {
+      minigame: oneOf("flock-splits"),
+      reason: oneOf("completed", "exited"),
+      splitsFound: intIn(0, 5),
+      duplicateAttempts: intIn(0, 99),
+      rounds: intIn(1, 99),
+    },
+  },
   // RESERVED — no hint mechanic exists yet. Emitted once hints ship.
   hint_used: {
     summary: "Which operations/topics need scaffolding?",
