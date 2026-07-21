@@ -375,7 +375,51 @@ agent-browser --session "$SN" screenshot /tmp/smoke/05-woolly.png
 Assert `region: "meadow/woolly"` and toast `WOOLLY MEADOWS · 羊毛草原`,
 arrival `(1, 7)`.
 
-### 5c. Woolly north gate → Ticktock Knoll (open since #9), mini-map, and world map
+### 5c. Flock Splits mini-game (issue #88)
+
+The first open-ended mini-game lives in Woolly Meadows. From the arrival
+`(1, 7)`, walk east to the corral fluffball at `(6, 8)` and bump it (step
+south into its tile) — it opens the Flock Splits screen, never a battle.
+
+```bash
+# Mini-game detector: PASS when the flock-splits screen node is active.
+mg() { local got; got=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let m=null;(function w(n){if(n.name==='flock-splits')m=n;if(n.children)for(const c of n.children)w(c);})(s);return m&&m.active?'PASS':'FAIL';})()"); got=${got//\"/}; [[ "$got" == PASS ]]; }
+
+mv ArrowRight 5                                                            # (1,7) → (6,7), beside the corral
+agent-browser --session "$SN" press ArrowDown; agent-browser --session "$SN" wait 700   # bump (6,8) → screen opens
+mg || { echo "FAIL: Flock Splits did not open on bump"; exit 1; }
+ck meadow/woolly || exit 1                                                          # still Woolly underneath
+tp "Flock Splits" || exit 1                                                          # bilingual title renders
+agent-browser --session "$SN" screenshot /tmp/smoke/05b-flock-splits-open.png
+```
+
+Assert the bilingual title `分羊群 · Flock Splits` and the goal line render,
+the meadow holds ten fluffballs, and two empty pens wait. Play one round to
+verify the loop end-to-end: aim the left pen, send six fluffballs into it,
+aim the right pen, send the remaining four, then submit a split.
+
+```bash
+taplabel "围栏 1"; agent-browser --session "$SN" wait 200                           # aim the left pen
+for ((i=0;i<6;i++)); do tapnode "fluff"; agent-browser --session "$SN" wait 120; done   # send six to pen 1 (first 6 fluffs)
+taplabel "围栏 2"; agent-browser --session "$SN" wait 200                           # aim the right pen
+for ((i=0;i<4;i++)); do tapnode "fluff"; agent-browser --session "$SN" wait 120; done   # send four to pen 2
+taplabel "好了"; agent-browser --session "$SN" wait 600                             # submit → accepted (4 + 6 = 10)
+agent-browser --session "$SN" screenshot /tmp/smoke/05c-flock-splits-accept.png
+```
+
+Assert the equation card `4 + 6 = 10` appears and the meadow refills to ten
+(session-local: nothing is saved). Now leave without finishing — Esc closes
+the screen and the world resumes on the same tile; no `minigame_session_ended`
+error appears in the console (it is metadata-only and valid):
+
+```bash
+agent-browser --session "$SN" press Escape; agent-browser --session "$SN" wait 600   # leave
+mg && { echo "FAIL: Flock Splits did not close on Esc"; exit 1; }
+ck meadow/woolly || exit 1                                                          # back in Woolly, same spot
+mv ArrowLeft 5                                                            # (6,7) → (1,7), back to the arrival tile
+```
+
+### 5d. Woolly north gate → Ticktock Knoll (open since #9), mini-map, and world map
 
 The Woolly north gate **travels** now. From the Woolly arrival `(1, 7)`:
 
@@ -439,7 +483,7 @@ Assert the caption after the open-node tap reads `PATTERN GARDENS · 图案花�
 · Open — wild creatures about! 开放——野外出没！` and the URL/region never
 changed.
 
-### 5d. Return: Woolly → Dock → Harbor
+### 5e. Return: Woolly → Dock → Harbor
 
 You are near `(11, 4)`. Walk to the west exit `(0, 7)` back to Dock:
 
@@ -464,7 +508,7 @@ agent-browser --session "$SN" screenshot /tmp/smoke/11-back-to-harbor.png
 Assert `region: "harbor"`, toast `HARBOR TOWN · 港湾镇`, arrival `(9, 10)`.
 The loop is complete.
 
-### 5e. Field Guide and Harbor Sanctuary (issue #5)
+### 5f. Field Guide and Harbor Sanctuary (issue #5)
 
 From the Harbor arrival `(9, 10)`. **Field Guide first** — open with G,
 assert the grid renders from save v2 (caught species show portrait + `Caught

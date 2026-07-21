@@ -60,6 +60,8 @@ import {
   trailReadyToCall,
 } from "./world/trail";
 import { WorldMapScreen } from "./world/WorldMapScreen";
+import { FlockSplitsScreen } from "./world/FlockSplitsScreen";
+import { minigameSessionEndedProps, type FlockSession } from "./world/flock-splits";
 import { PALETTE, makeLabel, makePanel } from "./ui";
 
 type Screen =
@@ -71,7 +73,8 @@ type Screen =
   | "map"
   | "signout"
   | "guide"
-  | "sanctuary";
+  | "sanctuary"
+  | "minigame";
 
 const KEY_DIRS: Partial<Record<KeyCode, Direction>> = {
   [KeyCode.ARROW_UP]: "up",
@@ -129,6 +132,7 @@ export class GameApp {
   private bag: BagScreen | null = null;
   private battle: BattleScreen | null = null;
   private shop: ShopScreen | null = null;
+  private minigame: FlockSplitsScreen | null = null;
   private map: WorldMapScreen | null = null;
   private guide: FieldGuideScreen | null = null;
   private sanctuary: SanctuaryScreen | null = null;
@@ -174,6 +178,7 @@ export class GameApp {
     onArcBattle: (critter) => this.startArcBattle(critter),
     onArcAccept: (arcId) => this.acceptArc(arcId),
     onTrailClue: (clue) => this.foundTrailClue(clue),
+    onMinigame: () => this.startMinigame(),
   };
 
   // Swap the world to another region, arriving through the named gateway.
@@ -670,6 +675,28 @@ export class GameApp {
     this.checkpoint();
   }
 
+  // Flock Splits (M8, #88): the first open-ended mini-game, session-local —
+  // no save state changes, so the world resumes exactly where it left off.
+  // One metadata-only `minigame_session_ended` event fires on the orderly
+  // teardown, whether the child completed or just walked away.
+  private startMinigame(): void {
+    if (this.screen !== "world") return;
+    this.screen = "minigame";
+    this.hideWorld();
+    this.minigame = new FlockSplitsScreen((reason, session) =>
+      this.endMinigame(reason, session),
+    );
+    this.canvasNode.addChild(this.minigame.root);
+  }
+
+  private endMinigame(reason: "completed" | "exited", session: FlockSession): void {
+    this.telemetry.emit("minigame_session_ended", minigameSessionEndedProps(session, reason));
+    this.minigame?.root.destroy();
+    this.minigame = null;
+    this.returnToWorld(false);
+    this.telemetry.flush();
+  }
+
   private returnToWorld(respawn: boolean): void {
     this.screen = "world";
     if (respawn && this.world.regionId !== "harbor") this.travel("harbor", null);
@@ -813,6 +840,10 @@ export class GameApp {
     }
     if (this.screen === "shop") {
       this.shop?.handleKeyDown(e);
+      return;
+    }
+    if (this.screen === "minigame") {
+      this.minigame?.handleKeyDown(e);
       return;
     }
     if (this.screen === "map") {
