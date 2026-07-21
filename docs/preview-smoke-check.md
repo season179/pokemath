@@ -315,7 +315,7 @@ enter the same grass tile `(3, 5)`. This keeps the post-flee tile deterministic:
 # Battle detector: PASS when the battle screen node exists and is active.
 inbattle() { local got; got=$(agent-browser --session "$SN" eval "(function(){const s=cc.director.getScene();let b=null;(function w(n){if(n.name==='battle')b=n;if(n.children)for(const c of n.children)w(c);})(s);return b&&b.active?'PASS':'FAIL';})()"); got=${got//\"/}; [[ "$got" == PASS ]]; }
 
-mv ArrowDown 3; mv ArrowLeft 6; mv ArrowDown 1                         # (8,1) → safe (2,5)
+mv ArrowLeft 6; mv ArrowDown 4                                        # (8,1) → safe (2,5), around the fence
 steps=0
 until inbattle || (( steps >= 40 )); do
   mv ArrowRight 1; inbattle && break                                     # enter (3,5): one roll
@@ -343,22 +343,23 @@ Walk back to the dock through the north gate. The deterministic flee tile
 is `(3, 5)`:
 
 ```bash
-mv ArrowUp 1; mv ArrowRight 5; mv ArrowUp 4; agent-browser --session "$SN" wait 1100   # via gate (8,0)
+mv ArrowUp 4; mv ArrowRight 5; mv ArrowUp 1; agent-browser --session "$SN" wait 1100   # around the fence, via gate (8,0)
 ck meadow/dock || exit 1; tp "MEADOW DOCK" || exit 1
 ```
 
 **Pockets stay sealed.** The #9 lift opened only the wired ring gates — the
-reserved expansion pockets keep their rustle notice. From the compact Dock south arrival `(9, 11)`, walk to the north pocket
-`(7, 0)`:
+reserved expansion pockets keep their rustle notice. From the compact Dock
+south arrival `(9, 11)`, walk to the first north-pocket notice tile `(8, 0)`,
+then stop and wait for the modal — never buffer another move behind it:
 
 ```bash
-mv ArrowUp 10; mv ArrowLeft 1; mv ArrowUp 1; mv ArrowLeft 1; agent-browser --session "$SN" wait 400
-ck meadow/dock || exit 1
+mv ArrowUp 10; mv ArrowLeft 1; mv ArrowUp 1; agent-browser --session "$SN" wait 400
+ck meadow/dock || exit 1; tp "The bushes rustle" || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/04b-dock-pocket-locked.png
 ```
 
 Assert the bilingual rustle notice and that you **stay in Dock** (player
-lands on `(7, 0)`):
+lands on `(8, 0)`):
 
 > The bushes rustle… something is in there, but the way isn't open yet.
 > 树丛沙沙响……这条路还没开。
@@ -366,8 +367,8 @@ lands on `(7, 0)`):
 Dismiss it, then take the east exit `(17, 6)` to Woolly:
 
 ```bash
-agent-browser --session "$SN" press Space       # dismiss the notice
-mv ArrowDown 6; mv ArrowRight 10; agent-browser --session "$SN" wait 1100
+agent-browser --session "$SN" press Space; agent-browser --session "$SN" wait 200   # dismiss before moving
+mv ArrowDown 6; mv ArrowRight 9; agent-browser --session "$SN" wait 1100
 ck meadow/woolly || exit 1; tp "WOOLLY MEADOWS" || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/05-woolly.png
 ```
@@ -455,7 +456,7 @@ ck meadow/woolly || exit 1
 agent-browser --session "$SN" screenshot /tmp/smoke/08-worldmap-open-minimap.png # capture WHILE open
 ```
 
-Assert `World Map · 世界地图`, the "Informational — explore on foot or by
+Assert `World Map  ·  世界地图`, the "Informational — explore on foot or by
 ferry" subtitle, Harbor shown as home hub, Dock as transit, and Woolly/
 Ticktock/Orchard/Festival/Barn/Pattern Gardens + the Hundred Stones guardian
 ground all open (no padlock icons), and a caption `… · You are here! 你在这里！`.
@@ -605,7 +606,7 @@ check passed with any box unchecked.
       Woolly, and Ticktock Knoll (Woolly north gate, open since #9) — `tp`
       non-empty after a <1500 ms wait, each gate walked **both** ways.
 - [ ] **4 — Pockets stay sealed; a real wild battle fires in a newly opened
-      region** — `04b` (Dock north pocket `(7,0)`) shows the bilingual
+      region** — `04b` (Dock north pocket `(8,0)`) shows the bilingual
       rustle notice and no travel; `04` shows a live wild battle from the
       Pattern Gardens habitat table, fled cleanly back to the world.
 - [ ] **5 — Mini-map tracks player; world map opens/closes; no fast travel** —
