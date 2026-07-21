@@ -6,6 +6,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
+import { validateTelemetryEvent } from "../../shared/telemetry.ts";
+import {
+	FLAG_WOOLLY_PEN,
+	FLAG_WOOLLY_PEN_FOUND,
+	arcCrittersFor,
+} from "../world/arc.ts";
 import {
 	FLOCK_GOAL,
 	FLOCK_SPLITS_CRITTER_ID,
@@ -173,6 +179,25 @@ test("flock-splits: replay clears found, bumps rounds, and keeps dupes", () => {
 	assert.equal(after.dupes, 1, "dupes carry across the visit");
 });
 
+test("flock-splits: a replay can complete a fresh second round", () => {
+	let s = newFlockSession();
+	for (const [a, b] of [[6, 4], [3, 7], [2, 8]] as const) {
+		const filled = { ...arrange(a, b), found: s.found, rounds: s.rounds };
+		s = applySubmit(filled, submitSplit(filled));
+	}
+	assert.ok(isComplete(s));
+	s = replay(s);
+	for (const [a, b] of [[1, 9], [5, 5], [4, 6]] as const) {
+		const filled = { ...arrange(a, b), found: s.found, rounds: s.rounds };
+		s = applySubmit(filled, submitSplit(filled));
+	}
+	assert.ok(isComplete(s));
+	const props = minigameSessionEndedProps(s, "completed");
+	assert.equal(props.rounds, 2);
+	assert.equal(props.splitsFound, FLOCK_GOAL);
+	assert.equal(props.reason, "completed");
+});
+
 // --- the entry critter ------------------------------------------------------
 
 test("flock-splits: the corral entry critter stands on a walkable woolly tile", () => {
@@ -195,6 +220,21 @@ test("flock-splits: the entry critter appears only in Woolly Meadows", () => {
 	assert.deepEqual(flockSplitsCrittersFor("harbor"), []);
 });
 
+test("flock-splits: the entry never overlaps a flag-driven Woolly critter", () => {
+	const flagStates = [
+		{},
+		{ [FLAG_WOOLLY_PEN]: 1, [FLAG_WOOLLY_PEN_FOUND]: 0 },
+		{ [FLAG_WOOLLY_PEN]: 1, [FLAG_WOOLLY_PEN_FOUND]: 2 },
+		{ [FLAG_WOOLLY_PEN]: 2 },
+	];
+	for (const flags of flagStates) {
+		const overlap = arcCrittersFor("meadow/woolly", flags).find(
+			(critter) => critter.x === FLOCK_SPLITS_ENTRY.x && critter.y === FLOCK_SPLITS_ENTRY.y,
+		);
+		assert.equal(overlap, undefined);
+	}
+});
+
 // --- telemetry payload ------------------------------------------------------
 
 test("flock-splits: telemetry props are metadata-only and well-formed", () => {
@@ -214,6 +254,34 @@ test("flock-splits: telemetry props are metadata-only and well-formed", () => {
 		"rounds",
 		"splitsFound",
 	]);
+	assert.equal(
+		validateTelemetryEvent({
+			id: "01234567-89ab-cdef-0123-456789abcdef",
+			name: "minigame_session_ended",
+			at: "2026-07-21T10:00:00.000Z",
+			props,
+		}),
+		null,
+	);
+});
+
+test("flock-splits: telemetry counters saturate inside the shared schema bounds", () => {
+	const props = minigameSessionEndedProps(
+		{ ...newFlockSession(), found: Array(20).fill("1+9"), rounds: 150, dupes: 200 },
+		"completed",
+	);
+	assert.equal(props.splitsFound, MAX_SPLITS_OF_TEN);
+	assert.equal(props.rounds, 99);
+	assert.equal(props.duplicateAttempts, 99);
+	assert.equal(
+		validateTelemetryEvent({
+			id: "fedcba98-7654-4321-8765-fedcba987654",
+			name: "minigame_session_ended",
+			at: "2026-07-21T10:00:00.000Z",
+			props,
+		}),
+		null,
+	);
 });
 
 test("flock-splits: a completed session reports the completed reason", () => {

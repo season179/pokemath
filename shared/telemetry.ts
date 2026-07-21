@@ -133,7 +133,9 @@ export const TELEMETRY_EVENTS: Record<string, TelemetryEventSpec> = {
   // learning question is whether kids voluntarily replay an open-ended loop,
   // so `rounds` (playthroughs in one visit) and `reason` carry that signal.
   // `splitsFound` is the distinct decompositions found in the final round;
-  // `duplicateAttempts` is session-total. No timing props (registry
+  // after replay it may be 0..2 even when sticky `reason` is `completed`, and
+  // `rounds > 1` distinguishes that voluntary-replay case. `duplicateAttempts`
+  // is session-total. No timing props (registry
   // convention) and no per-tap events — one row per orderly screen exit.
   minigame_session_ended: {
     summary: "Do kids voluntarily replay a non-battle mechanic?",

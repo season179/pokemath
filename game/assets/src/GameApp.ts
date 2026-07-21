@@ -690,11 +690,15 @@ export class GameApp {
   }
 
   private endMinigame(reason: "completed" | "exited", session: FlockSession): void {
-    this.telemetry.emit("minigame_session_ended", minigameSessionEndedProps(session, reason));
-    this.minigame?.root.destroy();
+    // Cocos destroys nodes at frame end. Clear the active screen first so a
+    // second touch queued in that frame cannot emit a duplicate visit event.
+    if (this.screen !== "minigame" || !this.minigame) return;
+    const screen = this.minigame;
     this.minigame = null;
+    this.telemetry.emit("minigame_session_ended", minigameSessionEndedProps(session, reason));
+    screen.root.destroy();
     this.returnToWorld(false);
-    this.telemetry.flush();
+    void this.telemetry.flush();
   }
 
   private returnToWorld(respawn: boolean): void {

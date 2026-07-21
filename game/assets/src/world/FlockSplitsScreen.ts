@@ -15,7 +15,6 @@ import { Color, EventTouch, EventKeyboard, Graphics, KeyCode, Node, UITransform 
 import { paintCellGrid } from "../questions/FigureView";
 import {
 	FLOCK_GOAL,
-	FlockSession,
 	applySubmit,
 	isComplete,
 	newFlockSession,
@@ -23,6 +22,7 @@ import {
 	returnToStaging,
 	sendToPen,
 	submitSplit,
+	type FlockSession,
 } from "./flock-splits";
 import {
 	PALETTE,
@@ -50,6 +50,8 @@ export class FlockSplitsScreen {
 	private aimedPen: 0 | 1 = 0;
 	/** Sticky: reached the completion screen at least once this visit. */
 	private completed = false;
+	/** Teardown is one-shot even if two inputs land before Cocos destroys the root. */
+	private closed = false;
 	private notice: { text: string; color: Color } | null = null;
 
 	constructor(
@@ -63,6 +65,8 @@ export class FlockSplitsScreen {
 	}
 
 	private leave(): void {
+		if (this.closed) return;
+		this.closed = true;
 		this.onExit(this.completed ? "completed" : "exited", this.session);
 	}
 
@@ -137,7 +141,7 @@ export class FlockSplitsScreen {
 
 	private drawPlaying(): void {
 		makeLabel(this.root, "分羊群 · Flock Splits", 0, 292, { fontSize: 30 });
-		makeLabel(this.root, "找出 10 的 3 种分法！  ·  Find 3 ways to split 10!", 0, 262, {
+		makeLabel(this.root, `找出 10 的 ${FLOCK_GOAL} 种分法！  ·  Find ${FLOCK_GOAL} ways to split 10!`, 0, 262, {
 			fontSize: 17,
 			color: PALETTE.sub,
 		});

@@ -128,10 +128,19 @@ export function replay(s: FlockSession): FlockSession {
 	return { ...newFlockSession(), rounds: s.rounds + 1, dupes: s.dupes };
 }
 
+/** Telemetry counters saturate at the registry's privacy-preserving bound. */
+const TELEMETRY_COUNTER_MAX = 99;
+
+function boundedCounter(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, value));
+}
+
 /**
  * The metadata-only `minigame_session_ended` props for one visit. Pure so the
  * payload is testable and the screen never hand-builds telemetry. No timing
  * props — the registry forbids them by convention (thinking time is unlimited).
+ * Session counters stay truthful in memory; only the bounded wire values
+ * saturate so a very long visit can never be rejected by the shared schema.
  */
 export function minigameSessionEndedProps(
 	s: FlockSession,
@@ -146,9 +155,9 @@ export function minigameSessionEndedProps(
 	return {
 		minigame: MINIGAME_ID,
 		reason,
-		splitsFound: s.found.length,
-		duplicateAttempts: s.dupes,
-		rounds: s.rounds,
+		splitsFound: boundedCounter(s.found.length, 0, MAX_SPLITS_OF_TEN),
+		duplicateAttempts: boundedCounter(s.dupes, 0, TELEMETRY_COUNTER_MAX),
+		rounds: boundedCounter(s.rounds, 1, TELEMETRY_COUNTER_MAX),
 	};
 }
 
